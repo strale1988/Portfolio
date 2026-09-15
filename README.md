@@ -16,6 +16,10 @@ portfolio/
   index.html
   css/style.css
   js/app.js
+  img/
+    favicon-16.png, favicon-32.png, favicon-48.png  ← browser tab icon
+    apple-touch-icon.png                              ← iOS home-screen icon
+    favicon-512.png                                    ← master, for regenerating other sizes
   data/profile.json      ← work history, skills, achievements, education, languages
   projects.json          ← list of project folder names, in any order
   projects/
