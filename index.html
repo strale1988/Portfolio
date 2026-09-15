@@ -22,8 +22,9 @@
 </head>
 <body>
 
+<canvas class="site-grid" aria-hidden="true"></canvas>
+
 <header class="hud">
-  <div class="hud-grid" aria-hidden="true"></div>
   <div class="hud-inner">
 
     <div class="hero-content">
@@ -45,6 +46,7 @@
   <a href="#gallery">Render gallery</a>
   <a href="#skills">Skills</a>
   <a href="#achievements">Achievements</a>
+  <a href="#education">Education</a>
   <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark theme">
     <span class="theme-toggle-icon" aria-hidden="true"></span>
   </button>
@@ -68,11 +70,8 @@
     <p class="section-sub">Archviz renders, interactive apps and tools.</p>
   </div>
   <nav class="filters" id="filters" aria-label="Filter projects by category"></nav>
-  <div class="timeline" id="timeline">
-    <div class="timeline-spine" aria-hidden="true"></div>
-    <div class="timeline-items" id="timeline-items">
-      <p class="loading">Loading work…</p>
-    </div>
+  <div class="projects-grid" id="timeline-items">
+    <p class="loading">Loading work…</p>
   </div>
 </section>
 

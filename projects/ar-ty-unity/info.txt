@@ -3,5 +3,4 @@ category: Interactive
 date: 2019–2023
 description: Full-cycle work at AR-TY spanning 3D art, animation, rigging and Unity3D app development, with R&D on integrating new technologies into the pipeline.
 tags: Unity3D, C#, Animation, Rigging, R&D
-cover: cover.svg
 # link: App / case study | https://your-url-here.com

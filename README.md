@@ -7,7 +7,7 @@ No build step, no framework. Plain HTML/CSS/JS reading plain-text project files.
 The site now has four separate sections so it's obvious what's what:
 
 - **Where I've worked** — your employment history (companies, roles, dates). Static, from `data/profile.json`.
-- **Projects** — the actual archviz/apps/tools, browsable by category. This is the folder-per-project system.
+- **Projects** — apps, tools and interactive projects, browsable by category, listed as text cards with links (no thumbnails). This is the folder-per-project system.
 - **Skills** — software, expertise, soft skills. From `data/profile.json`.
 - **Achievements** — rendering challenge placements. From `data/profile.json`.
 
@@ -20,10 +20,7 @@ portfolio/
   projects.json          ← list of project folder names, in any order
   projects/
     <slug>/
-      info.txt           ← the project's text file
-      cover.jpg           ← main image shown on the timeline
-      images/
-        1.jpg, 2.jpg, ... ← optional gallery, shown when you click the cover
+      info.txt           ← the project's text file (no images)
 ```
 
 ## Editing your work history, skills or achievements
@@ -34,23 +31,21 @@ Note: BINYAN's portfolio highlights (Armani Residences Diriyah, One Harbor Shore
 
 ## Adding a new project
 
-1. Duplicate any folder in `projects/`, rename it to a short slug (e.g. `ponce-park`).
+1. Duplicate any folder in `projects/`, rename it to a short slug (e.g. `my-new-app`).
 2. Edit its `info.txt`:
    ```
-   title: Ponce Park
-   category: Archviz
-   date: 2024
+   title: My New App
+   category: Tool
+   date: 2026
    description: One or two sentences about the project.
-   tags: 3ds Max, V-Ray
-   cover: cover.jpg
-   link: Project page | https://example.com
+   tags: JavaScript, Supabase
+   link: Live site | https://example.com
    ```
-   - `link:` can repeat (one per line) if you have more than one URL.
+   - `link:` can repeat (one per line) if you have more than one URL — e.g. one for the live app, one for the source code.
    - `tags:` is comma-separated.
    - Lines starting with `#` are ignored — handy for notes or a link you haven't filled in yet.
-3. Drop your cover image in as `cover.jpg` (or any filename — just match what's in `cover:`).
-4. Optional: drop extra images into `images/` named `1.jpg`, `2.jpg`, `3.jpg`... The site tries up to 10 and just skips whichever numbers don't exist.
-5. Add the folder's slug to `projects.json`. That's the only "code" file you touch.
+   - No image files needed — each project renders as a plain text card (category, date, title, description, tags, links).
+3. Add the folder's slug to `projects.json`. That's the only "code" file you touch.
 
 Categories are whatever you type after `category:` — the filter bar at the top builds itself from whatever categories exist across your projects, so introducing a new one (e.g. `Photography`) just works.
 
@@ -93,6 +88,6 @@ It's fully static — drag the `portfolio/` folder into Netlify/Vercel, or push 
 
 ## What's already in here
 
-Four sample projects seeded from your CV (TraceTheBreak, TraceTheToxin, StrTools, AR-TY) with placeholder cover graphics — swap those `cover.svg` placeholders for real renders/screenshots and fill in the commented-out `link:` lines. BINYAN's archviz highlights are handled separately as links under the BINYAN entry in Where I've Worked (see above), not as project folders.
+Three sample projects seeded from your CV (TraceTheBreak, TraceTheToxin, StrTools), rendered as plain text/link cards. AR-TY is kept as a work-history entry under Where I've Worked rather than a project folder. BINYAN's archviz highlights are handled the same way, as links under the BINYAN entry in Where I've Worked (see above).
 
 I couldn't pull anything from your LinkedIn directly (it's behind a login wall) — paste the links/descriptions here and I'll turn them into folders, or you can fill them in yourself following the pattern above.

@@ -9,6 +9,15 @@ window.scrollTo(0, 0);
 window.addEventListener('load', () => window.scrollTo(0, 0));
 
 // ---------------------------------------------------------------
+// Keep the page feeling "clean" — no right-click save/inspect menu,
+// no dragging images out, no accidental text selection from stray
+// clicks. CSS (user-select/user-drag) already blocks most of it;
+// this covers the couple of things CSS can't.
+// ---------------------------------------------------------------
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+document.addEventListener('dragstart', (e) => e.preventDefault());
+
+// ---------------------------------------------------------------
 // Theme toggle. The initial theme is set inline in <head> (before
 // paint, to avoid a flash); this just wires up the button to flip
 // and persist it.
@@ -66,7 +75,6 @@ function initHeaderParallax() {
 
   const hero = document.querySelector('.hero-content');
   const hud = document.querySelector('.hud');
-  const grid = document.querySelector('.hud-grid');
   if (!hero || !hud) return;
 
   const heroReadouts = document.querySelectorAll('.hud-readout');
@@ -88,14 +96,6 @@ function initHeaderParallax() {
       el.style.opacity = String(1 - progress * 1.3);
     });
 
-    // The grid behind the text moves faster than the page (>1x), so it
-    // recedes past the text and reads as a background plane instead of
-    // sitting flush with it. It's oversized in CSS so this never
-    // uncovers an edge.
-    if (grid) {
-      grid.style.transform = `translateY(${scrolled * -0.5}px)`;
-    }
-
     ticking = false;
   }
 
@@ -112,12 +112,190 @@ function initHeaderParallax() {
 initHeaderParallax();
 
 // ---------------------------------------------------------------
+// Site-wide grid: one canvas, fixed to the viewport, behind the
+// whole page (the hero included — .hud has no background of its
+// own, so this shows straight through it). Two things happen here
+// beyond just drawing lines:
+//
+//  1. Row placement is solved at runtime so no horizontal line
+//     ever cuts across the hero heading/subhead/meta/location text
+//     — it searches nearby cell sizes + vertical offsets and keeps
+//     whichever one (closest to the default size) clears every
+//     line of hero text, recomputed on resize/font-load/theme change.
+//  2. The cell(s) nearest the pointer glow with a soft falloff —
+//     brighter in dark mode, a touch richer/darker in light mode,
+//     since both just push more of the theme's own accent color
+//     into the cell — and fade back out once the pointer leaves.
+//
+// It's one grid, one canvas, fixed to the viewport for the whole
+// site (the hero included — .hud has no background of its own, so
+// this shows straight through it). Nothing here is tied to scroll
+// position, so the grid never appears to move as you scroll; only
+// the pointer glow does. Respects prefers-reduced-motion by keeping
+// the (still correctly aligned) static grid but skipping the
+// pointer-driven animation.
+// ---------------------------------------------------------------
+function initSiteGrid() {
+  const canvas = document.querySelector('.site-grid');
+  if (!canvas || !canvas.getContext) return;
+
+  const ctx = canvas.getContext('2d');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DEFAULT_CELL = 40;
+  const MIN_CELL = 30;
+  const MAX_CELL = 56;
+  const TEXT_CLEARANCE = 6; // breathing room (px) kept around each text line
+
+  let cssWidth = 0, cssHeight = 0;
+  let cell = DEFAULT_CELL, rowOffset = 0;
+  let lineColor = 'rgba(0,0,0,0.05)';
+
+  function readColor() {
+    lineColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-line').trim() || lineColor;
+  }
+
+  function hasClash(candidateCell, offset, bands) {
+    for (let y = offset; y < cssHeight; y += candidateCell) {
+      for (const [top, bottom] of bands) {
+        if (y >= top && y <= bottom) return true;
+      }
+    }
+    return false;
+  }
+
+  // Search for the cell size (closest to DEFAULT_CELL) + vertical
+  // offset where no horizontal line lands inside any hero text box.
+  // Hero elements are only near the top of the page, so this only
+  // ever matters while the hero is (or was, at last resize) in view.
+  function solveRowLayout() {
+    const heroEls = document.querySelectorAll('.hero-content > *');
+    if (!heroEls.length) return { cell: DEFAULT_CELL, offset: 0 };
+
+    const bands = Array.from(heroEls).map(el => {
+      const r = el.getBoundingClientRect();
+      return [r.top - TEXT_CLEARANCE, r.bottom + TEXT_CLEARANCE];
+    });
+
+    for (let c = DEFAULT_CELL; c <= MAX_CELL; c++) {
+      for (let offset = 0; offset < c; offset += 2) {
+        if (!hasClash(c, offset, bands)) return { cell: c, offset };
+      }
+    }
+    for (let c = DEFAULT_CELL - 1; c >= MIN_CELL; c--) {
+      for (let offset = 0; offset < c; offset += 2) {
+        if (!hasClash(c, offset, bands)) return { cell: c, offset };
+      }
+    }
+    return { cell: DEFAULT_CELL, offset: 0 };
+  }
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cssWidth = window.innerWidth;
+    cssHeight = window.innerHeight;
+    canvas.width = Math.round(cssWidth * dpr);
+    canvas.height = Math.round(cssHeight * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const layout = solveRowLayout();
+    cell = layout.cell;
+    rowOffset = layout.offset;
+    readColor();
+    draw();
+  }
+
+  function hexToRgba(hex, alpha) {
+    let h = hex.replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const num = parseInt(h, 16);
+    if (Number.isNaN(num)) return `rgba(20,150,140,${alpha})`;
+    return `rgba(${(num >> 16) & 255},${(num >> 8) & 255},${num & 255},${alpha})`;
+  }
+
+  // Pointer glow: smoothed toward the cursor each frame, faded out
+  // once the pointer leaves. Only animates when motion is allowed.
+  const glow = { x: -9999, y: -9999, drawX: -9999, drawY: -9999, strength: 0, target: 0 };
+  let rafId = null;
+
+  function onPointerMove(e) {
+    glow.x = e.clientX;
+    glow.y = e.clientY;
+    glow.target = 1;
+    ensureLoop();
+  }
+  function onPointerLeave() {
+    glow.target = 0;
+    ensureLoop();
+  }
+  function ensureLoop() {
+    if (!rafId && !reduceMotion) rafId = requestAnimationFrame(loop);
+  }
+  function loop() {
+    rafId = null;
+    glow.strength += (glow.target - glow.strength) * 0.18;
+    glow.drawX += (glow.x - glow.drawX) * 0.25;
+    glow.drawY += (glow.y - glow.drawY) * 0.25;
+    draw();
+
+    const settledStrength = Math.abs(glow.strength - glow.target) < 0.01;
+    const settledPos = Math.hypot(glow.x - glow.drawX, glow.y - glow.drawY) < 0.5;
+    if (!settledStrength || !settledPos) rafId = requestAnimationFrame(loop);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+    if (glow.strength > 0.01) {
+      const col = Math.floor(glow.drawX / cell);
+      const row = Math.floor((glow.drawY - rowOffset) / cell);
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const accent = getComputedStyle(document.documentElement).getPropertyValue('--teal').trim();
+
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const cx = (col + dc) * cell;
+          const cy = rowOffset + (row + dr) * cell;
+          const dist = Math.hypot(cx + cell / 2 - glow.drawX, cy + cell / 2 - glow.drawY);
+          const falloff = Math.max(0, 1 - dist / (cell * 1.6));
+          if (falloff <= 0) continue;
+          const alpha = falloff * glow.strength * (isDark ? 0.22 : 0.14);
+          if (alpha <= 0.003) continue;
+          ctx.fillStyle = hexToRgba(accent, alpha);
+          ctx.fillRect(cx, cy, cell, cell);
+        }
+      }
+    }
+
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 0; x <= cssWidth + 1; x += cell) {
+      ctx.moveTo(Math.round(x) + 0.5, 0);
+      ctx.lineTo(Math.round(x) + 0.5, cssHeight);
+    }
+    for (let y = ((rowOffset % cell) + cell) % cell; y <= cssHeight + 1; y += cell) {
+      ctx.moveTo(0, Math.round(y) + 0.5);
+      ctx.lineTo(cssWidth, Math.round(y) + 0.5);
+    }
+    ctx.stroke();
+  }
+
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('pointerleave', onPointerLeave);
+  window.addEventListener('resize', resize);
+  document.fonts?.ready?.then(resize);
+  new MutationObserver(resize).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  resize();
+}
+
+initSiteGrid();
+
+// ---------------------------------------------------------------
 // Portfolio timeline renderer.
 // Reads /projects.json (a list of folder names), then reads
 // /projects/<slug>/info.txt for each one. No build step required.
 // ---------------------------------------------------------------
-
-const MAX_GALLERY_PROBE = 10; // tries images/1.jpg .. images/10.jpg
 
 async function loadManifest() {
   const res = await fetch('projects.json');
@@ -137,7 +315,7 @@ async function loadProject(slug) {
 // - `link:` may repeat; format is "Label | https://url".
 // - `tags:` is a comma separated list.
 function parseInfo(raw, slug) {
-  const project = { slug, title: slug, category: 'Uncategorized', date: '', description: '', tags: [], links: [], cover: 'images/cover.jpg' };
+  const project = { slug, title: slug, category: 'Uncategorized', date: '', description: '', tags: [], links: [] };
   const lines = raw.split('\n');
   for (const line of lines) {
     const trimmed = line.trim();
@@ -151,7 +329,6 @@ function parseInfo(raw, slug) {
       case 'category': project.category = value; break;
       case 'date': project.date = value; break;
       case 'description': project.description = value; break;
-      case 'cover': project.cover = value; break;
       case 'tags': project.tags = value.split(',').map(s => s.trim()).filter(Boolean); break;
       case 'link': {
         const [label, url] = value.split('|').map(s => s.trim());
@@ -169,40 +346,20 @@ function sortYear(dateStr) {
   const match = dateStr.match(/\d{4}/g);
   return match ? parseInt(match[match.length - 1], 10) : 0;
 }
-function firstYearLabel(dateStr) {
-  const match = dateStr.match(/\d{4}/);
-  return match ? match[0] : dateStr;
-}
 
-function buildFrame(project) {
-  const frame = document.createElement('div');
-  frame.className = 'frame';
-  frame.innerHTML = `
-    <img src="projects/${project.slug}/${project.cover}" alt="${project.title} cover" loading="lazy"
-         onerror="this.closest('.frame').style.background='var(--panel-raised)'; this.remove();">
-  `;
-  frame.addEventListener('click', () => toggleGallery(project, frame.closest('.project-card')));
-  return frame;
-}
-
-function toggleGallery(project, cardEl) {
-  let gallery = cardEl.querySelector('.gallery');
-  if (gallery) {
-    gallery.classList.toggle('open');
-    return;
-  }
-  gallery = document.createElement('div');
-  gallery.className = 'gallery open';
-  cardEl.appendChild(gallery);
-
-  for (let i = 1; i <= MAX_GALLERY_PROBE; i++) {
-    const img = document.createElement('img');
-    img.loading = 'lazy';
-    img.alt = `${project.title} detail ${i}`;
-    img.onerror = () => img.remove();
-    img.src = `projects/${project.slug}/images/${i}.jpg`;
-    gallery.appendChild(img);
-  }
+// Makes a div behave like a button for keyboard users: focusable,
+// announced correctly, and activated by Enter or Space — same as
+// the click handler already wired up on it.
+function makeActivatable(el, label) {
+  el.tabIndex = 0;
+  el.setAttribute('role', 'button');
+  if (label) el.setAttribute('aria-label', label);
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      el.click();
+    }
+  });
 }
 
 function buildCard(project) {
@@ -210,18 +367,15 @@ function buildCard(project) {
   card.className = 'project-card';
   card.dataset.category = project.category;
 
-  const body = document.createElement('div');
-  body.className = 'project-body';
-
   const tagsRow = project.tags.length
     ? `<div class="tag-list">${project.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`
     : '';
 
   const linksRow = project.links.length
-    ? `<div class="links-row">${project.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`).join('')}</div>`
+    ? `<div class="links-row">${project.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('')}</div>`
     : '';
 
-  body.innerHTML = `
+  card.innerHTML = `
     <div class="project-tags-row">
       <span class="meta-chip category">${project.category}</span>
       <span class="meta-chip">${project.date}</span>
@@ -232,8 +386,6 @@ function buildCard(project) {
     ${linksRow}
   `;
 
-  card.appendChild(buildFrame(project));
-  card.appendChild(body);
   return card;
 }
 
@@ -250,17 +402,8 @@ function render(projects, activeCategory) {
     return;
   }
 
-  let lastYear = null;
   let i = 0;
   for (const project of filtered) {
-    const year = firstYearLabel(project.date);
-    if (year !== lastYear) {
-      const marker = document.createElement('div');
-      marker.className = 'year-marker';
-      markReveal(marker);
-      container.appendChild(marker);
-      lastYear = year;
-    }
     const card = buildCard(project);
     markReveal(card, i++ % 6);
     container.appendChild(card);
@@ -302,7 +445,10 @@ function renderExperience(experience) {
         ? `<div class="exp-links">
              <p class="exp-links-label">Portfolio highlights</p>
              <div class="exp-links-row">
-               ${pos.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`).join('')}
+               ${pos.links.map(l => l.url
+                 ? `<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`
+                 : `<span class="exp-link-plain">${l.label}</span>`
+               ).join('')}
              </div>
            </div>`
         : '';
@@ -362,6 +508,7 @@ function renderGallery(images) {
     item.className = 'gallery-item';
     item.innerHTML = `<img src="gallery/${image.file}" alt="${image.caption || 'Render'}" loading="lazy">`;
     item.addEventListener('click', () => openLightbox(i));
+    makeActivatable(item, image.caption ? `Open render: ${image.caption}` : 'Open render');
     item.querySelector('img').onerror = function () { item.remove(); };
     markReveal(item, i % 6);
     container.appendChild(item);

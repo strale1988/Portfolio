@@ -4,5 +4,4 @@ category: Web app
 date: 2025–2026
 description: A civic infrastructure reporting platform — residents log road hazards and utility breaks on an interactive map, with photo verification and moderation running behind the scenes.
 tags: Supabase, Leaflet.js, Cloudflare Workers, Vanilla JS
-cover: cover.svg
 link: Live site | https://break.tracethestuff.com/
