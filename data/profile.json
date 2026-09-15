@@ -1,0 +1,221 @@
+{
+  "experience": [
+    {
+      "company": "Alicetech",
+      "positions": [
+        {
+          "role": "3D Artist & Animator",
+          "date": "Dec 2025 – Present",
+          "bullets": [
+            "Created high-quality 3D assets, renderings and animations for commercial projects."
+          ],
+          "links": []
+        }
+      ]
+    },
+    {
+      "company": "BINYAN",
+      "positions": [
+        {
+          "role": "3D Artist",
+          "date": "Nov 2024 – Nov 2025",
+          "bullets": [
+            "Focused on high-quality architectural visualization and rendering for global luxury developments.",
+            "Applied advanced modeling and lighting techniques to achieve photo-realistic results."
+          ],
+          "links": [
+            {
+              "label": "Armani Residences Diriyah",
+              "url": "https://www.binyanstudios.com/projects/armani-residences-diriyah/"
+            },
+            {
+              "label": "One Harbor Shore Drive",
+              "url": "https://www.binyanstudios.com/"
+            },
+            {
+              "label": "Hollywood Moon Miami",
+              "url": "https://www.binyanstudios.com/"
+            },
+            {
+              "label": "Vela Viento",
+              "url": "https://www.fosterandpartners.com/projects/vela-and-vela-viento"
+            },
+            {
+              "label": "The Standard Residences Brickell",
+              "url": "https://www.binyanstudios.com/"
+            },
+            {
+              "label": "Amancaya",
+              "url": "https://www.aman.com/amancaya"
+            },
+            {
+              "label": "Ponce Park",
+              "url": "https://poncepark.miami/"
+            },
+            {
+              "label": "89 Dekalb Brooklyn",
+              "url": "https://www.binyanstudios.com/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "company": "ANTEVASIN",
+      "positions": [
+        {
+          "role": "3D Artist",
+          "date": "Feb 2024 – Sep 2024",
+          "bullets": [
+            "Created high-quality 3D assets and renderings for commercial projects."
+          ],
+          "links": [
+            {
+              "label": "Belgrade Waterfront",
+              "url": "https://www.belgradewaterfront.com/en/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "company": "AR-TY",
+      "positions": [
+        {
+          "role": "Unity3D Developer / 3D Artist / R&D / Animator",
+          "date": "Apr 2019 – Jun 2023",
+          "bullets": [
+            "Executed tasks covering the full development cycle: 3D art, animation, rigging, and Unity3D app development.",
+            "Conducted Research and Development (R&D) to integrate new technologies and improve project quality."
+          ],
+          "links": [
+            {
+              "label": "Novi Dorćol",
+              "url": "https://www.novidorcol.rs/en/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "company": "CASE3D",
+      "positions": [
+        {
+          "role": "Technical Director / 3D Artist / Animator / R&D",
+          "date": "Oct 2017 – Oct 2018",
+          "bullets": [
+            "Provided technical direction for visualization projects.",
+            "Responsible for pipeline development and optimization of project organization."
+          ]
+        },
+        {
+          "role": "3D Artist",
+          "date": "Jan 2012 – Nov 2017",
+          "bullets": [
+            "Specialized in high-precision hard and organic surface modeling, texturing, lighting, and rendering."
+          ],
+          "links": [
+            {
+              "label": "Belgrade Waterfront",
+              "url": "https://www.belgradewaterfront.com/en/"
+            },
+            {
+              "label": "Porto Montenegro",
+              "url": "https://www.case-3d.com/projects/portomontenegro"
+            },
+            {
+              "label": "Dubai Creek Harbour",
+              "url": "https://www.case-3d.com/projects/project-0"
+            },
+            {
+              "label": "Portonovi",
+              "url": "https://www.case-3d.com/projects/portonovi"
+            },
+            {
+              "label": "Address Hotel & Residences",
+              "url": "https://www.case-3d.com/projects/address-hotel-residences"
+            },
+            {
+              "label": "Vida Palace",
+              "url": "https://www.case-3d.com/projects/vida-palace"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "skills": {
+    "software": [
+      "Autodesk 3ds Max — V-Ray, Corona Renderer, Forest Pack, RailClone, MultiScatter, PhoenixFD, etc.",
+      "Adobe — Photoshop, After Effects, Premiere, Lightroom, Substance Painter, etc.",
+      "Unity3D, AutoCAD, AXYZ Anima, Mudbox, ArchiCAD, Marvelous Designer, Vicon Boujou, Agisoft PhotoScan, SpeedTree, World Machine, SketchUp, Rhino, Revit, etc.",
+      "Programming — C#, Basic, MaxScript, HTML5, JS, CSS",
+      "AI — Stable Diffusion, Gemini Nano Banana, Firefly, etc."
+    ],
+    "expertise": [
+      "High-precision hard and organic surface modeling",
+      "Texturing, lighting, animating, rigging, rendering",
+      "Photography, post-production, compositing, VFX",
+      "Camera tracking and matching, video and audio editing",
+      "2D and 3D matte painting, camera projection",
+      "Tools creation",
+      "Optimization, organization"
+    ],
+    "soft": [
+      "Technical direction",
+      "Project organization and optimization",
+      "Pipeline development"
+    ]
+  },
+  "achievements": [
+    {
+      "year": "2020",
+      "title": "Macintosh Rendering Challenge",
+      "result": "1st place"
+    },
+    {
+      "year": "2020",
+      "title": "Star Wars Rendering Challenge",
+      "result": "3rd place"
+    },
+    {
+      "year": "2018",
+      "title": "Evermotion Challenge",
+      "result": "Honorable mention — +anima 4 splash screen"
+    },
+    {
+      "year": "2017",
+      "title": "CROWDED miniCHALLENGE#05",
+      "result": "1st place — +anima 3 splash screen"
+    },
+    {
+      "year": "2016",
+      "title": "Evermotion Challenge",
+      "result": "3rd place"
+    }
+  ],
+  "education": [
+    {
+      "school": "Faculty of Technical Science",
+      "location": "Novi Sad, Serbia"
+    },
+    {
+      "school": "Gymnasium \"Nikola Tesla\"",
+      "location": "Apatin, Serbia"
+    }
+  ],
+  "languages": [
+    {
+      "lang": "English",
+      "level": "C1"
+    },
+    {
+      "lang": "Greek",
+      "level": "B1"
+    },
+    {
+      "lang": "Serbian",
+      "level": "Native"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+title: Armani Residences Diriyah
+category: Archviz
+date: 2024–2025
+description: High-end architectural visualization for a luxury residential development, focused on photo-realistic lighting and material work at BINYAN.
+tags: 3ds Max, V-Ray, Corona Renderer
+cover: cover.svg
+link: Project page (BINYAN) | https://www.binyanstudios.com/projects/armani-residences-diriyah/

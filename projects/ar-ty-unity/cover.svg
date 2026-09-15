@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#1e2022"/>
+  <g stroke="#2a2c2f" stroke-width="1">
+    <line x1="0" y1="75" x2="400" y2="75"/>
+    <line x1="0" y1="150" x2="400" y2="150"/>
+    <line x1="0" y1="225" x2="400" y2="225"/>
+    <line x1="100" y1="0" x2="100" y2="300"/>
+    <line x1="200" y1="0" x2="200" y2="300"/>
+    <line x1="300" y1="0" x2="300" y2="300"/>
+  </g>
+  <g stroke="#19b6a4" stroke-width="2" fill="none">
+    <path d="M20 20 h20 v0 M20 20 v20"/>
+    <path d="M380 20 h-20 M380 20 v20"/>
+    <path d="M20 280 h20 M20 280 v-20"/>
+    <path d="M380 280 h-20 M380 280 v-20"/>
+  </g>
+  <text x="200" y="155" font-family="monospace" font-size="15" fill="#8c8f95" text-anchor="middle">AR-TY / UNITY3D</text>
+  <text x="200" y="175" font-family="monospace" font-size="10" fill="#5a5d61" text-anchor="middle">add cover.jpg to replace</text>
+</svg>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strahinja Dražić — Work</title>
+<meta name="description" content="Visualization, animation, design and programming — work history, projects, skills and achievements.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script>
+  // Applied before paint so there's no flash of the wrong theme.
+  // Light is the default; dark only kicks in if the visitor
+  // explicitly picked it before (saved in localStorage).
+  (function(){
+    var saved = localStorage.getItem('theme');
+    var theme = saved === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+</head>
+<body>
+
+<header class="hud">
+  <div class="hud-grid" aria-hidden="true"></div>
+  <div class="hud-inner">
+
+    <div class="hero-content">
+      <h1>Strahinja Dražić</h1>
+      <p class="hero-disciplines">Visualization <span>&middot;</span> Animation <span>&middot;</span> Architectural Design <span>&middot;</span> Apps</p>
+      <div class="hero-meta">
+        <span>Est. 2012</span>
+      </div>
+      <div class="hero-location">NOVI SAD, RS — N 45.2671&deg; E 19.8335&deg;</div>
+    </div>
+
+    <div class="hud-readout bottom-left">scroll<span class="scroll-arrow">↓</span></div>
+  </div>
+</header>
+
+<nav class="site-nav">
+  <a href="#work">Where I've worked</a>
+  <a href="#projects">Projects</a>
+  <a href="#gallery">Render gallery</a>
+  <a href="#skills">Skills</a>
+  <a href="#achievements">Achievements</a>
+  <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark theme">
+    <span class="theme-toggle-icon" aria-hidden="true"></span>
+  </button>
+</nav>
+
+<!-- ===================== WORK HISTORY ===================== -->
+<section id="work" class="section">
+  <div class="section-head">
+    <h2>Where I've worked</h2>
+    <p class="section-sub">Employment history.</p>
+  </div>
+  <div class="exp-list" id="exp-list">
+    <p class="loading">Loading…</p>
+  </div>
+</section>
+
+<!-- ===================== PROJECTS ===================== -->
+<section id="projects" class="section">
+  <div class="section-head">
+    <h2>Projects</h2>
+    <p class="section-sub">Archviz renders, interactive apps and tools.</p>
+  </div>
+  <nav class="filters" id="filters" aria-label="Filter projects by category"></nav>
+  <div class="timeline" id="timeline">
+    <div class="timeline-spine" aria-hidden="true"></div>
+    <div class="timeline-items" id="timeline-items">
+      <p class="loading">Loading work…</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RENDER GALLERY ===================== -->
+<section id="gallery" class="section">
+  <div class="section-head">
+    <h2>Render gallery</h2>
+    <p class="section-sub">Standalone stills.</p>
+  </div>
+  <div class="gallery-grid" id="gallery-grid">
+    <p class="loading">Loading…</p>
+  </div>
+</section>
+
+<!-- Lightbox for the render gallery -->
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <button class="lightbox-close" id="lightbox-close" aria-label="Close">&times;</button>
+  <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous image">&#8249;</button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="">
+  <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next image">&#8250;</button>
+  <p class="lightbox-caption" id="lightbox-caption"></p>
+</div>
+
+<!-- ===================== SKILLS ===================== -->
+<section id="skills" class="section">
+  <div class="section-head">
+    <h2>Skills</h2>
+    <p class="section-sub">Software, technical expertise and how I work.</p>
+  </div>
+  <div class="skills-grid" id="skills-grid">
+    <p class="loading">Loading…</p>
+  </div>
+</section>
+
+<!-- ===================== ACHIEVEMENTS ===================== -->
+<section id="achievements" class="section">
+  <div class="section-head">
+    <h2>Achievements</h2>
+    <p class="section-sub">Rendering challenges and community placements.</p>
+  </div>
+  <div class="achievements-list" id="achievements-list">
+    <p class="loading">Loading…</p>
+  </div>
+</section>
+
+<!-- ===================== EDUCATION ===================== -->
+<section id="education" class="section section-tight">
+  <div class="edu-lang-grid" id="edu-lang-grid">
+    <p class="loading">Loading…</p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div>
+    <p>Strahinja Dražić <span class="footer-dot">&middot;</span> <span id="footer-email"></span> <span class="footer-dot">&middot;</span> <span id="footer-phone"></span> <span class="footer-dot">&middot;</span> <a href="https://www.linkedin.com/in/strahinja-drazic" target="_blank" rel="noopener">LinkedIn</a></p>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>

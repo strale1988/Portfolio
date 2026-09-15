@@ -1,0 +1,8 @@
+title: One Harbor Shore Drive, Hollywood Moon Miami, Vela Viento
+category: Archviz
+date: 2024–2025
+description: A cluster of luxury residential visualization projects at BINYAN — replace this with one folder per project once you have images for each.
+tags: 3ds Max, V-Ray, Corona Renderer
+cover: cover.svg
+# No dedicated BINYAN project page found for these three specifically — linking the studio's main site instead.
+link: BINYAN Studios | https://www.binyanstudios.com/
