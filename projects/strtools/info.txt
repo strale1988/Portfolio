@@ -1,6 +1,6 @@
 title: StrTools
 category: Tool
-date: 2015–2026
+date: 2014–2026
 description: A MAXScript toolset for 3ds Max: one-click tools for modeling cleanup, pivots, UVWs, layers and scene organization, built to speed up architectural visualization workflows. Publicly released on ScriptSpot and still maintained (currently v2.88).
 tags: MAXScript, 3ds Max, Pipeline
 link: ScriptSpot page | https://scriptspot.com/3ds-max/scripts/strtools
