@@ -124,9 +124,7 @@ initHeaderParallax();
 //  2. Every active pointer (mouse, pen, or a finger per touch) gets
 //     its own glow that eases toward it and brightens with how fast
 //     it's moving.
-//  3. Clicking/tapping sends a ring of lit cells expanding outward
-//     from that point.
-//  4. Random cells across the grid quietly light up and fade on
+//  3. Random cells across the grid quietly light up and fade on
 //     their own the whole time, so the background never looks inert.
 //
 // Nothing here is tied to scroll position, so the grid never
@@ -144,8 +142,6 @@ function initSiteGrid() {
   const MIN_CELL = 30;
   const MAX_CELL = 56;
   const TEXT_CLEARANCE = 6; // breathing room (px) kept around each text line
-  const RIPPLE_DURATION = 700; // ms
-  const RIPPLE_MAX_RADIUS_CELLS = 6;
   const FLICKER_DURATION = 900; // ms
   const FLICKER_MIN_GAP = 500; // ms between ambient flickers
   const FLICKER_MAX_GAP = 1600;
@@ -219,12 +215,10 @@ function initSiteGrid() {
 
   // ---- interaction state -----------------------------------------
   // One glow per active input (mouse/pen keyed 'mouse', each finger
-  // keyed by its touch identifier), plus short-lived click ripples
-  // and ambient flickers. All three are just objects that fade
-  // in/out over time; the render loop keeps running only while at
-  // least one of them is still alive.
+  // keyed by its touch identifier), plus ambient flickers. Both are
+  // just objects that fade in/out over time; the render loop keeps
+  // running only while at least one of them is still alive.
   const pointers = new Map();
-  const ripples = [];
   const flickers = [];
   let rafId = null;
   let flickerTimerId = null;
@@ -240,9 +234,20 @@ function initSiteGrid() {
   }
 
   function moveGlow(id, x, y) {
+    const isNew = !pointers.has(id);
     const p = getPointer(id);
     p.x = x;
     p.y = y;
+    // A pointer that has just appeared starts life parked off-screen,
+    // so easing it in would fling a bright glow across the viewport
+    // from the corner on every new touch. Snap it to where the input
+    // actually is instead, and zero the speed so it doesn't read as a
+    // fast flick on its first frame.
+    if (isNew) {
+      p.drawX = p.prevDrawX = x;
+      p.drawY = p.prevDrawY = y;
+      p.speed = 0;
+    }
     p.target = 1;
     ensureLoop();
   }
@@ -250,11 +255,6 @@ function initSiteGrid() {
   function releaseGlow(id) {
     const p = pointers.get(id);
     if (p) p.target = 0;
-    ensureLoop();
-  }
-
-  function spawnRipple(x, y) {
-    ripples.push({ x, y, start: performance.now() });
     ensureLoop();
   }
 
@@ -307,12 +307,11 @@ function initSiteGrid() {
       }
     }
 
-    const rippleAlive = ripples.length > 0;
     const flickerAlive = flickers.length > 0;
 
     draw(now);
 
-    if (stillActive || rippleAlive || flickerAlive) rafId = requestAnimationFrame(loop);
+    if (stillActive || flickerAlive) rafId = requestAnimationFrame(loop);
   }
 
   function fillCell(col, row, alpha, accentRgba) {
@@ -326,9 +325,7 @@ function initSiteGrid() {
 
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const tealHex = getComputedStyle(document.documentElement).getPropertyValue('--teal').trim();
-    const amberHex = getComputedStyle(document.documentElement).getPropertyValue('--amber').trim();
     const tealRgba = (a) => hexToRgba(tealHex, a);
-    const amberRgba = (a) => hexToRgba(amberHex, a);
     const baseGlowAlpha = isDark ? 0.22 : 0.14;
 
     // Base grid, straight and cheap.
@@ -372,34 +369,6 @@ function initSiteGrid() {
       }
     }
 
-    // Click / tap ripples: an expanding ring of lit cells.
-    for (let i = ripples.length - 1; i >= 0; i--) {
-      const r = ripples[i];
-      const age = now - r.start;
-      if (age > RIPPLE_DURATION) { ripples.splice(i, 1); continue; }
-      const t = age / RIPPLE_DURATION;
-      const radius = t * cell * RIPPLE_MAX_RADIUS_CELLS;
-      const alpha = (1 - t) * 0.4;
-      const band = cell * 0.55;
-
-      const minCol = Math.floor((r.x - radius - band) / cell);
-      const maxCol = Math.floor((r.x + radius + band) / cell);
-      const minRow = Math.floor((r.y - radius - band - rowOffset) / cell);
-      const maxRow = Math.floor((r.y + radius + band - rowOffset) / cell);
-
-      for (let row = minRow; row <= maxRow; row++) {
-        for (let col = minCol; col <= maxCol; col++) {
-          const cx = col * cell + cell / 2;
-          const cy = rowOffset + row * cell + cell / 2;
-          const dist = Math.hypot(cx - r.x, cy - r.y);
-          const ringDist = Math.abs(dist - radius);
-          if (ringDist > band) continue;
-          const cellAlpha = alpha * Math.max(0, 1 - ringDist / band);
-          fillCell(col, row, cellAlpha, amberRgba);
-        }
-      }
-    }
-
     // Ambient flicker: a single cell softly breathing in/out.
     for (let i = flickers.length - 1; i >= 0; i--) {
       const f = flickers[i];
@@ -431,7 +400,6 @@ function initSiteGrid() {
   function onPointerDown(e) {
     if (e.pointerType === 'touch') return;
     moveGlow('mouse', e.clientX, e.clientY);
-    spawnRipple(e.clientX, e.clientY);
   }
   function onPointerLeave(e) {
     if (e.pointerType === 'touch') return;
@@ -440,7 +408,6 @@ function initSiteGrid() {
   function onTouchStart(e) {
     for (const t of e.changedTouches) {
       moveGlow(`touch-${t.identifier}`, t.clientX, t.clientY);
-      spawnRipple(t.clientX, t.clientY);
     }
   }
   function onTouchMove(e) {
