@@ -57,7 +57,6 @@ body{ transition: background-color 0.25s ease, color 0.25s ease; }
 
 body{
   margin: 0;
-  counter-reset: plate;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
@@ -206,8 +205,32 @@ a{ color: inherit; }
 }
 .site-nav a:hover{ color: var(--teal); }
 
-.theme-toggle{
+/* Set via IntersectionObserver in app.js as each section crosses
+   the middle of the viewport — see initActiveNav(). */
+.site-nav a.active{
+  color: var(--teal);
+}
+
+.cv-download{
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-decoration: none;
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 5px 12px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+.cv-download:hover{ color: var(--teal); border-color: var(--teal); }
+.cv-download-icon{ font-size: 12px; line-height: 1; }
+
+.theme-toggle{
+  margin-left: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -264,28 +287,10 @@ a{ color: inherit; }
 }
 .section-tight{ padding-top: 32px; padding-bottom: 56px; }
 
-/* A small index number set in the margin beside each section
-   heading, like a plate/sheet number on a drawing set — only
-   shown once there's real margin to put it in. */
 .section-head{
   position: relative;
+  margin-bottom: 36px;
 }
-.section-head::before{
-  counter-increment: plate;
-  content: counter(plate, decimal-leading-zero);
-  position: absolute;
-  left: -96px;
-  top: 3px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--text-dim);
-}
-@media (max-width: 1320px){
-  .section-head::before{ display: none; }
-}
-
-.section-head{ margin-bottom: 36px; }
 .section-head h2{
   font-family: var(--font-display);
   font-size: 1.9rem;
@@ -707,8 +712,68 @@ a{ color: inherit; }
   .site-nav{ gap: 16px; flex-wrap: wrap; }
 }
 
+/* ---------- Cursor-following accent ---------- */
+/* A small soft glow that trails the pointer, positioned via
+   transform in app.js (initCursorAccent) rather than left/top so
+   the browser can composite it on its own layer. Desktop/mouse
+   only — see the (hover: hover) guard and the JS-side check. */
+.cursor-accent{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: 50%;
+  background: var(--teal);
+  opacity: 0;
+  filter: blur(6px);
+  pointer-events: none;
+  z-index: 40;
+  transition: opacity 0.3s ease;
+  will-change: transform;
+}
+.cursor-accent.visible{ opacity: 0.35; }
+@media (hover: none){
+  .cursor-accent{ display: none; }
+}
+
+/* ---------- Back to top ---------- */
+.back-to-top{
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.back-to-top.visible{
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.back-to-top:hover{ color: var(--teal); border-color: var(--teal); }
+
+@media (max-width: 720px){
+  .back-to-top{ right: 16px; bottom: 16px; width: 38px; height: 38px; }
+}
+
 @media (prefers-reduced-motion: reduce){
   *{ animation: none !important; transition: none !important; }
   html{ scroll-behavior: auto; }
   .reveal{ opacity: 1; transform: none; }
+  .cursor-accent{ display: none; }
 }

@@ -148,6 +148,124 @@ initSitePreloader();
 initHeaderParallax();
 
 // ---------------------------------------------------------------
+// Cursor-following accent: a soft glow that trails the pointer.
+// Positioned with a transform (translate3d) rather than left/top so
+// it stays on its own compositor layer, and eased with a simple
+// lerp each frame instead of jumping straight to the pointer, which
+// reads as a much smoother "follow" than 1:1 tracking. Mouse/trackpad
+// only — the CSS already hides it on touch via (hover: none), and
+// this skips the work entirely for reduced-motion visitors.
+// ---------------------------------------------------------------
+function initCursorAccent() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (window.matchMedia('(hover: none)').matches) return;
+
+  const el = document.getElementById('cursor-accent');
+  if (!el) return;
+
+  let targetX = window.innerWidth / 2;
+  let targetY = window.innerHeight / 2;
+  let x = targetX;
+  let y = targetY;
+  let raf = null;
+
+  function frame() {
+    // Ease toward the target instead of snapping to it.
+    x += (targetX - x) * 0.18;
+    y += (targetY - y) * 0.18;
+    el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    raf = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener('pointermove', (e) => {
+    if (e.pointerType && e.pointerType !== 'mouse') return;
+    targetX = e.clientX;
+    targetY = e.clientY;
+    el.classList.add('visible');
+    if (!raf) raf = requestAnimationFrame(frame);
+  }, { passive: true });
+
+  document.addEventListener('pointerleave', () => el.classList.remove('visible'));
+}
+
+initCursorAccent();
+
+// ---------------------------------------------------------------
+// Back-to-top button: fades in once you've scrolled past one
+// viewport height, scrolls smoothly back to the top on click.
+// ---------------------------------------------------------------
+function initBackToTop() {
+  const btn = document.getElementById('back-to-top');
+  if (!btn) return;
+
+  const THRESHOLD = window.innerHeight;
+  let ticking = false;
+
+  function update() {
+    btn.classList.toggle('visible', window.scrollY > THRESHOLD);
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  btn.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    });
+  });
+
+  update();
+}
+
+initBackToTop();
+
+// ---------------------------------------------------------------
+// Active section highlighting: marks the nav link for whichever
+// section currently occupies the middle band of the viewport.
+// IntersectionObserver-based (not a scroll listener) so it stays
+// cheap and doesn't fight with the reveal-on-scroll observer.
+// ---------------------------------------------------------------
+function initActiveNav() {
+  const navLinks = Array.from(document.querySelectorAll('.site-nav a[href^="#"]'));
+  if (!navLinks.length) return;
+
+  const sections = navLinks
+    .map(a => document.querySelector(a.getAttribute('href')))
+    .filter(Boolean);
+  if (!sections.length) return;
+
+  const linkFor = (id) => navLinks.find(a => a.getAttribute('href') === `#${id}`);
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const link = linkFor(entry.target.id);
+      if (!link) return;
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  }, {
+    // Counts a section as "current" once it's crossed the middle
+    // of the viewport, and stops counting once it's mostly scrolled
+    // past — a band around the vertical center rather than the
+    // whole section, so long sections don't stay "active" for ages.
+    rootMargin: '-45% 0px -45% 0px',
+    threshold: 0,
+  });
+
+  sections.forEach(s => observer.observe(s));
+}
+
+initActiveNav();
+
+// ---------------------------------------------------------------
 // Site-wide grid: one canvas, fixed to the viewport, behind the
 // whole page (the hero included: .hud has no background of its
 // own, so this shows straight through it). What happens here:
