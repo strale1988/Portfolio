@@ -109,6 +109,42 @@ function initHeaderParallax() {
   update();
 }
 
+// ---------------------------------------------------------------
+// Full-site preloader. Waits for the window 'load' event (all
+// images, fonts and the grid canvas's first paint are ready by
+// then) with a short minimum display time so it never just flashes
+// on a fast connection, then fades it out and removes it from the
+// DOM so it can't block clicks or show up in the accessibility tree.
+// ---------------------------------------------------------------
+function initSitePreloader() {
+  const el = document.getElementById('site-preloader');
+  if (!el) return;
+
+  const MIN_DISPLAY_MS = 500;
+  const shownAt = performance.now();
+
+  function hide() {
+    const elapsed = performance.now() - shownAt;
+    const wait = Math.max(0, MIN_DISPLAY_MS - elapsed);
+    setTimeout(() => {
+      el.classList.add('preloader-hidden');
+      el.addEventListener('transitionend', () => el.remove(), { once: true });
+      // Fallback in case transitionend doesn't fire (e.g. display:none elsewhere).
+      setTimeout(() => el.remove(), 700);
+    }, wait);
+  }
+
+  if (document.readyState === 'complete') {
+    hide();
+  } else {
+    window.addEventListener('load', hide, { once: true });
+  }
+  // Absolute fallback: never let a stalled resource keep it up forever.
+  setTimeout(hide, 4000);
+}
+
+initSitePreloader();
+
 initHeaderParallax();
 
 // ---------------------------------------------------------------
