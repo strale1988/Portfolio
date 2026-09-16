@@ -2,6 +2,6 @@
 title: Novi Dorcol
 category: Interactive
 date: 2023
-description: An interactive 3D visualization tool ("Orbital") built for Novi Dorcol, a residential and commercial development by Deka Inzenjering in Belgrade's Dorcol district. Lets prospective buyers explore the building exterior, browse floor-by-floor cross-sections, and check real-time apartment availability - built for client marketing while working at AR-TY.
+description: An interactive 3D visualization tool built for Novi Dorcol, a residential and commercial development by Deka Inzenjering in Belgrade's Dorcol district. Lets prospective buyers explore the building exterior, browse floor-by-floor cross-sections, and check real-time apartment availability - built for client marketing while working at AR-TY.
 tags: Unity, OpenGL, C#, 3D
 link: Play | https://strale1988.github.io/Portfolio/projects/NoviDorcol/
