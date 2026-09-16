@@ -1,0 +1,7 @@
+# Every line is "key: value". Lines starting with # are ignored.
+title: Novi Dorcol
+category: Interactive
+date: 2023
+description: A Unity/OpenGL walkthrough demo of Novi Dorcol, originally developed during work at AR-TY, rebuilt here with new code around a 3D model created for that project.
+tags: Unity, OpenGL, C#, 3D
+link: Repository | https://github.com/strale1988/Portfolio/tree/main/projects/NoviDorcol
