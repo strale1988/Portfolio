@@ -1,0 +1,7 @@
+# Every line is "key: value". Lines starting with # are ignored.
+title: Curio Bibliotheca
+category: Interactive
+date: 2024
+description: A browser-based ArchViz presentation tool built to showcase projects instantly, no downloads, installs, or special hardware needed, just a click. Now includes a freshly developed 360-degree tour system.
+tags: Unity, WebGL, C#, 3D
+link: Play | https://strale1988.github.io/Portfolio/projects/CurioBibliotheca/
