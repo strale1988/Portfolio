@@ -113,27 +113,26 @@ initHeaderParallax();
 
 // ---------------------------------------------------------------
 // Site-wide grid: one canvas, fixed to the viewport, behind the
-// whole page (the hero included — .hud has no background of its
-// own, so this shows straight through it). Two things happen here
-// beyond just drawing lines:
+// whole page (the hero included: .hud has no background of its
+// own, so this shows straight through it). What happens here:
 //
 //  1. Row placement is solved at runtime so no horizontal line
-//     ever cuts across the hero heading/subhead/meta/location text
-//     — it searches nearby cell sizes + vertical offsets and keeps
+//     ever cuts across the hero heading/subhead/meta/location text:
+//     it searches nearby cell sizes + vertical offsets and keeps
 //     whichever one (closest to the default size) clears every
 //     line of hero text, recomputed on resize/font-load/theme change.
-//  2. The cell(s) nearest the pointer glow with a soft falloff —
-//     brighter in dark mode, a touch richer/darker in light mode,
-//     since both just push more of the theme's own accent color
-//     into the cell — and fade back out once the pointer leaves.
+//  2. Every active pointer (mouse, pen, or a finger per touch) gets
+//     its own glow that eases toward it and brightens with how fast
+//     it's moving.
+//  3. Clicking/tapping sends a ring of lit cells expanding outward
+//     from that point.
+//  4. Random cells across the grid quietly light up and fade on
+//     their own the whole time, so the background never looks inert.
 //
-// It's one grid, one canvas, fixed to the viewport for the whole
-// site (the hero included — .hud has no background of its own, so
-// this shows straight through it). Nothing here is tied to scroll
-// position, so the grid never appears to move as you scroll; only
-// the pointer glow does. Respects prefers-reduced-motion by keeping
-// the (still correctly aligned) static grid but skipping the
-// pointer-driven animation.
+// Nothing here is tied to scroll position, so the grid never
+// appears to move as you scroll; only the effects above do.
+// Respects prefers-reduced-motion by keeping the (still correctly
+// aligned) static grid but skipping all pointer-driven animation.
 // ---------------------------------------------------------------
 function initSiteGrid() {
   const canvas = document.querySelector('.site-grid');
@@ -145,10 +144,16 @@ function initSiteGrid() {
   const MIN_CELL = 30;
   const MAX_CELL = 56;
   const TEXT_CLEARANCE = 6; // breathing room (px) kept around each text line
+  const RIPPLE_DURATION = 700; // ms
+  const RIPPLE_MAX_RADIUS_CELLS = 6;
+  const FLICKER_DURATION = 900; // ms
+  const FLICKER_MIN_GAP = 500; // ms between ambient flickers
+  const FLICKER_MAX_GAP = 1600;
 
   let cssWidth = 0, cssHeight = 0;
   let cell = DEFAULT_CELL, rowOffset = 0;
   let lineColor = 'rgba(0,0,0,0.05)';
+  let lastFrameTime = 0;
 
   function readColor() {
     lineColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-line').trim() || lineColor;
@@ -201,7 +206,7 @@ function initSiteGrid() {
     cell = layout.cell;
     rowOffset = layout.offset;
     readColor();
-    draw();
+    drawStatic();
   }
 
   function hexToRgba(hex, alpha) {
@@ -212,60 +217,121 @@ function initSiteGrid() {
     return `rgba(${(num >> 16) & 255},${(num >> 8) & 255},${num & 255},${alpha})`;
   }
 
-  // Pointer glow: smoothed toward the cursor each frame, faded out
-  // once the pointer leaves. Only animates when motion is allowed.
-  const glow = { x: -9999, y: -9999, drawX: -9999, drawY: -9999, strength: 0, target: 0 };
+  // ---- interaction state -----------------------------------------
+  // One glow per active input (mouse/pen keyed 'mouse', each finger
+  // keyed by its touch identifier), plus short-lived click ripples
+  // and ambient flickers. All three are just objects that fade
+  // in/out over time; the render loop keeps running only while at
+  // least one of them is still alive.
+  const pointers = new Map();
+  const ripples = [];
+  const flickers = [];
   let rafId = null;
+  let flickerTimerId = null;
 
-  function onPointerMove(e) {
-    glow.x = e.clientX;
-    glow.y = e.clientY;
-    glow.target = 1;
+  function getPointer(id) {
+    let p = pointers.get(id);
+    if (!p) {
+      p = { x: -9999, y: -9999, drawX: -9999, drawY: -9999, prevDrawX: -9999, prevDrawY: -9999,
+             strength: 0, target: 0, speed: 0 };
+      pointers.set(id, p);
+    }
+    return p;
+  }
+
+  function moveGlow(id, x, y) {
+    const p = getPointer(id);
+    p.x = x;
+    p.y = y;
+    p.target = 1;
     ensureLoop();
   }
-  function onPointerLeave() {
-    glow.target = 0;
+
+  function releaseGlow(id) {
+    const p = pointers.get(id);
+    if (p) p.target = 0;
     ensureLoop();
   }
+
+  function spawnRipple(x, y) {
+    ripples.push({ x, y, start: performance.now() });
+    ensureLoop();
+  }
+
+  // Random cells across the grid light up and fade on their own,
+  // continuously, regardless of whether anything is being dragged.
+  function scheduleFlicker() {
+    if (!reduceMotion && document.visibilityState === 'visible') {
+      const cols = Math.max(1, Math.floor(cssWidth / cell));
+      const rows = Math.max(1, Math.floor((cssHeight - rowOffset) / cell));
+      const col = Math.floor(Math.random() * cols);
+      const row = Math.floor(Math.random() * rows);
+      flickers.push({
+        x: col * cell + cell / 2,
+        y: rowOffset + row * cell + cell / 2,
+        start: performance.now(),
+      });
+      ensureLoop();
+    }
+    flickerTimerId = setTimeout(scheduleFlicker, FLICKER_MIN_GAP + Math.random() * (FLICKER_MAX_GAP - FLICKER_MIN_GAP));
+  }
+
   function ensureLoop() {
     if (!rafId && !reduceMotion) rafId = requestAnimationFrame(loop);
   }
-  function loop() {
+
+  function loop(now) {
     rafId = null;
-    glow.strength += (glow.target - glow.strength) * 0.18;
-    glow.drawX += (glow.x - glow.drawX) * 0.25;
-    glow.drawY += (glow.y - glow.drawY) * 0.25;
-    draw();
+    const dt = lastFrameTime ? Math.min(now - lastFrameTime, 64) : 16;
+    lastFrameTime = now;
 
-    const settledStrength = Math.abs(glow.strength - glow.target) < 0.01;
-    const settledPos = Math.hypot(glow.x - glow.drawX, glow.y - glow.drawY) < 0.5;
-    if (!settledStrength || !settledPos) rafId = requestAnimationFrame(loop);
-  }
+    let stillActive = false;
 
-  function draw() {
-    ctx.clearRect(0, 0, cssWidth, cssHeight);
+    for (const [id, p] of pointers) {
+      p.strength += (p.target - p.strength) * 0.18;
+      p.prevDrawX = p.drawX;
+      p.prevDrawY = p.drawY;
+      p.drawX += (p.x - p.drawX) * 0.25;
+      p.drawY += (p.y - p.drawY) * 0.25;
 
-    if (glow.strength > 0.01) {
-      const col = Math.floor(glow.drawX / cell);
-      const row = Math.floor((glow.drawY - rowOffset) / cell);
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const accent = getComputedStyle(document.documentElement).getPropertyValue('--teal').trim();
+      const dist = Math.hypot(p.drawX - p.prevDrawX, p.drawY - p.prevDrawY);
+      const instSpeed = dt > 0 ? dist / dt : 0; // px/ms
+      p.speed += (instSpeed - p.speed) * 0.3;
 
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          const cx = (col + dc) * cell;
-          const cy = rowOffset + (row + dr) * cell;
-          const dist = Math.hypot(cx + cell / 2 - glow.drawX, cy + cell / 2 - glow.drawY);
-          const falloff = Math.max(0, 1 - dist / (cell * 1.6));
-          if (falloff <= 0) continue;
-          const alpha = falloff * glow.strength * (isDark ? 0.22 : 0.14);
-          if (alpha <= 0.003) continue;
-          ctx.fillStyle = hexToRgba(accent, alpha);
-          ctx.fillRect(cx, cy, cell, cell);
-        }
+      const settledStrength = Math.abs(p.strength - p.target) < 0.01;
+      const settledPos = Math.hypot(p.x - p.drawX, p.y - p.drawY) < 0.5;
+      if (p.target === 0 && settledStrength) {
+        pointers.delete(id);
+      } else if (!settledStrength || !settledPos) {
+        stillActive = true;
       }
     }
 
+    const rippleAlive = ripples.length > 0;
+    const flickerAlive = flickers.length > 0;
+
+    draw(now);
+
+    if (stillActive || rippleAlive || flickerAlive) rafId = requestAnimationFrame(loop);
+  }
+
+  function fillCell(col, row, alpha, accentRgba) {
+    if (alpha <= 0.003) return;
+    ctx.fillStyle = accentRgba(alpha);
+    ctx.fillRect(col * cell, rowOffset + row * cell, cell, cell);
+  }
+
+  function draw(now) {
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const tealHex = getComputedStyle(document.documentElement).getPropertyValue('--teal').trim();
+    const amberHex = getComputedStyle(document.documentElement).getPropertyValue('--amber').trim();
+    const tealRgba = (a) => hexToRgba(tealHex, a);
+    const amberRgba = (a) => hexToRgba(amberHex, a);
+    const baseGlowAlpha = isDark ? 0.22 : 0.14;
+
+    // Base grid, straight and cheap.
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -278,15 +344,131 @@ function initSiteGrid() {
       ctx.lineTo(cssWidth, Math.round(y) + 0.5);
     }
     ctx.stroke();
+
+    for (const p of pointers.values()) {
+      if (p.strength <= 0.01) continue;
+
+      // Velocity-reactive main glow: faster movement = bigger, brighter.
+      const speedBoost = Math.min(p.speed / 1.2, 1); // 0..1
+      const reach = cell * (1.6 + speedBoost * 0.9);
+      const strengthMult = 1 + speedBoost * 0.6;
+
+      const col = Math.floor(p.drawX / cell);
+      const row = Math.floor((p.drawY - rowOffset) / cell);
+      const spread = speedBoost > 0.5 ? 2 : 1;
+
+      for (let dr = -spread; dr <= spread; dr++) {
+        for (let dc = -spread; dc <= spread; dc++) {
+          const cx = (col + dc) * cell;
+          const cy = rowOffset + (row + dr) * cell;
+          const dist = Math.hypot(cx + cell / 2 - p.drawX, cy + cell / 2 - p.drawY);
+          const falloff = Math.max(0, 1 - dist / reach);
+          if (falloff <= 0) continue;
+          const alpha = falloff * p.strength * baseGlowAlpha * strengthMult;
+          if (alpha <= 0.003) continue;
+          ctx.fillStyle = tealRgba(alpha);
+          ctx.fillRect(cx, cy, cell, cell);
+        }
+      }
+    }
+
+    // Click / tap ripples: an expanding ring of lit cells.
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const r = ripples[i];
+      const age = now - r.start;
+      if (age > RIPPLE_DURATION) { ripples.splice(i, 1); continue; }
+      const t = age / RIPPLE_DURATION;
+      const radius = t * cell * RIPPLE_MAX_RADIUS_CELLS;
+      const alpha = (1 - t) * 0.4;
+      const band = cell * 0.55;
+
+      const minCol = Math.floor((r.x - radius - band) / cell);
+      const maxCol = Math.floor((r.x + radius + band) / cell);
+      const minRow = Math.floor((r.y - radius - band - rowOffset) / cell);
+      const maxRow = Math.floor((r.y + radius + band - rowOffset) / cell);
+
+      for (let row = minRow; row <= maxRow; row++) {
+        for (let col = minCol; col <= maxCol; col++) {
+          const cx = col * cell + cell / 2;
+          const cy = rowOffset + row * cell + cell / 2;
+          const dist = Math.hypot(cx - r.x, cy - r.y);
+          const ringDist = Math.abs(dist - radius);
+          if (ringDist > band) continue;
+          const cellAlpha = alpha * Math.max(0, 1 - ringDist / band);
+          fillCell(col, row, cellAlpha, amberRgba);
+        }
+      }
+    }
+
+    // Ambient flicker: a single cell softly breathing in/out.
+    for (let i = flickers.length - 1; i >= 0; i--) {
+      const f = flickers[i];
+      const age = now - f.start;
+      if (age > FLICKER_DURATION) { flickers.splice(i, 1); continue; }
+      const t = age / FLICKER_DURATION;
+      const alpha = Math.sin(t * Math.PI) * baseGlowAlpha * 0.8;
+      const col = Math.floor(f.x / cell);
+      const row = Math.floor((f.y - rowOffset) / cell);
+      fillCell(col, row, alpha, tealRgba);
+    }
+  }
+
+  function drawStatic() {
+    draw(performance.now());
+  }
+
+  // ---- input wiring ------------------------------------------------
+  // Pointer events cover mouse/pen. Touch is handled separately (see
+  // the note above initSiteGrid): mobile browsers don't reliably keep
+  // dispatching pointermove for a touch that's also driving a page
+  // scroll, so real touch events are what makes the glow follow a
+  // dragging finger, and pointer events with pointerType 'touch' are
+  // ignored here to avoid tracking the same finger twice.
+  function onPointerMove(e) {
+    if (e.pointerType === 'touch') return;
+    moveGlow('mouse', e.clientX, e.clientY);
+  }
+  function onPointerDown(e) {
+    if (e.pointerType === 'touch') return;
+    moveGlow('mouse', e.clientX, e.clientY);
+    spawnRipple(e.clientX, e.clientY);
+  }
+  function onPointerLeave(e) {
+    if (e.pointerType === 'touch') return;
+    releaseGlow('mouse');
+  }
+  function onTouchStart(e) {
+    for (const t of e.changedTouches) {
+      moveGlow(`touch-${t.identifier}`, t.clientX, t.clientY);
+      spawnRipple(t.clientX, t.clientY);
+    }
+  }
+  function onTouchMove(e) {
+    for (const t of e.touches) {
+      moveGlow(`touch-${t.identifier}`, t.clientX, t.clientY);
+    }
+  }
+  function onTouchEnd(e) {
+    for (const t of e.changedTouches) {
+      releaseGlow(`touch-${t.identifier}`);
+    }
   }
 
   window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('pointerdown', onPointerDown, { passive: true });
   window.addEventListener('pointerleave', onPointerLeave);
+  window.addEventListener('touchstart', onTouchStart, { passive: true });
+  window.addEventListener('touchmove', onTouchMove, { passive: true });
+  window.addEventListener('touchend', onTouchEnd, { passive: true });
+  window.addEventListener('touchcancel', onTouchEnd, { passive: true });
   window.addEventListener('resize', resize);
   document.fonts?.ready?.then(resize);
   new MutationObserver(resize).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
   resize();
+  if (!reduceMotion) {
+    flickerTimerId = setTimeout(scheduleFlicker, FLICKER_MIN_GAP + Math.random() * (FLICKER_MAX_GAP - FLICKER_MIN_GAP));
+  }
 }
 
 initSiteGrid();
