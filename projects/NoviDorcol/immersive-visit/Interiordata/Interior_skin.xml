@@ -1,0 +1,2150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<krpano version="1.19">
+
+    
+  <!-- Spot Style - Point Green -->
+  <style name="IconPointGreen"
+         url="%FIRSTXML%/spots/hotspot_plan_user_defaultpoint2.png"
+         visible="false"
+         onhover="onhoverIconPointGreen"
+         onover="onoverIconPointGreen"
+         onout="onoutIconPointGreen"
+
+         height="40"
+         width="40"
+         />
+
+  <action name="onhoverIconPointGreen">
+    showtooltip('hotspot');
+  </action>
+
+  <action name="onoverIconPointGreen">
+tween(scale, 1.2);
+
+
+  </action>
+
+  <action name="onoutIconPointGreen">
+    hideTooltip();
+    tween(scale, 1);
+
+
+  </action>
+
+
+
+    
+  <!-- Spot Style - Default Point Spot Style -->
+  <style name="IconDefaultPointSpotStyle"
+         url="%FIRSTXML%/spots/hotspot_plan_user_defaultpoint7.png"
+         visible="false"
+         onhover="onhoverIconDefaultPointSpotStyle"
+         onout="onoutIconDefaultPointSpotStyle"
+
+
+         />
+
+  <action name="onhoverIconDefaultPointSpotStyle">
+    showtooltip('hotspot');
+  </action>
+
+
+  <action name="onoutIconDefaultPointSpotStyle">
+    hideTooltip();
+
+
+
+  </action>
+
+
+
+  <!-- unsupported kind of display : PointMap -->
+
+
+<!-- ********** -->
+<!-- Floor plan -->
+<!-- id : floorPlan -->
+<!-- ********** -->
+
+	<ptplugin name="floorPlan" engine="KolorFloorPlan">
+		<settings>
+			<option name="background_color" value="f2f2f2" type="string" />
+			<option name="background_lighter_color" value="ffffff" type="string" />
+			<option name="background_darker_color" value="cacaca" type="string" />
+			<option name="background_alpha" value="0" type="float" />
+			<option name="text_color" value="000000" type="string" />
+			<option name="resize" value="true" type="bool" />
+			<option name="fp_selector" value="one" type="string" />
+			<option name="fp_selector_label" value="floorPlanmenu_label" type="string" />
+			<option name="display_title" value="false" type="bool" />
+			<option name="title_font" value="Verdana" type="string" />
+			<option name="title_size" value="14" type="int" />
+			<option name="title_weight" value="normal" type="string" />
+			<option name="title_decoration" value="normal" type="string" />
+			<option name="title_color" value="000000" type="string" />
+			<option name="display_orientation" value="false" type="bool" />
+			<option name="display_radar" value="true" type="bool" />
+			<option name="radar_radius" value="50" type="int" />
+			<option name="radar_line_width" value="1" type="int" />
+			<option name="radar_line_color" value="ffffff" type="string" />
+			<option name="radar_line_alpha" value="0.50000762951094835" type="float" />
+			<option name="radar_fill_color" value="ffffff" type="string" />
+			<option name="radar_fill_alpha" value="0.30000762951094834" type="float" />
+			<option name="close_on_click" value="false" type="bool" />
+			<option name="position" value="topleft" type="string" />
+			<option name="zorder" value="1" type="int" />
+			<option name="use_i18n" value="true" type="bool" />
+		</settings>
+		
+		<floorplanItems selectedItem="fpitemmain" selectedSpot="" selectedSpotScene="" selectedSpotHeading="" selectedSpotFov="">
+				
+				<floorplanItem 
+					name="fpitemmain" 
+					width="350" 
+					height="348" 
+					groupName="" 
+					url="floorplan/za_precrtati.png" 
+					title="project_floor_title"
+					heading="0">
+							<spot name="spotmap117" posX="0.82931" posY="0.464471012" heading="0" desc="spotmap117_tooltip" descType="tooltip" groupName="" isScene="true" planar="false" scene="pano107" jsClick="spotmap117ActionSpotFloorPlan">
+								<icon url="spots/hotspot_plan_user_defaultmap7.png" iconWidth="32" iconHeight="32" iconAnchor="center" />
+							</spot>
+							<spot name="spotmap118" posX="0.834483027" posY="0.187175006" heading="0" desc="spotmap118_tooltip" descType="tooltip" groupName="" isScene="true" planar="false" scene="pano108" jsClick="spotmap118ActionSpotFloorPlan">
+								<icon url="spots/hotspot_plan_user_defaultmap7.png" iconWidth="32" iconHeight="32" iconAnchor="center" />
+							</spot>
+							<spot name="spotmap119" posX="0.439655006" posY="0.266898006" heading="0" desc="spotmap119_tooltip" descType="tooltip" groupName="" isScene="true" planar="false" scene="pano109" jsClick="spotmap119ActionSpotFloorPlan">
+								<icon url="spots/hotspot_plan_user_defaultmap7.png" iconWidth="32" iconHeight="32" iconAnchor="center" />
+							</spot>
+							<spot name="spotmap120" posX="0.456896991" posY="0.480069011" heading="0" desc="spotmap120_tooltip" descType="tooltip" groupName="" isScene="true" planar="false" scene="pano105" jsClick="spotmap120ActionSpotFloorPlan">
+								<icon url="spots/hotspot_plan_user_defaultmap7.png" iconWidth="32" iconHeight="32" iconAnchor="center" />
+							</spot>
+							<spot name="spotmap121" posX="0.417241007" posY="0.812825024" heading="0" desc="spotmap121_tooltip" descType="tooltip" groupName="" isScene="true" planar="false" scene="pano106" jsClick="spotmap121ActionSpotFloorPlan">
+								<icon url="spots/hotspot_plan_user_defaultmap7.png" iconWidth="32" iconHeight="32" iconAnchor="center" />
+							</spot>
+							<spot name="spotmap122" posX="0.691379011" posY="0.814558029" heading="0" desc="spotmap122_tooltip" descType="tooltip" groupName="" isScene="true" planar="false" scene="pano110" jsClick="spotmap122ActionSpotFloorPlan">
+								<icon url="spots/hotspot_plan_user_defaultmap7.png" iconWidth="32" iconHeight="32" iconAnchor="center" />
+							</spot>
+				</floorplanItem>
+			
+			
+		</floorplanItems>
+	</ptplugin>
+	
+	<action name="kolorFloorplanJsReady_floorPlan">
+		set(ptplugin[floorPlan].jsready, true);
+		
+		ifnot(ptplugin[floorPlan].floorplanItems[0].selectedSpot == "",
+			set(ptplugin[floorPlan].floorplanItems[0].selectedSpotFov, get(view.hfov));
+			js(invokePluginFunction(floorPlan, setKolorFloorPlanSelectedSpotOptions, get(xml.scene), get(view.hlookat), get(view.hfov)));
+		);
+	</action>
+	
+	
+		<!-- floorplan main spots counter : 6 -->
+			<action name="spotmap117ActionSpotFloorPlan">
+          mainloadscene(pano107);lookat(get(panoview.h), get(panoview.v), get(panoview.fov));
+
+</action>
+			<action name="spotmap118ActionSpotFloorPlan">
+          mainloadscene(pano108);lookat(get(panoview.h), get(panoview.v), get(panoview.fov));
+
+</action>
+			<action name="spotmap119ActionSpotFloorPlan">
+          mainloadscene(pano109);lookat(get(panoview.h), get(panoview.v), get(panoview.fov));
+
+</action>
+			<action name="spotmap120ActionSpotFloorPlan">
+          mainloadscene(pano105);lookat(get(panoview.h), get(panoview.v), get(panoview.fov));
+
+</action>
+			<action name="spotmap121ActionSpotFloorPlan">
+          mainloadscene(pano106);lookat(get(panoview.h), get(panoview.v), get(panoview.fov));
+
+</action>
+			<action name="spotmap122ActionSpotFloorPlan">
+          mainloadscene(pano110);lookat(get(panoview.h), get(panoview.v), get(panoview.fov));
+
+</action>
+	
+	
+	
+	<events name="floorPlanEvents" 
+	onxmlcomplete="ifnot(floorPlanFloorPlanLoaded,set(tour_displayfloorplan,true););floorPlanActivateDefaultSpot();" 
+	onviewchanged="floorPlanOnViewChange();" 
+	onhidetourfloorplan="floorPlanCloseTourFloorPlan();" 
+	onshowtourfloorplan="if(tour_displayfloorplan,floorPlanOpenTourFloorPlan(););" 
+	onTourStart="floorPlanOpenTourFloorPlan();"
+	changetourlanguage="floorPlanChangeLanguage();"
+	keep="true" />
+	
+	<action name="floorPlanChangeLanguage">
+		if(ptplugin[floorPlan].jsready,
+			stopdelayedcall(delay_floorPlan);
+			js(invokePluginFunction(floorPlan, changeLanguage));
+			js(invokePluginFunction(floorPlanArea, changeLanguage, false));
+		,
+			delayedcall(delay_floorPlan, 0.1, floorPlanChangeLanguage(););
+		);
+	</action>
+	
+	
+	<krpano floorPlanFloorPlanLoaded="false" />
+	
+	<action name="floorPlanHideTourFloorPlan">
+		hideKolorArea_floorPlanArea(false);
+	</action>
+	
+	<action name="floorPlanCloseTourFloorPlan">
+		closeKolorArea_floorPlanArea();
+	</action>
+	
+	<action name="floorPlanShowTourFloorPlan">
+		if(ptplugin[floorPlanArea].isOpen === null,
+			openKolorArea_floorPlanArea();
+		,
+			showKolorArea_floorPlanArea(false);
+		);
+	</action>
+	
+	<action name="floorPlanOpenTourFloorPlan">
+		openKolorArea_floorPlanArea();
+	</action>
+	
+	<action name="floorPlanOnViewChange">
+		if (floorPlanFloorPlanLoaded == true,
+			ifnot(ptplugin[floorPlan].floorplanItems[0].selectedSpot == "",
+				ifnot(scene[get(xml.scene)].planar,
+					js(invokePluginFunction(floorPlan, changeDirection, get(xml.scene), get(view.hlookat), get(view.hfov)));
+				);
+			);
+		);
+	</action>
+	
+	<action name="floorPlanActivateSpot">
+		
+		set(ptplugin[floorPlan].floorplanItems[0].selectedSpot, %1);
+		set(ptplugin[floorPlan].floorplanItems[0].selectedItem, %2);
+		
+		if(%1 !== "",
+			set(ptplugin[floorPlan].floorplanItems[0].selectedSpotScene, get(xml.scene));
+			set(ptplugin[floorPlan].floorplanItems[0].selectedSpotHeading, get(view.hlookat));
+			set(ptplugin[floorPlan].floorplanItems[0].selectedSpotFov, get(view.hfov));
+		);
+		
+		
+		if(ptplugin[floorPlanArea].isOpen,
+			floorPlanSelectActivatedSpot(%1, %2, %3);
+		);
+	</action>
+	
+	<action name="floorPlanSelectActivatedSpot">
+		js(invokePluginFunction(floorPlan, selectSpot, %1, %2, %3));
+
+		if(%1 !== "",
+			if(scene[get(xml.scene)].planar,
+				js(invokePluginFunction(floorPlan, hideRadar));
+			,
+				js(invokePluginFunction(floorPlan, changeDirection, get(xml.scene), get(view.hlookat), get(view.hfov)));
+			);
+		);
+	</action>
+	
+	<action name="floorPlanDeactivateSpot">
+		set(ptplugin[floorPlan].floorplanItems[0].selectedSpot, "");
+		
+		js(invokePluginFunction(floorPlan, unselectSpot));
+	</action>
+	
+	<action name="floorPlanActivateDefaultSpot">
+		set(floorPlanFloorPlanLoaded, true);
+		
+		set(floorPlanSpotFound, "");
+		set(floorPlanSpotScene, "");
+		set(floorPlanItemFound, "");
+		set(floorPlanItemSearch, true);
+		set(floorPlanSpotSearchActivated, true);
+		set(floorPlanSpotSearchContinue, true);
+		
+		
+		for(set(defaultfloorplaniteminc,0), defaultfloorplaniteminc LT ptplugin[floorPlan].floorplanItems[0].floorplanItem.count , inc(defaultfloorplaniteminc),
+                        if(floorPlanSpotSearchActivated == true,
+				
+				if(ptplugin[floorPlan].floorplanItems[0].floorplanItem[get(defaultfloorplaniteminc)].groupName == scene[get(xml.scene)].group,
+					set(floorPlanItemFound, get(ptplugin[floorPlan].floorplanItems[0].floorplanItem[get(defaultfloorplaniteminc)].name));
+					set(ptplugin[floorPlan].floorplanItems[0].selectedItem, get(ptplugin[floorPlan].floorplanItems[0].floorplanItem[get(defaultfloorplaniteminc)].name));
+					set(floorPlanItemSearch, false);
+				,
+					
+					if(floorPlanItemFound == "",
+						set(floorPlanItemFound, get(ptplugin[floorPlan].floorplanItems[0].floorplanItem[fpitemmain].name));
+						set(ptplugin[floorPlan].floorplanItems[0].selectedItem, get(ptplugin[floorPlan].floorplanItems[0].floorplanItem[fpitemmain].name));
+					);
+				);
+			);
+			if(floorPlanSpotSearchActivated == true,
+                                for(set(defaultspotinc,0), defaultspotinc LT ptplugin[floorPlan].floorplanItems[0].floorplanItem[get(defaultfloorplaniteminc)].spot.count , inc(defaultspotinc),
+                                        if(ptplugin[floorPlan].floorplanItems[0].floorplanItem[get(defaultfloorplaniteminc)].spot[get(defaultspotinc)].isScene == true,
+					
+						if(floorPlanSpotSearchContinue == true,
+							if(ptplugin[floorPlan].floorplanItems[0].floorplanItem[get(defaultfloorplaniteminc)].spot[get(defaultspotinc)].scene == xml.scene,
+								set(floorPlanSpotFound, get(ptplugin[floorPlan].floorplanItems[0].floorplanItem[get(defaultfloorplaniteminc)].spot[get(defaultspotinc)].name));
+								set(floorPlanSpotScene, get(ptplugin[floorPlan].floorplanItems[0].floorplanItem[get(defaultfloorplaniteminc)].spot[get(defaultspotinc)].scene));
+								set(ptplugin[floorPlan].floorplanItems[0].selectedItem, get(ptplugin[floorPlan].floorplanItems[0].floorplanItem[get(defaultfloorplaniteminc)].name));
+								if(floorPlanItemSearch == false,
+									set(floorPlanSpotSearchContinue, false);
+									set(floorPlanSpotSearchActivated, false);
+								);
+							);
+						);
+					);
+					
+				);
+			);
+		);
+		
+		if(floorPlanSpotFound == "",
+			
+			
+			floorPlanDeactivateSpot();
+			
+			
+			set(ptplugin[floorPlan].floorplanItems[0].selectedItem, get(floorPlanItemFound));
+			
+			
+			ifnot(ptplugin[floorPlan].floorplanItems[0].selectedItem == "",
+				floorPlanActivateSpot("", get(ptplugin[floorPlan].floorplanItems[0].selectedItem), "");
+			);
+		,
+			
+			floorPlanActivateSpot(get(floorPlanSpotFound), get(ptplugin[floorPlan].floorplanItems[0].selectedItem), get(floorPlanSpotScene));
+		);
+	</action>
+	
+	<action name="floorPlanChangeTitle">
+		js(invokePluginFunction(floorPlan, changeTitle, %1));
+	</action>
+	
+	<ptplugin name="floorPlanArea" engine="kolorArea">
+	<settings>
+		<option name="position" value="topleft" type="string" />
+		<option name="start_position" value="left" type="string" />
+		<option name="margin_x" value="0" type="int" />
+		<option name="margin_y" value="0" type="int" />
+		<option name="display_title" value="false" type="bool" />
+		<option name="title_font" value="Verdana" type="string" />
+		<option name="title_size" value="14" type="int" />
+		<option name="title_weight" value="normal" type="string" />
+		<option name="title_decoration" value="normal" type="string" />
+		<option name="title_color" value="000000" type="string" />
+		<option name="close_displayed" value="false" type="bool" />
+		<option name="close_text" value="floorPlandisplay_close_text" type="string" />
+
+		<option name="background_color" value="f2f2f2" type="string" />
+		<option name="background_alpha" value="0" type="float" />
+		<option name="overlay_displayed" value="false" type="bool" />
+		<option name="overlay_color" value="ffffff" type="string" />
+		<option name="overlay_alpha" value="0.50000762951094835" type="float" />
+
+		<option name="padding" value="15" type="int" />
+		<option name="topleft_radius" value="0" type="int" />
+		<option name="topright_radius" value="0" type="int" />
+		<option name="bottomleft_radius" value="0" type="int" />
+		<option name="bottomright_radius" value="0" type="int" />
+		<option name="area_border_width" value="0" type="int" />
+		<option name="area_border_color" value="f2f2f2" type="string" />
+		<option name="area_border_alpha" value="0" type="float" />
+		<option name="area_width" value="40" type="int" />
+		<option name="area_height" value="40" type="int" />
+		<option name="area_width_unit" value="percent" type="string" />
+		<option name="area_height_unit" value="percent" type="string" />
+		<option name="animation" value="false" type="bool" />
+		<option name="animation_duration" value="500" type="int" />
+		<option name="close_on_click" value="false" type="bool" />
+		<option name="refresh_content" value="false" type="bool" />
+		<option name="open_callback" value="addKolorFloorPlan('floorPlan', 'floorPlanArea_floorplanDIV');" type="string" />
+		<option name="close_callback" value="invokeKrFunction('closeKolorAreaCallback_floorPlanArea')" type="string" />
+		<option name="zorder" value="1" type="int" />
+		<option name="use_i18n" value="true" type="bool" />
+	</settings>
+	</ptplugin>
+	
+	<action name="kolorAreaJsReady_floorPlanArea">
+		set(ptplugin[floorPlanArea].jsready, true);
+
+		inc(tour_autorotation_openatstartplugin);
+		set(ptplugin[floorPlanArea].autorotateBlocked, true);
+
+	</action>
+	
+	<action name="openKolorArea_floorPlanArea">
+		ifnot(ptplugin[floorPlanArea].isOpen,
+			set(ptplugin[floorPlanArea].isOpen, true);
+			pauseautorotation(forceplugin);
+
+			js(showKolorArea(floorPlanArea, &lt;div id="floorPlanArea_floorplanDIV"&gt;&lt;/div&gt;));
+			
+			if(ptplugin[floorPlan].floorplanItems[0].selectedSpot != "",
+				floorPlanSelectActivatedSpot(get(ptplugin[floorPlan].floorplanItems[0].selectedSpot), get(ptplugin[floorPlan].floorplanItems[0].selectedItem), get(ptplugin[floorPlan].floorplanItems[0].selectedSpotScene));
+			);
+			events.dispatch(onremovedisplayedobject);
+		);
+	</action>
+	
+	<action name="closeKolorArea_floorPlanArea">
+		if(ptplugin[floorPlanArea].isOpen,
+			js(invokePluginFunction(floorPlanArea, closeKolorArea));
+		);
+	</action>
+	
+	<action name="toggleKolorArea_floorPlanArea">
+		if(ptplugin[floorPlanArea].isOpen,
+			closeKolorArea_floorPlanArea();
+		,
+			openKolorArea_floorPlanArea();
+		);
+	</action>
+	
+	<action name="closeKolorAreaCallback_floorPlanArea">
+		if(ptplugin[floorPlanArea].isOpen,resumeautorotation(forceplugin);
+
+			if(ptplugin[floorPlanArea].autorotateBlocked,if(tour_autorotation_openatstartplugin GT 0,dec(tour_autorotation_openatstartplugin);set(ptplugin[floorPlanArea].autorotateBlocked,false);););
+		);
+		set(ptplugin[floorPlanArea].isOpen, false);hideFloorplan();
+
+	</action>
+	
+	<action name="changeTitleKolorArea_floorPlanArea">
+		js(invokePluginFunction(floorPlanArea, changeTitle, %1));
+	</action>
+	
+	<action name="showKolorArea_floorPlanArea">
+		set(ptplugin[floorPlanArea].isOpen, true);
+		pauseautorotation(forceplugin);
+
+		js(invokePluginFunction(floorPlanArea, showKolorArea, %1));
+		events.dispatch(onremovedisplayedobject);
+	</action>
+		
+	<action name="hideKolorArea_floorPlanArea">
+		resumeautorotation(forceplugin);
+
+		if(ptplugin[floorPlanArea].autorotateBlocked,if(tour_autorotation_openatstartplugin GT 0,dec(tour_autorotation_openatstartplugin);set(ptplugin[floorPlanArea].autorotateBlocked,false);););
+		set(ptplugin[floorPlanArea].isOpen, false);
+		js(invokePluginFunction(floorPlanArea, hideKolorArea, %1));
+	</action>
+	
+	<events name="kolorAreaEvents_floorPlanArea" 
+		keep="true"
+	/>
+	
+
+<!-- ********** -->
+<!-- Docked Thumbnails &amp; Control Bar -->
+<!-- id : controlBar_dockedThumbnails -->
+<!-- ********** -->
+
+<krpano controlBar_dockedThumbnailsbarbuilt="false" controlBar_dockedThumbnailsIsOpened="false" controlBar_dockedThumbnailsThumbnailsPos="0" />
+
+<events name="controlBar_dockedThumbnailsbarevents" 
+	onxmlcomplete="controlBar_dockedThumbnailsbuildMenuBar();"
+
+
+	onresize="controlBar_dockedThumbnailsOnResize();"
+	keep="true"/>
+
+
+
+<action name="controlBar_dockedThumbnailsbuildMenuBar">
+	ifnot (controlBar_dockedThumbnailsbarbuilt, controlBar_dockedThumbnailsbuildMenu(); set(controlBar_dockedThumbnailsbarbuilt, true););
+</action>
+
+
+<!-- ********** -->
+<!-- Thumbnails Bar part of -->
+<!-- Docked Thumbnails &amp; Control Bar -->
+<!-- id : controlBar_dockedThumbnails -->
+<!-- ********** -->
+
+
+
+
+
+
+<layer name="thumbnailsBar_controlBar_dockedThumbnails" 
+	keep="true" 
+	type="container" 
+	visible="false"
+	parent="controlBar_dockedThumbnails_bg" 
+	align="bottomleft"
+	
+	width="100%"
+	height="50" 
+	
+	x="0"
+	y="0"
+	zorder="1"
+/>
+
+
+<layer name="thumbnailBorderSource_controlBar_dockedThumbnails"
+	keep="true"
+	visible="false"
+	onloaded="loadedImages_controlBar_dockedThumbnails(border);"
+	url="%FIRSTXML%/graphics/dockedthumbscontrolbar/thumbnails_states.png" 
+	offsetX="5"
+	offsetY="5"
+	quarterHeight="0"
+/>
+
+
+	
+	<style name="scrollButtonsBgStyle_controlBar_dockedThumbnails"
+		keep="true"
+		parent="thumbnailsBar_controlBar_dockedThumbnails"
+		alpha="0.3"
+		zorder="1"
+	/>
+	<layer name="scrollPrevArrowBg_controlBar_dockedThumbnails" 
+		style="scrollButtonsBgStyle_controlBar_dockedThumbnails" 
+		url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_scroll_left_bg.png" 
+		visible="false" 
+			align="left" 
+	/>
+	<layer name="scrollNextArrowBg_controlBar_dockedThumbnails" 
+		style="scrollButtonsBgStyle_controlBar_dockedThumbnails" 
+		url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_scroll_right_bg.png" 
+		visible="false" 
+			align="right" 
+	/>
+	
+	<krpano arrow1Loaded_controlBar_dockedThumbnails="false" arrow2Loaded_controlBar_dockedThumbnails="false" borderLoaded_controlBar_dockedThumbnails="false" thumbnailsLoadedCounter_controlBar_dockedThumbnails="0" thumbsCount_controlBar_dockedThumbnails="0" thumbsCounter_controlBar_dockedThumbnails="0" firstInit_controlBar_dockedThumbnails="false" />
+	
+	
+	<events name="thumbnailsScrollEvents_controlBar_dockedThumbnails" 
+		keep="true" 
+		
+		onxmlcomplete="ifnot(startResize_controlBar_dockedThumbnails,set(isLoaded_controlBar_dockedThumbnails, true);if(isStarted_controlBar_dockedThumbnails,onLoadCompleteHandler_controlBar_dockedThumbnails();););"
+		onTourStart="set(isStarted_controlBar_dockedThumbnails, true);if(isLoaded_controlBar_dockedThumbnails,onLoadCompleteHandler_controlBar_dockedThumbnails(););"
+		onnewpano="if(startResize_controlBar_dockedThumbnails,if(firstInit_controlBar_dockedThumbnails,onLoadCompleteHandler_controlBar_dockedThumbnails();););"
+		onresize="onResizeHandler_controlBar_dockedThumbnails();"
+		onenterfullscreen="delayedcall(0.2,scrollToCurrentThumb_controlBar_dockedThumbnails(););"
+		onexitfullscreen="delayedcall(0.2,scrollToCurrentThumb_controlBar_dockedThumbnails(););"
+	/>
+	
+	
+	<layer name="scrollAreaContainer_controlBar_dockedThumbnails" 
+		keep="true"
+		type="container" 
+		align="topleft"
+		x="10"
+		y="5"
+		
+		marginX="10"
+		marginY="5"
+		
+		width="0" 
+		height="0"
+		
+		targetWidth="0"
+		targetHeight="0"
+		
+		scrollSpeedInit="10"
+		scrollSpeed="10"
+		scrollSpeedMax="70"
+		scrollSpeedAcceleration="20"
+		
+		parent="thumbnailsBar_controlBar_dockedThumbnails"
+		
+		thumbWidth="0"
+		thumbHeight="0"
+		
+		itemWidth="80"
+		itemHeight="40"
+		
+		offsetX="0"
+		offsetY="0"
+		
+		thumbSpacer="10"
+		currentThumbsCount="0"
+		
+		adjustToContent="0"
+		
+		zorder="1"
+		visible="false"
+		ready="false"
+	>
+	
+		
+		<layer name="thumbsScrollArea_controlBar_dockedThumbnails" 
+			url="%FIRSTXML%/graphics/scrollarea.swf" 
+			alturl="%FIRSTXML%/graphics/scrollarea.js" 
+			align="bottomleft"
+			onhover_autoscrolling="false"
+			
+			x="0"
+			y="0"
+			 
+				direction="h" 
+		/>
+	
+	</layer>
+	
+	
+	
+	<layer name="scrollPrevArrow_controlBar_dockedThumbnails" 
+		keep="true"
+		type="image"
+		visible="false"
+		parent="thumbnailsBar_controlBar_dockedThumbnails"
+		targetHeight="0"
+		targetWidth="0"
+		zorder="2"
+		onloaded="loadedImages_controlBar_dockedThumbnails(arrow1);"
+			url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_scroll_left.png"
+			align="left"
+	/>
+	
+	
+	
+	<layer name="scrollNextArrow_controlBar_dockedThumbnails" 
+		keep="true"
+		type="image"
+		visible="false"
+		parent="thumbnailsBar_controlBar_dockedThumbnails"
+		targetHeight="0"
+		targetWidth="0"
+		zorder="2"
+		onloaded="loadedImages_controlBar_dockedThumbnails(arrow2);"
+			url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_scroll_right.png"
+			align="right"
+	/>
+	
+	<action name="loadedImages_controlBar_dockedThumbnails">
+		if(%1 == "arrow1",
+			set(arrow1Loaded_controlBar_dockedThumbnails, true);
+		);
+		if(%1 == "arrow2",
+			set(arrow2Loaded_controlBar_dockedThumbnails, true);
+		);
+		if(%1 == "border",
+			if(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+				set(borderLoaded_controlBar_dockedThumbnails, true);
+			);
+		);
+		if(%1 == "thumbnail",
+			inc(thumbnailsLoadedCounter_controlBar_dockedThumbnails);
+		);
+	</action>
+	
+	<action name="onLoadCompleteHandler_controlBar_dockedThumbnails">
+		
+		set(thumbsCount_controlBar_dockedThumbnails, 0);
+		
+		
+		set(thumbsCount_controlBar_dockedThumbnails, get(scene.count));
+		
+		
+		
+		
+		
+		
+		
+		loadThumbs_controlBar_dockedThumbnails();
+		
+		if(firstInit_controlBar_dockedThumbnails,
+			onLoadCompleteHandlerPartThree_controlBar_dockedThumbnails();
+		,
+			onLoadCompleteHandlerPartTwo_controlBar_dockedThumbnails();
+		);
+	</action>
+	
+	<action name="onLoadCompleteHandlerPartTwo_controlBar_dockedThumbnails">
+		set(imgCounter_controlBar_dockedThumbnails, 3);
+		
+		if(arrow1Loaded_controlBar_dockedThumbnails,
+			dec(imgCounter_controlBar_dockedThumbnails);
+		);
+		if(arrow2Loaded_controlBar_dockedThumbnails,
+			dec(imgCounter_controlBar_dockedThumbnails);
+		);
+		if(thumbsCount_controlBar_dockedThumbnails == thumbnailsLoadedCounter_controlBar_dockedThumbnails,
+			dec(imgCounter_controlBar_dockedThumbnails);
+		);
+		
+		if(imgCounter_controlBar_dockedThumbnails LE 0,
+			stopdelayedcall(delayedCallOnLoadComplete_controlBar_dockedThumbnails);
+			onLoadCompleteHandlerPartThree_controlBar_dockedThumbnails();
+		,
+			delayedcall(delayedCallOnLoadComplete_controlBar_dockedThumbnails, 0.2, onLoadCompleteHandlerPartTwo_controlBar_dockedThumbnails());
+		);
+	</action>
+	
+	<action name="onLoadCompleteHandlerPartThree_controlBar_dockedThumbnails">
+		resetMouseBehavior_controlBar_dockedThumbnails();
+		highlightCurrentThumb_controlBar_dockedThumbnails();
+		
+		
+		if(layer[scrollAreaContainer_controlBar_dockedThumbnails].adjustToContent,
+			mul(adjustWidth_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].marginX), 2);
+			add(adjustWidth_controlBar_dockedThumbnails, get(layer[thumbsScrollArea_controlBar_dockedThumbnails].width));
+			mul(adjustHeight_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].marginY), 2);
+			add(adjustHeight_controlBar_dockedThumbnails, get(layer[thumbsScrollArea_controlBar_dockedThumbnails].height));
+			
+			
+			if(adjustWidth_controlBar_dockedThumbnails GT stagewidth,
+				set(adjustWidth_controlBar_dockedThumbnails, get(stagewidth));
+				set(layer[scrollAreaContainer_controlBar_dockedThumbnails].adjustToContent, false);
+			,
+				if(adjustHeight_controlBar_dockedThumbnails GT stageheight,
+					set(adjustHeight_controlBar_dockedThumbnails, get(stageheight));
+					set(layer[scrollAreaContainer_controlBar_dockedThumbnails].adjustToContent, false);
+				);
+			);
+			
+			setSize_controlBar_dockedThumbnails(get(adjustWidth_controlBar_dockedThumbnails), get(adjustHeight_controlBar_dockedThumbnails));
+		);
+		
+			initArrows_controlBar_dockedThumbnails();
+		setupArrows_controlBar_dockedThumbnails(true);
+		
+		
+		if (thumbsCounter_controlBar_dockedThumbnails LE 0,
+			set(layer[thumbnailsBar_controlBar_dockedThumbnails].visible, false);
+		);
+		
+		
+		set(startResize_controlBar_dockedThumbnails, true);
+		set(firstInit_controlBar_dockedThumbnails, true);
+	</action>
+	
+	
+	<action name="onResizeHandler_controlBar_dockedThumbnails">
+		
+		delayedcall(0.1, onResizeCallback_controlBar_dockedThumbnails(false); );
+	</action>
+	
+	
+	<action name="onResizeCallback_controlBar_dockedThumbnails">
+		if(startResize_controlBar_dockedThumbnails,
+			setSize_controlBar_dockedThumbnails(get(layer[scrollAreaContainer_controlBar_dockedThumbnails].targetWidth), get(layer[scrollAreaContainer_controlBar_dockedThumbnails].targetHeight));
+			setupArrows_controlBar_dockedThumbnails(%1);
+			
+			
+			if (thumbsCounter_controlBar_dockedThumbnails LE 0,
+				set(layer[thumbnailsBar_controlBar_dockedThumbnails].visible, false);
+			);
+		);
+	</action>
+	
+	
+	
+	
+	
+	
+	<action name="thumbnailBorderDrawInit_controlBar_dockedThumbnails">
+		
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].offsetX, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderWidth));
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].offsetY, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderWidth));
+		
+		
+		mul(totalOffsetX_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderWidth), 2);
+		mul(totalOffsetY_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderWidth), 2);
+		
+		
+		if(startResize_controlBar_dockedThumbnails,
+			sub(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemWidth, get(totalOffsetX_controlBar_dockedThumbnails));
+			sub(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemHeight, get(totalOffsetY_controlBar_dockedThumbnails));
+		);
+		
+		
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].thumbWidth, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemWidth));
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].thumbHeight, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemHeight));
+		
+		add(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemWidth, get(totalOffsetX_controlBar_dockedThumbnails));
+		add(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemHeight, get(totalOffsetY_controlBar_dockedThumbnails));
+	</action>
+		
+	
+	<action name="thumbnailBorderImageInit_controlBar_dockedThumbnails">
+		
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].offsetX, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].offsetX));
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].offsetY, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].offsetY));
+		
+		
+		mul(totalOffsetX_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].offsetX), 2);
+		mul(totalOffsetY_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].offsetY), 2);
+		
+		
+		if(startResize_controlBar_dockedThumbnails,
+			sub(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemWidth, get(totalOffsetX_controlBar_dockedThumbnails));
+			sub(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemHeight, get(totalOffsetY_controlBar_dockedThumbnails));
+		);
+		
+		
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].thumbWidth, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemWidth));
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].thumbHeight, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemHeight));
+		
+		add(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemWidth, get(totalOffsetX_controlBar_dockedThumbnails));
+		add(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemHeight, get(totalOffsetY_controlBar_dockedThumbnails));
+		
+		
+		div(layer[thumbnailBorderSource_controlBar_dockedThumbnails].quarterHeight, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].height), 4);
+		
+		
+		set(cropX_controlBar_dockedThumbnails, 0);
+		set(cropY_controlBar_dockedThumbnails, 0);
+		set(cropW_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].width));
+		set(cropH_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].quarterHeight));
+		txtadd(layer[thumbnailBorderSource_controlBar_dockedThumbnails].cropDefault, get(cropX_controlBar_dockedThumbnails), '|', get(cropY_controlBar_dockedThumbnails), '|', get(cropW_controlBar_dockedThumbnails), '|', get(cropH_controlBar_dockedThumbnails));
+
+		
+		add(cropY_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].quarterHeight));
+		txtadd(layer[thumbnailBorderSource_controlBar_dockedThumbnails].cropHover, get(cropX_controlBar_dockedThumbnails), '|', get(cropY_controlBar_dockedThumbnails), '|', get(cropW_controlBar_dockedThumbnails), '|', get(cropH_controlBar_dockedThumbnails));
+		
+		
+		add(cropY_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].quarterHeight));
+		txtadd(layer[thumbnailBorderSource_controlBar_dockedThumbnails].cropSelected, get(cropX_controlBar_dockedThumbnails), '|', get(cropY_controlBar_dockedThumbnails), '|', get(cropW_controlBar_dockedThumbnails), '|', get(cropH_controlBar_dockedThumbnails));
+		
+		
+		add(cropY_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].quarterHeight));
+		txtadd(layer[thumbnailBorderSource_controlBar_dockedThumbnails].cropVisited, get(cropX_controlBar_dockedThumbnails), '|', get(cropY_controlBar_dockedThumbnails), '|', get(cropW_controlBar_dockedThumbnails), '|', get(cropH_controlBar_dockedThumbnails));
+		
+		
+		set(scaleX_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].offsetX));
+		set(scaleY_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].offsetY));
+		sub(scaleW_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].width), get(totalOffsetX_controlBar_dockedThumbnails));
+		sub(scaleH_controlBar_dockedThumbnails, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].quarterHeight), get(totalOffsetY_controlBar_dockedThumbnails));
+		txtadd(layer[thumbnailBorderSource_controlBar_dockedThumbnails].scale9grid, get(scaleX_controlBar_dockedThumbnails), '|', get(scaleY_controlBar_dockedThumbnails), '|', get(scaleW_controlBar_dockedThumbnails), '|', get(scaleH_controlBar_dockedThumbnails));
+	</action>
+	
+	
+	<action name="loadThumbs_controlBar_dockedThumbnails">
+		if(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+			set(imgCounter_controlBar_dockedThumbnails, 1);
+		,
+			set(imgCounter_controlBar_dockedThumbnails, 0);
+		);
+		
+		if(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+			if(borderLoaded_controlBar_dockedThumbnails,
+				dec(imgCounter_controlBar_dockedThumbnails);
+			);
+		);
+		
+		if(imgCounter_controlBar_dockedThumbnails LE 0,
+			stopdelayedcall(delayedCallOnLoadCompleteBorder_controlBar_dockedThumbnails);
+			loadThumbsPartTwo_controlBar_dockedThumbnails();
+		,
+			delayedcall(delayedCallOnLoadCompleteBorder_controlBar_dockedThumbnails, 0.2, loadThumbs_controlBar_dockedThumbnails());
+		);
+	</action>
+	
+	<action name="loadThumbsPartTwo_controlBar_dockedThumbnails">
+		ifnot(layer[scrollAreaContainer_controlBar_dockedThumbnails].ready,
+			
+			
+			if(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+				thumbnailBorderImageInit_controlBar_dockedThumbnails();
+			,
+				thumbnailBorderDrawInit_controlBar_dockedThumbnails();
+			);
+			
+			
+			set(thumbsCounter_controlBar_dockedThumbnails, 0);
+			
+			
+				for( set(i_controlBar_dockedThumbnails, 0), i_controlBar_dockedThumbnails LT scene.count, inc(i_controlBar_dockedThumbnails),
+					createThumb_controlBar_dockedThumbnails(get(scene[get(i_controlBar_dockedThumbnails)].name), get(scene[get(i_controlBar_dockedThumbnails)].thumburl), get(i_controlBar_dockedThumbnails), get(scene[get(i_controlBar_dockedThumbnails)].titleid));
+					inc(thumbsCounter_controlBar_dockedThumbnails);
+				);
+			
+			
+			
+			
+			
+			
+			set(layer[scrollAreaContainer_controlBar_dockedThumbnails].currentThumbsCount, get(thumbsCounter_controlBar_dockedThumbnails));
+			
+			
+			setSize_controlBar_dockedThumbnails(get(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].width), get(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].height));
+			
+			
+			set(layer[scrollAreaContainer_controlBar_dockedThumbnails].visible, true);
+			
+			
+					set(layer[thumbnailsBar_controlBar_dockedThumbnails].visible, true);
+			
+			
+			set(layer[scrollAreaContainer_controlBar_dockedThumbnails].ready, true);
+		);
+	</action>
+	
+	
+	<action name="setSize_controlBar_dockedThumbnails">
+		
+		
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].targetWidth, %1);
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].targetHeight, %2);
+		
+		
+		set(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].width, %1);
+		set(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].height, %2);
+		layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].updatepos();
+		
+		
+		mul(totalMarginX_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].marginX), 2);
+		mul(totalMarginY_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].marginY), 2);
+		
+			add(totalPluginHeight_controlBar_dockedThumbnails, get(totalMarginY_controlBar_dockedThumbnails), get(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemHeight));
+			
+			
+			
+			if(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].pixelheight LT totalPluginHeight_controlBar_dockedThumbnails,
+				set(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].height, get(totalPluginHeight_controlBar_dockedThumbnails));
+			);
+		
+		layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].updatepos();
+		
+		
+		sub(containerWidth_controlBar_dockedThumbnails, get(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].pixelwidth), get(totalMarginX_controlBar_dockedThumbnails));
+		sub(containerHeight_controlBar_dockedThumbnails, get(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].pixelheight), get(totalMarginY_controlBar_dockedThumbnails));
+
+		
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].width, get(containerWidth_controlBar_dockedThumbnails));
+		set(layer[scrollAreaContainer_controlBar_dockedThumbnails].height, get(containerHeight_controlBar_dockedThumbnails));
+		
+		set(scrollAreaSize_controlBar_dockedThumbnails, 0);
+		
+		
+		mul(totalThumbsSpacer_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].currentThumbsCount), get(layer[scrollAreaContainer_controlBar_dockedThumbnails].thumbSpacer));
+		sub(totalThumbsSpacer_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].thumbSpacer));
+		
+		set(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].visible, true);
+		
+
+			mul(scrollAreaSize_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemWidth), get(layer[scrollAreaContainer_controlBar_dockedThumbnails].currentThumbsCount));
+			add(scrollAreaSize_controlBar_dockedThumbnails, get(totalThumbsSpacer_controlBar_dockedThumbnails));
+			
+			set(layer[thumbsScrollArea_controlBar_dockedThumbnails].width, get(scrollAreaSize_controlBar_dockedThumbnails));
+			set(layer[thumbsScrollArea_controlBar_dockedThumbnails].height, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemHeight));
+			
+			
+			if(layer[scrollAreaContainer_controlBar_dockedThumbnails].width LT layer[scrollAreaContainer_controlBar_dockedThumbnails].itemWidth,
+				set(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].visible, false);
+			,
+				verifyThumbnailsBarVisibility_controlBar_dockedThumbnails();
+			);
+			
+		
+		
+		if(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].width LT 0,
+			set(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].visible, false);
+		);
+		
+	</action>
+	
+	
+	<action name="verifyThumbnailsBarVisibility_controlBar_dockedThumbnails">
+		if(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].visible,
+			set(boolValue_controlBar_dockedThumbnails, false);
+			
+					set(boolValue_controlBar_dockedThumbnails, true);
+			
+			set(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].visible, get(boolValue_controlBar_dockedThumbnails));
+		);
+	</action>
+	
+	
+	<action name="createThumb_controlBar_dockedThumbnails">
+
+			add(offsetFactor_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemWidth), get(layer[scrollAreaContainer_controlBar_dockedThumbnails].thumbSpacer));
+	
+			mul(thumbIncPos_controlBar_dockedThumbnails, %3, get(offsetFactor_controlBar_dockedThumbnails));
+			
+			
+			if(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+				add(thumbIncPos_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].offsetX));
+			);
+			
+		
+		mul(negativeOffsetX_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].offsetX), -1);
+		mul(negativeOffsetY_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].offsetY), -1);
+		
+		set(thumbName, 'thumb_');
+		txtadd(thumbName, %1);
+		txtadd(thumbName, '_controlBar_dockedThumbnails');
+		addlayer(get(thumbName));
+		
+		set(thumbBorderName, 'thumbBorder_');
+		txtadd(thumbBorderName, %1);
+		txtadd(thumbBorderName, '_controlBar_dockedThumbnails');
+		addlayer(get(thumbBorderName));
+		
+		
+		ifnot(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+			set(layer[get(thumbBorderName)].type, container);
+			set(layer[get(thumbBorderName)].parent, thumbsScrollArea_controlBar_dockedThumbnails);
+		);
+		
+		
+		set(layer[get(thumbName)].onloaded, loadedImages_controlBar_dockedThumbnails("thumbnail"););
+		set(layer[get(thumbName)].url, %2);
+		set(layer[get(thumbName)].keep, true);
+		set(layer[get(thumbName)].width, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].thumbWidth));
+		set(layer[get(thumbName)].height, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].thumbHeight));
+		set(layer[get(thumbName)].align, topleft);
+		
+		
+			set(layer[get(thumbName)].y, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].offsetY));
+		
+			if(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+				set(layer[get(thumbName)].parent, thumbsScrollArea_controlBar_dockedThumbnails);
+				set(layer[get(thumbName)].x, get(thumbIncPos_controlBar_dockedThumbnails));
+			,
+				set(layer[get(thumbName)].parent, get(thumbBorderName));
+				set(layer[get(thumbName)].x, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].offsetX));
+				set(layer[get(thumbName)].onclick, resetMouseBehavior_controlBar_dockedThumbnails(); mainloadscene(%1); delayedcall(0.1,highlightThumb_controlBar_dockedThumbnails(%1)));
+			);	
+			
+		
+		
+		set(layer[get(thumbBorderName)].keep, true);
+		set(layer[get(thumbBorderName)].width, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemWidth));
+		set(layer[get(thumbBorderName)].height, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].itemHeight));
+		set(layer[get(thumbBorderName)].align, topleft);
+		
+		if(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+			set(layer[get(thumbBorderName)].url, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url));
+			set(layer[get(thumbBorderName)].scale9grid, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].scale9grid));
+			set(layer[get(thumbBorderName)].parent, get(thumbName));
+			set(layer[get(thumbBorderName)].x, get(negativeOffsetX_controlBar_dockedThumbnails));
+			set(layer[get(thumbBorderName)].y, get(negativeOffsetY_controlBar_dockedThumbnails));
+			set(layer[get(thumbBorderName)].onclick, resetMouseBehavior_controlBar_dockedThumbnails(); mainloadscene(%1); delayedcall(0.1,highlightThumb_controlBar_dockedThumbnails(%1)));
+		,
+			
+				set(layer[get(thumbBorderName)].x, get(thumbIncPos_controlBar_dockedThumbnails)); 
+				
+		);
+		
+		
+		setupMouseBehavior_controlBar_dockedThumbnails(%1, %4);
+		
+	</action>
+	
+	
+	<action name="removeThumb_controlBar_dockedThumbnails">
+		set(thumbName, 'thumb_');
+		txtadd(thumbName, %1);
+		txtadd(thumbName, '_controlBar_dockedThumbnails');
+		removelayer(get(thumbName));
+		
+		set(thumbBorderName, 'thumbBorder_');
+		txtadd(thumbBorderName, %1);
+		txtadd(thumbBorderName, '_controlBar_dockedThumbnails');
+		removelayer(get(thumbBorderName));
+	</action>
+	
+	
+	<action name="initArrows_controlBar_dockedThumbnails">
+		ifnot(device.touchdevice,
+			
+			if(layer[scrollPrevArrow_controlBar_dockedThumbnails].targetHeight LE 0,
+				set(layer[scrollPrevArrow_controlBar_dockedThumbnails].targetHeight, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].height));
+				set(layer[scrollPrevArrow_controlBar_dockedThumbnails].targetWidth, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].width));
+			);
+			if(layer[scrollNextArrow_controlBar_dockedThumbnails].targetHeight LE 0,
+				set(layer[scrollNextArrow_controlBar_dockedThumbnails].targetHeight, get(layer[scrollNextArrow_controlBar_dockedThumbnails].height));
+				set(layer[scrollNextArrow_controlBar_dockedThumbnails].targetWidth, get(layer[scrollNextArrow_controlBar_dockedThumbnails].width));
+			);
+			
+			
+			set(layer[scrollPrevArrow_controlBar_dockedThumbnails].width, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].targetWidth));
+			set(layer[scrollNextArrow_controlBar_dockedThumbnails].width, get(layer[scrollNextArrow_controlBar_dockedThumbnails].targetWidth));
+			
+				set(layer[scrollPrevArrowBg_controlBar_dockedThumbnails].width, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].targetWidth));
+				set(layer[scrollNextArrowBg_controlBar_dockedThumbnails].width, get(layer[scrollNextArrow_controlBar_dockedThumbnails].targetWidth));
+			
+			div(btPrevQuarterHeight_controlBar_dockedThumbnails, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].targetHeight), 3);
+			div(btNextQuarterHeight_controlBar_dockedThumbnails, get(layer[scrollNextArrow_controlBar_dockedThumbnails].targetHeight), 3);
+			
+			set(cropBtPrevX_controlBar_dockedThumbnails, 0);
+			set(cropBtPrevY_controlBar_dockedThumbnails, 0);
+			set(cropBtPrevW_controlBar_dockedThumbnails, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].width));
+			set(cropBtPrevH_controlBar_dockedThumbnails, get(btPrevQuarterHeight_controlBar_dockedThumbnails));
+			
+			txtadd(layer[scrollPrevArrow_controlBar_dockedThumbnails].cropDefault, get(cropBtPrevX_controlBar_dockedThumbnails), '|', get(cropBtPrevY_controlBar_dockedThumbnails), '|', get(cropBtPrevW_controlBar_dockedThumbnails), '|', get(cropBtPrevH_controlBar_dockedThumbnails));
+			add(cropBtPrevY_controlBar_dockedThumbnails, get(btPrevQuarterHeight_controlBar_dockedThumbnails));
+			txtadd(layer[scrollPrevArrow_controlBar_dockedThumbnails].cropOver, get(cropBtPrevX_controlBar_dockedThumbnails), '|', get(cropBtPrevY_controlBar_dockedThumbnails), '|', get(cropBtPrevW_controlBar_dockedThumbnails), '|', get(cropBtPrevH_controlBar_dockedThumbnails));
+			add(cropBtPrevY_controlBar_dockedThumbnails, get(btPrevQuarterHeight_controlBar_dockedThumbnails));
+			txtadd(layer[scrollPrevArrow_controlBar_dockedThumbnails].cropDown, get(cropBtPrevX_controlBar_dockedThumbnails), '|', get(cropBtPrevY_controlBar_dockedThumbnails), '|', get(cropBtPrevW_controlBar_dockedThumbnails), '|', get(cropBtPrevH_controlBar_dockedThumbnails));
+			
+			set(cropBtNextX_controlBar_dockedThumbnails, 0);
+			set(cropBtNextY_controlBar_dockedThumbnails, 0);
+			set(cropBtNextW_controlBar_dockedThumbnails, get(layer[scrollNextArrow_controlBar_dockedThumbnails].width));
+			set(cropBtNextH_controlBar_dockedThumbnails, get(btNextQuarterHeight_controlBar_dockedThumbnails));
+			
+			txtadd(layer[scrollNextArrow_controlBar_dockedThumbnails].cropDefault, get(cropBtNextX_controlBar_dockedThumbnails), '|', get(cropBtNextY_controlBar_dockedThumbnails), '|', get(cropBtNextW_controlBar_dockedThumbnails), '|', get(cropBtNextH_controlBar_dockedThumbnails));
+			add(cropBtNextY_controlBar_dockedThumbnails, get(btNextQuarterHeight_controlBar_dockedThumbnails));
+			txtadd(layer[scrollNextArrow_controlBar_dockedThumbnails].cropOver, get(cropBtNextX_controlBar_dockedThumbnails), '|', get(cropBtNextY_controlBar_dockedThumbnails), '|', get(cropBtNextW_controlBar_dockedThumbnails), '|', get(cropBtNextH_controlBar_dockedThumbnails));
+			add(cropBtNextY_controlBar_dockedThumbnails, get(btNextQuarterHeight_controlBar_dockedThumbnails));
+			txtadd(layer[scrollNextArrow_controlBar_dockedThumbnails].cropDown, get(cropBtNextX_controlBar_dockedThumbnails), '|', get(cropBtNextY_controlBar_dockedThumbnails), '|', get(cropBtNextW_controlBar_dockedThumbnails), '|', get(cropBtNextH_controlBar_dockedThumbnails));
+		);
+	</action>
+	
+	<action name="setupArrows_controlBar_dockedThumbnails">
+		
+		if(layer[scrollAreaContainer_controlBar_dockedThumbnails].adjustToContent,
+			hideArrows_controlBar_dockedThumbnails();
+		,
+			ifnot(device.touchdevice,
+				
+					if(layer[scrollAreaContainer_controlBar_dockedThumbnails].width LT layer[thumbsScrollArea_controlBar_dockedThumbnails].width,
+				
+					showArrows_controlBar_dockedThumbnails();
+				,
+					hideArrows_controlBar_dockedThumbnails();
+				);
+			,
+				hideArrows_controlBar_dockedThumbnails();
+			);
+		);
+		
+		
+		if(%1,
+			scrollToCurrentThumb_controlBar_dockedThumbnails();
+		);
+		
+		
+			
+			if(layer[scrollAreaContainer_controlBar_dockedThumbnails].width LT layer[scrollAreaContainer_controlBar_dockedThumbnails].itemWidth,
+				set(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].visible, false);
+			);
+	</action>
+	
+	
+	<action name="showArrows_controlBar_dockedThumbnails">
+		
+		
+			set(layer[scrollPrevArrow_controlBar_dockedThumbnails].crop, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].cropDefault));
+			set(layer[scrollPrevArrow_controlBar_dockedThumbnails].onovercrop, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].cropOver));
+			set(layer[scrollPrevArrow_controlBar_dockedThumbnails].ondowncrop, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].cropDown));
+			
+			set(layer[scrollNextArrow_controlBar_dockedThumbnails].crop, get(layer[scrollNextArrow_controlBar_dockedThumbnails].cropDefault));
+			set(layer[scrollNextArrow_controlBar_dockedThumbnails].onovercrop, get(layer[scrollNextArrow_controlBar_dockedThumbnails].cropOver));
+			set(layer[scrollNextArrow_controlBar_dockedThumbnails].ondowncrop, get(layer[scrollNextArrow_controlBar_dockedThumbnails].cropDown));
+			
+				set(layer[scrollPrevArrow_controlBar_dockedThumbnails].height, 36);
+				set(layer[scrollPrevArrow_controlBar_dockedThumbnails].width, 36);
+				
+				set(layer[scrollNextArrow_controlBar_dockedThumbnails].height, 36);
+				set(layer[scrollNextArrow_controlBar_dockedThumbnails].width, 36);
+			
+					set(layer[scrollPrevArrowBg_controlBar_dockedThumbnails].height, 36);
+					set(layer[scrollPrevArrowBg_controlBar_dockedThumbnails].width, 36);
+					
+					set(layer[scrollNextArrowBg_controlBar_dockedThumbnails].height, 36);
+					set(layer[scrollNextArrowBg_controlBar_dockedThumbnails].width, 36);
+				set(layer[scrollPrevArrowBg_controlBar_dockedThumbnails].crop, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].cropDefault));
+				set(layer[scrollNextArrowBg_controlBar_dockedThumbnails].crop, get(layer[scrollNextArrow_controlBar_dockedThumbnails].cropDefault));
+			
+		
+		
+		set(layer[scrollPrevArrow_controlBar_dockedThumbnails].visible, true);
+		set(layer[scrollNextArrow_controlBar_dockedThumbnails].visible, true);
+		
+			set(layer[scrollPrevArrowBg_controlBar_dockedThumbnails].visible, true);
+			set(layer[scrollNextArrowBg_controlBar_dockedThumbnails].visible, true);
+		
+		
+			
+			add(totalArrowSize_controlBar_dockedThumbnails, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].width), get(layer[scrollNextArrow_controlBar_dockedThumbnails].width));
+		
+			
+			sub(scrollAreaContainerSize_controlBar_dockedThumbnails, get(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].pixelwidth), get(totalArrowSize_controlBar_dockedThumbnails));
+		
+			set(layer[scrollAreaContainer_controlBar_dockedThumbnails].width, get(scrollAreaContainerSize_controlBar_dockedThumbnails));
+			
+			set(layer[scrollAreaContainer_controlBar_dockedThumbnails].x, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].width));
+			
+		
+		
+		set(layer[scrollPrevArrow_controlBar_dockedThumbnails].onhover, scrollPrev_controlBar_dockedThumbnails();changeArrowsBgCrop_controlBar_dockedThumbnails('prev','over'););
+		set(layer[scrollNextArrow_controlBar_dockedThumbnails].onhover, scrollNext_controlBar_dockedThumbnails();changeArrowsBgCrop_controlBar_dockedThumbnails('next','over'););
+		
+		set(layer[scrollPrevArrow_controlBar_dockedThumbnails].onclick, scrollPrev_controlBar_dockedThumbnails(get(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeedAcceleration)););
+		set(layer[scrollNextArrow_controlBar_dockedThumbnails].onclick, scrollNext_controlBar_dockedThumbnails(get(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeedAcceleration)););
+		
+		
+		
+		
+		
+		set(layer[scrollPrevArrow_controlBar_dockedThumbnails].onout, set(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeed, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeedInit));changeArrowsBgCrop_controlBar_dockedThumbnails('prev','out'););
+		set(layer[scrollNextArrow_controlBar_dockedThumbnails].onout, set(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeed, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeedInit));changeArrowsBgCrop_controlBar_dockedThumbnails('next','out'););
+		
+	</action>
+	
+	
+	<action name="changeArrowsBgCrop_controlBar_dockedThumbnails">
+		if(%1 == "prev",
+			if(%2 == "over",
+				set(layer[scrollPrevArrowBg_controlBar_dockedThumbnails].crop, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].cropOver));
+			,
+				set(layer[scrollPrevArrowBg_controlBar_dockedThumbnails].crop, get(layer[scrollPrevArrow_controlBar_dockedThumbnails].cropDefault));
+			);
+		,
+			if(%2 == "over",
+				set(layer[scrollNextArrowBg_controlBar_dockedThumbnails].crop, get(layer[scrollNextArrow_controlBar_dockedThumbnails].cropOver));
+			,
+				set(layer[scrollNextArrowBg_controlBar_dockedThumbnails].crop, get(layer[scrollNextArrow_controlBar_dockedThumbnails].cropDefault));
+			);
+		);
+	</action>
+	
+	
+	<action name="hideArrows_controlBar_dockedThumbnails">
+		
+		set(layer[scrollPrevArrow_controlBar_dockedThumbnails].visible, false);
+		set(layer[scrollNextArrow_controlBar_dockedThumbnails].visible, false);
+		
+			set(layer[scrollPrevArrowBg_controlBar_dockedThumbnails].visible, false);
+			set(layer[scrollNextArrowBg_controlBar_dockedThumbnails].visible, false);
+		
+
+			mul(totalMargin_controlBar_dockedThumbnails, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].marginX), 2);
+			
+			sub(scrollAreaContainerSize_controlBar_dockedThumbnails, get(layer[get(layer[scrollAreaContainer_controlBar_dockedThumbnails].parent)].pixelwidth), get(totalMargin_controlBar_dockedThumbnails));
+
+			set(layer[scrollAreaContainer_controlBar_dockedThumbnails].width, get(scrollAreaContainerSize_controlBar_dockedThumbnails));
+			set(layer[scrollAreaContainer_controlBar_dockedThumbnails].x, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].marginX));
+			 
+			
+	</action>
+	
+	
+	<action name="scrollPrev_controlBar_dockedThumbnails">
+		
+		
+		if(%1,
+			inc(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeed, %1);
+		);
+		
+		layer[thumbsScrollArea_controlBar_dockedThumbnails].stopscrolling();
+		
+		set(scrollLimit_controlBar_dockedThumbnails, 0);
+		
+		
+			
+			
+			add(layer[thumbsScrollArea_controlBar_dockedThumbnails].x, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeed));
+			if(layer[thumbsScrollArea_controlBar_dockedThumbnails].x GE scrollLimit_controlBar_dockedThumbnails,
+				set(layer[thumbsScrollArea_controlBar_dockedThumbnails].x, get(scrollLimit_controlBar_dockedThumbnails));
+			);
+		
+		if(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeed LT layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeedMax,
+			inc(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeed);
+		);
+		
+	</action>
+	
+	
+	<action name="scrollNext_controlBar_dockedThumbnails">
+		
+		
+		if(%1,
+			inc(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeed, %1);
+		);
+		
+		layer[thumbsScrollArea_controlBar_dockedThumbnails].stopscrolling();
+		
+			
+			sub(scrollLimit_controlBar_dockedThumbnails, get(layer[thumbsScrollArea_controlBar_dockedThumbnails].width), get(layer[scrollAreaContainer_controlBar_dockedThumbnails].width));
+			
+			mul(scrollLimit_controlBar_dockedThumbnails, -1);
+			
+			sub(layer[thumbsScrollArea_controlBar_dockedThumbnails].x, get(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeed));
+			if(layer[thumbsScrollArea_controlBar_dockedThumbnails].x LE scrollLimit_controlBar_dockedThumbnails,
+				set(layer[thumbsScrollArea_controlBar_dockedThumbnails].x, get(scrollLimit_controlBar_dockedThumbnails));
+			);
+		
+		if(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeed LT layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeedMax,
+			inc(layer[scrollAreaContainer_controlBar_dockedThumbnails].scrollSpeed);
+		);
+		
+	</action>
+	
+	
+	<action name="resetMouseBehavior_controlBar_dockedThumbnails">
+	
+		
+		
+			for( set(j_controlBar_dockedThumbnails, 0), j_controlBar_dockedThumbnails LT scene.count, inc(j_controlBar_dockedThumbnails),
+				set(thumbBorderName, 'thumbBorder_');
+				txtadd(thumbBorderName, get(scene[get(j_controlBar_dockedThumbnails)].name));
+				txtadd(thumbBorderName, '_controlBar_dockedThumbnails');
+				
+				setupMouseBehavior_controlBar_dockedThumbnails(get(scene[get(j_controlBar_dockedThumbnails)].name), get(scene[get(j_controlBar_dockedThumbnails)].titleid));
+			);
+		
+	</action>
+	
+	
+	<action name="setupMouseBehavior_controlBar_dockedThumbnails">
+
+		set(thumbName, 'thumb_');
+		txtadd(thumbName, %1);
+		txtadd(thumbName, '_controlBar_dockedThumbnails');
+		
+		set(thumbBorderName, 'thumbBorder_');
+		txtadd(thumbBorderName, %1);
+		txtadd(thumbBorderName, '_controlBar_dockedThumbnails');
+		
+		if(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+			set(layer[get(thumbBorderName)].crop, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].cropDefault));
+			set(layer[get(thumbBorderName)].onovercrop, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].cropHover));
+			set(layer[get(thumbBorderName)].ondowncrop, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].cropHover));
+			set(layer[get(thumbBorderName)].tooltip, %2);
+				set(layer[get(thumbBorderName)].onhover, showTooltip('plugin'));
+				set(layer[get(thumbBorderName)].onout, hideTooltip());
+		,
+			set(layer[get(thumbBorderName)].bgcolor, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderColorDefault));
+			set(layer[get(thumbBorderName)].bgalpha, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderAlphaDefault));
+				set(layer[get(thumbName)].tooltip, %2);
+				set(layer[get(thumbName)].onhover, showTooltip('plugin'));
+			
+			set(layer[get(thumbName)].onover, 
+				set(layer[get(parent)].bgcolor, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderColorHover));
+				set(layer[get(parent)].bgalpha, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderAlphaHover));
+			);
+			
+			set(layer[get(thumbName)].onout, 
+				set(layer[get(parent)].bgcolor, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderColorDefault));
+				set(layer[get(parent)].bgalpha, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderAlphaDefault));
+				hideTooltip();
+			);
+		);
+	
+	</action>
+	
+	
+	<action name="highlightCurrentThumb_controlBar_dockedThumbnails">
+			delayedcall(0.1,highlightThumb_controlBar_dockedThumbnails(get(xml.scene)));
+	</action>
+	
+	
+	<action name="highlightThumb_controlBar_dockedThumbnails">
+	
+		set(thumbBorderName, 'thumbBorder_');
+		txtadd(thumbBorderName, %1);
+		txtadd(thumbBorderName, '_controlBar_dockedThumbnails');
+		
+		if(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+			set(layer[get(thumbBorderName)].crop, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].cropSelected));
+			set(layer[get(thumbBorderName)].onovercrop, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].cropSelected));
+			set(layer[get(thumbBorderName)].ondowncrop, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].cropSelected));
+		,
+			set(thumbName, 'thumb_');
+			txtadd(thumbName, %1);
+			txtadd(thumbName, '_controlBar_dockedThumbnails');
+			
+			set(layer[get(thumbBorderName)].bgcolor, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderColorSelected));
+			set(layer[get(thumbBorderName)].bgalpha, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderAlphaSelected));
+			
+			set(layer[get(thumbName)].onover, "");
+			set(layer[get(thumbName)].onout, hideTooltip(););
+		);
+
+		scrollToThumb_controlBar_dockedThumbnails(%1);
+	</action>
+	
+	
+	<action name="scrollToCurrentThumb_controlBar_dockedThumbnails">
+			scrollToThumb_controlBar_dockedThumbnails(get(xml.scene));
+	</action>
+	
+	
+	<action name="scrollToThumb_controlBar_dockedThumbnails">
+		
+		set(thumbName, 'thumb_');
+		set(thumbBorderName, 'thumbBorder_');
+		
+		txtadd(thumbName, %1);
+		txtadd(thumbName, '_controlBar_dockedThumbnails');
+		txtadd(thumbBorderName, %1);
+		txtadd(thumbBorderName, '_controlBar_dockedThumbnails');
+
+			set(posX_controlBar_dockedThumbnails, 0);
+			if(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+				div(halfThumbWidth_controlBar_dockedThumbnails, get(layer[get(thumbName)].width), 2);
+				ifnot(layer[scrollAreaContainer_controlBar_dockedThumbnails].adjustToContent,
+					add(posX_controlBar_dockedThumbnails, get(layer[get(thumbName)].x), get(halfThumbWidth_controlBar_dockedThumbnails));
+				);
+				if(layer[thumbsScrollArea_controlBar_dockedThumbnails].scrolltocenter,
+					layer[thumbsScrollArea_controlBar_dockedThumbnails].scrolltocenter(get(posX_controlBar_dockedThumbnails), 0);
+				);
+			,
+				div(halfThumbWidth_controlBar_dockedThumbnails, get(layer[get(thumbBorderName)].width), 2);
+				ifnot(layer[scrollAreaContainer_controlBar_dockedThumbnails].adjustToContent,
+					add(posX_controlBar_dockedThumbnails, get(layer[get(thumbBorderName)].x), get(halfThumbWidth_controlBar_dockedThumbnails));
+				);
+				if(layer[thumbsScrollArea_controlBar_dockedThumbnails].scrolltocenter,
+					layer[thumbsScrollArea_controlBar_dockedThumbnails].scrolltocenter(get(posX_controlBar_dockedThumbnails), 0);
+				);
+			);
+		
+	</action>
+	
+
+
+<action name="resetThumbnailsBarSize_controlBar_dockedThumbnails">
+	
+	
+	set(sizeHeight, 40);
+	mul(totalMarginY, 5, 2);
+	if(layer[thumbnailBorderSource_controlBar_dockedThumbnails].url,
+		mul(totalOffsetY, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].offsetY), 2);
+	,
+		mul(totalOffsetY, get(layer[thumbnailBorderSource_controlBar_dockedThumbnails].borderWidth), 2);
+	);
+	add(sizeHeight, totalMarginY);
+	add(sizeHeight, totalOffsetY);
+	
+	setSize_controlBar_dockedThumbnails(%1, sizeHeight);
+</action>
+
+
+
+
+
+<action name="controlBar_dockedThumbnailsbuildMenu">
+	
+    set(controlBar_dockedThumbnailsbutton_pos, 0);
+    set(layer[controlBar_dockedThumbnailsbtn_hidecontrols].x, get(controlBar_dockedThumbnailsbutton_pos));
+    set(layer[controlBar_dockedThumbnailsbtn_hidecontrols_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+    inc(controlBar_dockedThumbnailsbutton_pos, 36);
+
+
+      if (device.fullscreensupport,
+        set(layer[controlBar_dockedThumbnailsbtn_openfs].x, get(controlBar_dockedThumbnailsbutton_pos));
+        set(layer[controlBar_dockedThumbnailsbtn_closefs].x, get(controlBar_dockedThumbnailsbutton_pos));
+        set(layer[controlBar_dockedThumbnailsbtn_openfs_bg ].x, get(controlBar_dockedThumbnailsbutton_pos));
+        set(layer[controlBar_dockedThumbnailsbtn_closefs_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+        inc(controlBar_dockedThumbnailsbutton_pos, 36);
+      );
+
+
+      set(layer[controlBar_dockedThumbnailsbtn_display_floorplan].x, get(controlBar_dockedThumbnailsbutton_pos));
+      set(layer[controlBar_dockedThumbnailsbtn_hide_floorplan].x, get(controlBar_dockedThumbnailsbutton_pos));
+      set(layer[controlBar_dockedThumbnailsbtn_display_floorplan_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+      set(layer[controlBar_dockedThumbnailsbtn_hide_floorplan_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+      inc(controlBar_dockedThumbnailsbutton_pos, 36);
+
+
+
+
+
+
+
+
+      if (device.desktop,
+        set(layer[controlBar_dockedThumbnailsbtn_right].x, get(controlBar_dockedThumbnailsbutton_pos));
+        set(layer[controlBar_dockedThumbnailsbtn_right_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+        inc(controlBar_dockedThumbnailsbutton_pos, 36);
+
+        set(layer[controlBar_dockedThumbnailsbtn_left].x, get(controlBar_dockedThumbnailsbutton_pos));
+        set(layer[controlBar_dockedThumbnailsbtn_left_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+        inc(controlBar_dockedThumbnailsbutton_pos, 36);
+      );
+
+      if (device.desktop,
+        set(layer[controlBar_dockedThumbnailsbtn_down].x, get(controlBar_dockedThumbnailsbutton_pos));
+        set(layer[controlBar_dockedThumbnailsbtn_down_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+        inc(controlBar_dockedThumbnailsbutton_pos, 36);
+
+        set(layer[controlBar_dockedThumbnailsbtn_up].x, get(controlBar_dockedThumbnailsbutton_pos));
+        set(layer[controlBar_dockedThumbnailsbtn_up_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+        inc(controlBar_dockedThumbnailsbutton_pos, 36);
+      );
+
+      if (device.desktop,
+        set(layer[controlBar_dockedThumbnailsbtn_out].x, get(controlBar_dockedThumbnailsbutton_pos));
+        set(layer[controlBar_dockedThumbnailsbtn_out_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+        inc(controlBar_dockedThumbnailsbutton_pos, 36);
+        set(layer[controlBar_dockedThumbnailsbtn_in].x, get(controlBar_dockedThumbnailsbutton_pos));
+        set(layer[controlBar_dockedThumbnailsbtn_in_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+        inc(controlBar_dockedThumbnailsbutton_pos, 36);
+      );
+
+
+      if (scene.count GT 1,
+        set(layer[controlBar_dockedThumbnailsbtn_next_pano].x, get(controlBar_dockedThumbnailsbutton_pos));
+        set(layer[controlBar_dockedThumbnailsbtn_next_pano_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+        inc(controlBar_dockedThumbnailsbutton_pos, 36);
+
+        set(layer[controlBar_dockedThumbnailsbtn_prev_pano].x, get(controlBar_dockedThumbnailsbutton_pos));
+        set(layer[controlBar_dockedThumbnailsbtn_prev_pano_bg].x, get(controlBar_dockedThumbnailsbutton_pos));
+        inc(controlBar_dockedThumbnailsbutton_pos, 36);
+      );
+
+
+
+      set(controlBar_dockedThumbnailsThumbnailsPos, get(controlBar_dockedThumbnailsbutton_pos));
+      controlBar_dockedThumbnailsUpdateThumbnailsSize();
+	
+	
+	
+</action>
+
+<events name="controlBar_dockedThumbnailsStartTourEvents" onTourStart="controlBar_dockedThumbnailsCallOnStartTour();" keep="true" />
+
+<action name="controlBar_dockedThumbnailsCallOnStartTour">
+	
+	controlBar_dockedThumbnailsshowMenuControls();
+</action>
+
+
+
+	<action name="controlBar_dockedThumbnailsOnResize">
+		controlBar_dockedThumbnailsUpdateThumbnailsSize();
+	</action>
+	<action name="controlBar_dockedThumbnailsUpdateThumbnailsSize">
+		copy(newThumbnailsBarWidth, stagewidth);
+		sub(newThumbnailsBarWidth, controlBar_dockedThumbnailsThumbnailsPos);
+		
+		resetThumbnailsBarSize_controlBar_dockedThumbnails(get(newThumbnailsBarWidth));
+	</action>
+
+    <layer name="controlBar_dockedThumbnails_bg"
+           keep="true"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/footer.png"
+           zorder="2"
+           width="100%"
+           align="bottomleft"
+           x="0"
+           visible="false" />
+
+    <style name="controlBar_dockedThumbnails_btn_style_bg"
+            keep="true"
+            parent="controlBar_dockedThumbnails_bg"
+            crop="0|0|48|48"
+            url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_bg.png"
+            align="bottomright"
+            height="36"
+            width="36"
+            alpha="0.3"
+            y="12"
+            zorder="0"
+            />
+    <style name="controlBar_dockedThumbnails_btn_style_bg_off"
+            keep="true"
+            parent="controlBar_dockedThumbnails_bg"
+            crop="0|0|48|48"
+            url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_bg.png"
+            align="bottomright"
+            height="36"
+            width="36"
+            alpha="0.3"
+            y="12"
+            zorder="0"
+            />
+
+    <style name="controlBar_dockedThumbnails_btn_style_on_bg"
+           keep="true"
+           parent="controlBar_dockedThumbnails_bg"
+           crop="0|48|48|48"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_bg.png"
+           align="bottomright"
+           height="36"
+           width="36"
+           alpha="0.3"
+           y="12"
+           zorder="0"
+           />
+    <style name="controlBar_dockedThumbnails_btn_style_on_bg_off"
+           keep="true"
+           parent="controlBar_dockedThumbnails_bg"
+           crop="0|0|48|48"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_bg.png"
+           align="bottomright"
+           height="36"
+           width="36"
+           alpha="0.3"
+           y="12"
+           zorder="0"
+           />
+
+    <style name="controlBar_dockedThumbnails_btn_down_style"
+           keep="true"
+           parent="controlBar_dockedThumbnails_bg"
+                 crop="0| 0|48|48"
+           onovercrop="0|48|48|48"
+           ondowncrop="0|96|48|48"
+           align="bottomright"
+           height="36"
+           width="36"
+           x="0" y="12"
+           zorder="1"
+           onhover="showTooltip('plugin');"
+           onover="controlBar_dockedThumbnailsctrl_btn_onoveraction"
+           onout="controlBar_dockedThumbnailsctrl_btn_onoutaction"
+           />
+
+    <style name="controlBar_dockedThumbnails_btn_style"
+           keep="true"
+           parent="controlBar_dockedThumbnails_bg"
+                 crop="0| 0|48|48"
+           onovercrop="0|48|48|48"
+           ondowncrop="0|96|48|48"
+           align="bottomright"
+           height="36"
+           width="36"
+           x="0" y="12"
+           zorder="1"
+           onhover="showTooltip('plugin');"
+           onover="controlBar_dockedThumbnailsctrl_btn_onoveraction"
+           ondown="controlBar_dockedThumbnailsctrl_btn_ondownaction"
+           onout="controlBar_dockedThumbnailsctrl_btn_onoutaction"
+           />
+    <style name="controlBar_dockedThumbnails_btn_style_off"
+           keep="true"
+           parent="controlBar_dockedThumbnails_bg"
+           align="bottomright"
+           height="36"
+           width="36"
+           x="0" y="12"
+           zorder="1"
+           onhover="showTooltip('plugin');"
+           onout="hideTooltip();"
+           />
+
+  <action name="controlBar_dockedThumbnailsctrl_btn_onoveraction">
+    txtadd(btn_bg_name, get(name), "_bg");
+    set(layer[get(btn_bg_name)].crop, "0|48|48|48");
+  </action>
+
+  <action name="controlBar_dockedThumbnailsctrl_btn_ondownaction">
+    txtadd(btn_bg_name, get(name), "_bg");
+    set(layer[get(btn_bg_name)].crop, "0|96|48|48");
+  </action>
+
+  <action name="controlBar_dockedThumbnailsctrl_btn_onoutaction">
+    txtadd(btn_bg_name, get(name), "_bg");
+    set(layer[get(btn_bg_name)].crop, "0|0|48|48");
+    hideTooltip();
+  </action>
+
+    <style name="controlBar_dockedThumbnails_btn_style_on"
+            keep="true"
+            parent="controlBar_dockedThumbnails_bg"
+                  crop="0|48|48|48"
+            onovercrop="0|48|48|48"
+            ondowncrop="0|96|48|48"
+            align="bottomright"
+            height="36"
+            width="36"
+            y="12"
+            zorder="1"
+            onhover="showTooltip('plugin');" 
+            onout="hideTooltip();"
+            />
+    <style name="controlBar_dockedThumbnails_btn_style_on_off"
+            keep="true"
+            parent="controlBar_dockedThumbnails_bg"
+            align="bottomright"
+            height="36"
+            width="36"
+            y="12"
+            zorder="1"
+            onhover="showTooltip('plugin');" 
+            onout="hideTooltip();"
+            />
+
+
+
+    <layer name="controlBar_dockedThumbnailsbtn_in_bg" style="controlBar_dockedThumbnails_btn_style_bg" visible="false" devices="desktop"/>
+    <layer name="controlBar_dockedThumbnailsbtn_in"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_zoom_in.png"
+           style="controlBar_dockedThumbnails_btn_down_style"
+           ondown="controlBar_dockedThumbnailsctrl_btn_ondownaction();viewControlZoomIn(false);"
+           onup="viewControlZoomStop();
+"
+           tooltip="controlBar_dockedThumbnailszoomInTip"
+           devices="desktop"
+           visible="false"
+           />
+    <layer name="controlBar_dockedThumbnailsbtn_out_bg" style="controlBar_dockedThumbnails_btn_style_bg" visible="false" devices="desktop"/>
+    <layer name="controlBar_dockedThumbnailsbtn_out"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_zoom_out.png"
+           style="controlBar_dockedThumbnails_btn_down_style"
+           ondown="controlBar_dockedThumbnailsctrl_btn_ondownaction();viewControlZoomOut(false);
+"
+           onup="viewControlZoomStop();
+"
+           tooltip="controlBar_dockedThumbnailszoomOutTip"
+           devices="desktop"
+           visible="false"
+           />
+
+    <layer name="controlBar_dockedThumbnailsbtn_left_bg" style="controlBar_dockedThumbnails_btn_style_bg" devices="desktop" visible="false" />
+    <layer name="controlBar_dockedThumbnailsbtn_left"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_move_left.png"
+           style="controlBar_dockedThumbnails_btn_down_style"
+           ondown="controlBar_dockedThumbnailsctrl_btn_ondownaction();viewControlMoveLeft(false);
+"
+           onup="viewControlMoveHoriStop();
+"
+            tooltip="controlBar_dockedThumbnailsmoveLeftTip"
+           devices="desktop"
+           visible="false"
+           />
+    <layer name="controlBar_dockedThumbnailsbtn_right_bg" style="controlBar_dockedThumbnails_btn_style_bg" devices="desktop" visible="false" />
+    <layer name="controlBar_dockedThumbnailsbtn_right"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_move_right.png"
+           style="controlBar_dockedThumbnails_btn_down_style"
+           ondown="controlBar_dockedThumbnailsctrl_btn_ondownaction();viewControlMoveRight(false);
+"
+           onup="viewControlMoveHoriStop();
+"
+            tooltip="controlBar_dockedThumbnailsmoveRightTip"
+           devices="desktop"
+           visible="false"
+           />
+
+    <layer name="controlBar_dockedThumbnailsbtn_up_bg" style="controlBar_dockedThumbnails_btn_style_bg" devices="desktop" visible="false" />
+    <layer name="controlBar_dockedThumbnailsbtn_up"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_move_up.png"
+           style="controlBar_dockedThumbnails_btn_down_style"
+           ondown="controlBar_dockedThumbnailsctrl_btn_ondownaction();viewControlMoveUp(false);
+"
+           onup="viewControlMoveVertStop();
+"
+            tooltip="controlBar_dockedThumbnailsmoveUpTip"
+           devices="desktop"
+           visible="false"
+           />
+    <layer name="controlBar_dockedThumbnailsbtn_down_bg" style="controlBar_dockedThumbnails_btn_style_bg" devices="desktop" visible="false" />
+    <layer name="controlBar_dockedThumbnailsbtn_down"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_move_down.png"
+           style="controlBar_dockedThumbnails_btn_down_style"
+           ondown="controlBar_dockedThumbnailsctrl_btn_ondownaction();viewControlMoveDown(false);
+"
+           onup="viewControlMoveVertStop();
+"
+            tooltip="controlBar_dockedThumbnailsmoveDownTip"
+           devices="desktop"
+           visible="false"
+           />
+
+
+
+
+
+    <layer name="controlBar_dockedThumbnailsbtn_prev_pano_bg" style="controlBar_dockedThumbnails_btn_style_bg" visible="false" />
+    <layer name="controlBar_dockedThumbnailsbtn_prev_pano"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_previous_scene.png"
+           onclick="loadPreviousScene();
+"
+           style="controlBar_dockedThumbnails_btn_style"
+           tooltip="controlBar_dockedThumbnailsprevSceneTip"
+           visible="false"
+           />
+    <layer name="controlBar_dockedThumbnailsbtn_next_pano_bg" style="controlBar_dockedThumbnails_btn_style_bg" visible="false" />
+    <layer name="controlBar_dockedThumbnailsbtn_next_pano"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_next_scene.png"
+           onclick="loadNextScene();
+"
+           style="controlBar_dockedThumbnails_btn_style"
+            tooltip="controlBar_dockedThumbnailsnextSceneTip"
+           visible="false"
+           />
+
+
+
+
+    <layer name="controlBar_dockedThumbnailsbtn_display_floorplan_bg" style="controlBar_dockedThumbnails_btn_style_bg" visible="false" />
+    <layer name="controlBar_dockedThumbnailsbtn_display_floorplan"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_floorplan.png"
+           onclick="showFloorplan();
+"
+           style="controlBar_dockedThumbnails_btn_style"
+           visible="false"
+           tooltip="controlBar_dockedThumbnailsdisplayFloorplanTip"
+           />
+    <layer name="controlBar_dockedThumbnailsbtn_hide_floorplan_bg" style="controlBar_dockedThumbnails_btn_style_on_bg" visible="false" />
+    <layer name="controlBar_dockedThumbnailsbtn_hide_floorplan"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_floorplan.png"
+           onclick="hideFloorplan();
+"
+           style="controlBar_dockedThumbnails_btn_style_on"
+           visible="false"
+           tooltip="controlBar_dockedThumbnailshideFloorplanTip"
+           />
+
+    <layer name="controlBar_dockedThumbnailsbtn_openfs_bg" style="controlBar_dockedThumbnails_btn_style_bg" visible="false" devices="fullscreensupport" />
+    <layer name="controlBar_dockedThumbnailsbtn_openfs"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_enter_fs.png"
+           onclick="enterFullscreen();
+"
+           style="controlBar_dockedThumbnails_btn_style"
+           visible="false"
+           tooltip="controlBar_dockedThumbnailsopenFsTip"
+           devices="fullscreensupport"
+           />
+    <layer name="controlBar_dockedThumbnailsbtn_closefs_bg" style="controlBar_dockedThumbnails_btn_style_on_bg" visible="false" devices="fullscreensupport" />
+    <layer name="controlBar_dockedThumbnailsbtn_closefs"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_close_fs.png"
+           onclick="exitFullscreen();
+"
+           style="controlBar_dockedThumbnails_btn_style_on"
+           visible="false"
+           tooltip="controlBar_dockedThumbnailscloseFsTip"
+           devices="fullscreensupport"
+           />
+
+
+
+
+
+    <layer name="controlBar_dockedThumbnailsbtn_hidecontrols_bg" style="controlBar_dockedThumbnails_btn_style_bg" visible="false" />
+    <layer name="controlBar_dockedThumbnailsbtn_hidecontrols"
+           url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_hide_controls.png"
+           style="controlBar_dockedThumbnails_btn_style"
+           onclick="controlBar_dockedThumbnailshideMenuControls();hideTourControls();
+"
+           visible="false"
+            tooltip="controlBar_dockedThumbnailshideControlsTip"
+           />
+
+    <layer name="controlBar_dockedThumbnailsbtn_showcontrols"
+                  crop="0| 0|48|48"
+            onovercrop="0|48|48|48"
+            ondowncrop="0|96|48|48"
+            keep="true"
+            url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_show_controls_bg.png"
+            align="bottomright"
+            zorder="2"
+            height="36"
+            width="36"
+            visible="false"
+            y="12"
+            x="0" >
+    <layer name="controlBar_dockedThumbnailsbtn_showcontrols_fg"
+                  crop="0| 0|48|48"
+            onovercrop="0|48|48|48"
+            ondowncrop="0|96|48|48"
+            onclick="controlBar_dockedThumbnailsshowMenuControls();showTourControls();
+"
+            onhover="showTooltip('plugin');"
+            onout="hideTooltip();"
+            tooltip="controlBar_dockedThumbnailsdisplayControlsTip"
+            keep="true"
+            url="%FIRSTXML%/graphics/dockedthumbscontrolbar/btn_show_controls.png"
+            align="center"
+            height="36"
+            width="36"
+            />
+    </layer>
+
+
+<action name="controlBar_dockedThumbnailshideMenuControls">
+	set(controlBar_dockedThumbnailsIsOpened, false);
+	set(layer[controlBar_dockedThumbnails_bg].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_showcontrols].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_hidecontrols_bg].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_hidecontrols].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_in_bg].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_out_bg].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_in].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_out].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_right_bg].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_left_bg].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_right].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_left].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_down_bg].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_up_bg].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_down].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_up].visible, false);
+	if (scene.count GT 1,
+	set(layer[controlBar_dockedThumbnailsbtn_prev_pano_bg].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_next_pano_bg].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_prev_pano].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_next_pano].visible, false);
+	);
+
+		controlBar_dockedThumbnailsupdateFloorplanButtons();
+
+		controlBar_dockedThumbnailsupdateFullscreenButtons();
+</action>
+<action name="controlBar_dockedThumbnailsshowMenuControls">
+	set(controlBar_dockedThumbnailsIsOpened, true);
+      controlBar_dockedThumbnailsupdateFullscreenButtons();
+
+      controlBar_dockedThumbnailsupdateFloorplanButtons();
+
+      set(layer[controlBar_dockedThumbnails_bg].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_showcontrols].visible, false);
+	set(layer[controlBar_dockedThumbnailsbtn_hidecontrols_bg].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_hidecontrols].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_in_bg].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_out_bg].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_in].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_out].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_right_bg].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_left_bg].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_right].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_left].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_down_bg].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_up_bg].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_down].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_up].visible, true);
+	if (scene.count GT 1,
+	set(layer[controlBar_dockedThumbnailsbtn_prev_pano_bg].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_next_pano_bg].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_prev_pano].visible, true);
+	set(layer[controlBar_dockedThumbnailsbtn_next_pano].visible, true);
+	);
+	
+	
+		controlBar_dockedThumbnailsUpdateThumbnailsSize();
+</action>
+
+
+	<events name="controlBar_dockedThumbnailsDisplayFloorPlanEvents" 
+		onshowtourfloorplan="controlBar_dockedThumbnailsupdateFloorplanButtons();" 
+		onhidetourfloorplan="controlBar_dockedThumbnailsupdateFloorplanButtons();" 
+		keep="true" />
+	<action name="controlBar_dockedThumbnailsHideFloorplanButtons">
+		set(layer[controlBar_dockedThumbnailsbtn_display_floorplan].visible, false);
+		set(layer[controlBar_dockedThumbnailsbtn_hide_floorplan].visible, false);
+		set(layer[controlBar_dockedThumbnailsbtn_display_floorplan_bg].visible, false);
+		set(layer[controlBar_dockedThumbnailsbtn_hide_floorplan_bg].visible, false);
+	</action>
+	<action name="controlBar_dockedThumbnailsShowFloorplanButtons">
+		if (tour_displayfloorplan,
+			set(layer[controlBar_dockedThumbnailsbtn_hide_floorplan].visible, true);
+			set(layer[controlBar_dockedThumbnailsbtn_display_floorplan].visible, false);
+			set(layer[controlBar_dockedThumbnailsbtn_display_floorplan_bg].visible, false);
+			set(layer[controlBar_dockedThumbnailsbtn_hide_floorplan_bg].visible, true);
+		,
+			set(layer[controlBar_dockedThumbnailsbtn_display_floorplan].visible, true);
+			set(layer[controlBar_dockedThumbnailsbtn_hide_floorplan].visible, false);
+			set(layer[controlBar_dockedThumbnailsbtn_display_floorplan_bg].visible, true);
+			set(layer[controlBar_dockedThumbnailsbtn_hide_floorplan_bg].visible, false);
+		);
+	</action>
+	<action name="controlBar_dockedThumbnailsupdateFloorplanButtons">
+		if (controlBar_dockedThumbnailsIsOpened,
+			controlBar_dockedThumbnailsShowFloorplanButtons();
+		,
+			controlBar_dockedThumbnailsHideFloorplanButtons();
+		);
+	</action>
+
+
+	<events name="controlBar_dockedThumbnailsmenufullscreenchangeevent"
+		onenterfullscreen="controlBar_dockedThumbnailsupdateFullscreenButtons();"
+		onexitfullscreen="controlBar_dockedThumbnailsupdateFullscreenButtons();"
+		keep="true"/>
+	<action name="controlBar_dockedThumbnailsHideFullscreenButtons">
+		set(layer[controlBar_dockedThumbnailsbtn_openfs].visible , false);
+		set(layer[controlBar_dockedThumbnailsbtn_closefs].visible, false);
+		set(layer[controlBar_dockedThumbnailsbtn_openfs_bg].visible, false);
+		set(layer[controlBar_dockedThumbnailsbtn_closefs_bg].visible, false);
+	</action>
+	<action name="controlBar_dockedThumbnailsShowFullscreenButtons">
+		if (device.fullscreensupport,
+			if(tour_fullscreen,
+				set(layer[controlBar_dockedThumbnailsbtn_openfs].visible , false);
+				set(layer[controlBar_dockedThumbnailsbtn_closefs].visible, true);
+				set(layer[controlBar_dockedThumbnailsbtn_openfs_bg].visible, false);
+				set(layer[controlBar_dockedThumbnailsbtn_closefs_bg].visible, true);
+			,
+				set(layer[controlBar_dockedThumbnailsbtn_openfs].visible ,true);
+				set(layer[controlBar_dockedThumbnailsbtn_closefs].visible,false);
+				set(layer[controlBar_dockedThumbnailsbtn_openfs_bg].visible, true);
+				set(layer[controlBar_dockedThumbnailsbtn_closefs_bg].visible, false);
+			);
+		,
+			controlBar_dockedThumbnailsHideFullscreenButtons();
+		);
+	</action>
+	<action name="controlBar_dockedThumbnailsupdateFullscreenButtons">
+		if (controlBar_dockedThumbnailsIsOpened,
+			controlBar_dockedThumbnailsShowFullscreenButtons();
+		,
+			controlBar_dockedThumbnailsHideFullscreenButtons();
+		);
+	</action>
+
+
+
+
+
+
+  <!-- Hide / Show Controls -->
+  <action name="hideTourControls">set(tour_displaycontrols, false);events.dispatch(hidetourcontrols);</action>
+  <action name="showTourControls">set(tour_displaycontrols, true); events.dispatch(showtourcontrols);</action>
+
+
+<action name="viewControlZoomIn">
+	if(%1,
+		if(%2,
+			if(%2 LT view.fovmin,
+				zoomto(get(view.fovmin));
+			,
+				if(%2 LT view.fov,
+					zoomto(%2);
+				);
+			);
+		,
+			set(fov_moveforce, -1);
+			delayedcall(0.1, viewControlZoomStop());
+		);
+	,
+		set(fov_moveforce, -1);
+	);
+</action>
+<action name="viewControlZoomOut">
+	if(%1,
+		if(%2,
+			if(%2 GT view.fovmax,
+				zoomto(get(view.fovmax));
+			,
+				if(%2 GT view.fov,
+					zoomto(%2);
+				);
+			);
+		,
+			set(fov_moveforce, +1);
+			delayedcall(0.1, viewControlZoomStop());
+		);
+	,
+		set(fov_moveforce, +1);
+	);
+</action>
+<action name="viewControlZoomStop">
+	set(fov_moveforce, 0);
+</action>
+
+  <!-- FLOORPLAN -->
+  <action name="hideFloorplan">set(tour_displayfloorplan, false);events.dispatch(onhidetourfloorplan);</action>
+  <action name="showFloorplan">set(tour_displayfloorplan, true); events.dispatch(onshowtourfloorplan);</action>
+
+
+<action name="viewControlMoveUp">
+	if(%1,
+		if(%2,
+			set(isfullvertical, false);
+			ifnot(scene[get(xml.scene)].planar,
+				sub(viewvfov, panoview.vmax, panoview.vmin);
+				if (viewvfov == 180,
+					set(isfullvertical, true);
+				);
+			);
+			if(isfullvertical == false AND calc(view.vlookat-%2) LT view.vlookatmin,
+				moveto(get(view.hlookat), get(view.vlookatmin));
+			,
+				moveto(get(view.hlookat), calc(view.vlookat-%2));
+			);
+		,
+			set(vlookat_moveforce, -1);
+			delayedcall(0.1, viewControlMoveVertStop());
+		);
+	,
+		set(vlookat_moveforce, -1);
+	);
+</action>
+<action name="viewControlMoveDown">
+	if(%1,
+		if(%2,
+			set(isfullvertical, false);
+			ifnot(scene[get(xml.scene)].planar,
+				sub(viewvfov, panoview.vmax, panoview.vmin);
+				if (viewvfov == 180,
+					set(isfullvertical, true);
+				);
+			);
+			if(sceneisfull360 == false AND calc(view.vlookat+%2) GT view.vlookatmax,
+				moveto(get(view.hlookat), get(view.vlookatmax));
+			,
+				moveto(get(view.hlookat), calc(view.vlookat+%2));
+			);
+		,
+			set(vlookat_moveforce, +1);
+			delayedcall(0.1, viewControlMoveVertStop());
+		);
+	,
+		set(vlookat_moveforce, +1);
+	);
+</action>
+<action name="viewControlMoveLeft">
+	if(%1,
+		if(%2,
+			set(isfullhorizontal, false);
+			ifnot(scene[get(xml.scene)].planar,
+				sub(viewhfov, panoview.hmax, panoview.hmin);
+				if (viewhfov == 360,
+					set(isfullhorizontal, true);
+				);
+			);
+			if(isfullhorizontal == false AND calc(view.hlookat-%2) LT view.hlookatmin,
+				moveto(get(view.hlookatmin), get(view.vlookat));
+			,
+				moveto(calc(view.hlookat-%2), get(view.vlookat));
+			);
+		,
+			set(hlookat_moveforce, -1);
+			delayedcall(0.1, viewControlMoveHoriStop());
+		);
+	,
+		set(hlookat_moveforce, -1);
+	);
+</action>
+<action name="viewControlMoveRight">
+	if(%1,
+		if(%2,
+			set(isfullhorizontal, false);
+			ifnot(scene[get(xml.scene)].planar,
+				sub(viewhfov, panoview.hmax, panoview.hmin);
+				if (viewhfov == 360,
+					set(isfullhorizontal, true);
+				);
+			);
+			if(isfullhorizontal == false AND calc(view.hlookat+%2) GT view.hlookatmax,
+				moveto(get(view.hlookatmax), get(view.vlookat));
+			,
+				moveto(calc(view.hlookat+%2), get(view.vlookat));
+			);
+		,
+			set(hlookat_moveforce, +1);
+			delayedcall(0.1, viewControlMoveHoriStop());
+			
+		);
+	,
+		set(hlookat_moveforce, +1);
+	);
+</action>
+<action name="viewControlMoveHoriStop">
+	set(hlookat_moveforce, 0);
+</action>
+<action name="viewControlMoveVertStop">
+	set(vlookat_moveforce, 0);
+</action>
+
+  <!-- Fullscreen Management -->
+  <action name="exitFullScreen" devices="fullscreensupport">set(tour_fullscreen,false);js(setFullscreen(false));</action>
+  <action name="enterFullScreen" devices="fullscreensupport">set(tour_fullscreen,true);js(setFullscreen(true));</action>
+  <action name="switchFullScreen">if(tour_fullscreen,exitFullScreen();,enterFullScreen(););</action>
+
+  
+  <events name="krpanoExitFullscreenEvent"
+    onexitfullscreen="if(tour_fullscreen,exitFullScreenChangeEvent(););"
+    keep="true" />
+
+  <action name="exitFullScreenChangeEvent" devices="fullscreensupport">set(tour_fullscreen,false);events.dispatch(onexitfullscreen);</action>
+  <action name="enterFullScreenChangeEvent" devices="fullscreensupport">set(tour_fullscreen,true);events.dispatch(onenterfullscreen);</action>
+  <action name="exitFullScreenFallback">set(fullscreen,false);</action>
+  <action name="enterFullScreenFallback">set(fullscreen,true);</action>
+  
+  <action name="resizeFullScreenEvent">delayedcall(0,updatescreen(););</action>
+
+</krpano>
