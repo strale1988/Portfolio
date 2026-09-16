@@ -1,0 +1,16 @@
+{
+"companyName": "ArTy",
+"productName": "Kitchen Configurator",
+"productVersion": "1",
+"dataUrl": "Build.data.unityweb",
+"wasmCodeUrl": "Build.wasm.code.unityweb",
+"wasmFrameworkUrl": "Build.wasm.framework.unityweb",
+"graphicsAPI": ["WebGL 2.0","WebGL 1.0"],
+"webglContextAttributes": {"preserveDrawingBuffer": false},
+"splashScreenStyle": "Light",
+"backgroundColor": "#828080",
+"cacheControl": {"default": "must-revalidate"},
+"developmentBuild": false,
+"multithreading": false,
+"unityVersion": "2019.3.11f1"
+}
