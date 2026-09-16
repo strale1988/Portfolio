@@ -148,49 +148,6 @@ initSitePreloader();
 initHeaderParallax();
 
 // ---------------------------------------------------------------
-// Cursor-following accent: a soft glow that trails the pointer.
-// Positioned with a transform (translate3d) rather than left/top so
-// it stays on its own compositor layer, and eased with a simple
-// lerp each frame instead of jumping straight to the pointer, which
-// reads as a much smoother "follow" than 1:1 tracking. Mouse/trackpad
-// only — the CSS already hides it on touch via (hover: none), and
-// this skips the work entirely for reduced-motion visitors.
-// ---------------------------------------------------------------
-function initCursorAccent() {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  if (window.matchMedia('(hover: none)').matches) return;
-
-  const el = document.getElementById('cursor-accent');
-  if (!el) return;
-
-  let targetX = window.innerWidth / 2;
-  let targetY = window.innerHeight / 2;
-  let x = targetX;
-  let y = targetY;
-  let raf = null;
-
-  function frame() {
-    // Ease toward the target instead of snapping to it.
-    x += (targetX - x) * 0.18;
-    y += (targetY - y) * 0.18;
-    el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    raf = requestAnimationFrame(frame);
-  }
-
-  window.addEventListener('pointermove', (e) => {
-    if (e.pointerType && e.pointerType !== 'mouse') return;
-    targetX = e.clientX;
-    targetY = e.clientY;
-    el.classList.add('visible');
-    if (!raf) raf = requestAnimationFrame(frame);
-  }, { passive: true });
-
-  document.addEventListener('pointerleave', () => el.classList.remove('visible'));
-}
-
-initCursorAccent();
-
-// ---------------------------------------------------------------
 // Back-to-top button: fades in once you've scrolled past one
 // viewport height, scrolls smoothly back to the top on click.
 // ---------------------------------------------------------------

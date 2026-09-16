@@ -712,32 +712,6 @@ a{ color: inherit; }
   .site-nav{ gap: 16px; flex-wrap: wrap; }
 }
 
-/* ---------- Cursor-following accent ---------- */
-/* A small soft glow that trails the pointer, positioned via
-   transform in app.js (initCursorAccent) rather than left/top so
-   the browser can composite it on its own layer. Desktop/mouse
-   only — see the (hover: hover) guard and the JS-side check. */
-.cursor-accent{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 22px;
-  height: 22px;
-  margin: -11px 0 0 -11px;
-  border-radius: 50%;
-  background: var(--teal);
-  opacity: 0;
-  filter: blur(6px);
-  pointer-events: none;
-  z-index: 40;
-  transition: opacity 0.3s ease;
-  will-change: transform;
-}
-.cursor-accent.visible{ opacity: 0.35; }
-@media (hover: none){
-  .cursor-accent{ display: none; }
-}
-
 /* ---------- Back to top ---------- */
 .back-to-top{
   position: fixed;
@@ -775,5 +749,4 @@ a{ color: inherit; }
   *{ animation: none !important; transition: none !important; }
   html{ scroll-behavior: auto; }
   .reveal{ opacity: 1; transform: none; }
-  .cursor-accent{ display: none; }
 }
