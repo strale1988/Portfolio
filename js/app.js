@@ -726,9 +726,13 @@ function renderExperience(experience) {
       `;
     }).join('');
 
+    const companyLabel = job.website
+      ? `<a class="exp-company-link" href="${job.website}" target="_blank" rel="noopener">${job.company}</a>`
+      : job.company;
+
     return `
       <div class="exp-panel reveal" style="--reveal-delay:${Math.min(jobIndex, 5) * 70}ms">
-        <h3 class="exp-company">${job.company}</h3>
+        <h3 class="exp-company">${companyLabel}</h3>
         <div class="exp-positions">${positionsHtml}</div>
       </div>
     `;
