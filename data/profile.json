@@ -14,6 +14,60 @@
       ]
     },
     {
+      "company": "Freelance / Self-Employed",
+      "positions": [
+        {
+          "role": "3D Artist & Animator",
+          "date": "Apr 2023 – Present",
+          "bullets": [
+            "Nearly a decade of ongoing collaboration with HKS Architects, Haskell Architects and Shine United, producing architectural visualization and animation for major U.S. hospital and healthcare campuses.",
+            "Delivered stills and animation for cancer centers, children's hospitals, neuroscience and musculoskeletal institutes, and academic medical systems, supporting design development, marketing and fundraising.",
+            "Took on additional independent projects across residential, hospitality and commercial visualization."
+          ],
+          "links": [
+            {
+              "label": "Baptist MD Anderson Cancer Center",
+              "url": "https://www.hksinc.com/what-we-do/projects/baptist-md-anderson-cancer-center-outpatient-building/"
+            },
+            {
+              "label": "Wolfson Children's Hospital – Main Campus",
+              "url": "https://www.wolfsonchildrens.com/"
+            },
+            {
+              "label": "Orlando Health Neuroscience Institute",
+              "url": "https://www.orlandohealth.com/services/neuroscience-institute/about-us"
+            },
+            {
+              "label": "Florida Hospital for Women",
+              "url": "https://www.hksinc.com/our-news/articles/hks-designed-florida-hospital-for-women-offers-first-time-specialty-services/"
+            },
+            {
+              "label": "Emory Executive Park Musculoskeletal Institute",
+              "url": "https://www.hksinc.com/what-we-do/projects/emory-executive-park-musculoskeletal-institute/"
+            },
+            {
+              "label": "ProMedica Toledo Hospital",
+              "url": "https://www.promedica.org/newsroom/press-releases/promedica-toledo-hospital-ranked-best-hospital-in-the-toledo-area-2023-2024"
+            },
+            {
+              "label": "Restoring Light",
+              "url": "https://www.hksinc.com/our-news/articles/southeast-design-fellowship-an-opportunity-for-healing/"
+            },
+            {
+              "label": "UW Health – EastPark Medical Center",
+              "url": "https://www.hksinc.com/what-we-do/projects/uw-health-eastpark-medical-center/"
+            },
+            {
+              "label": "UHealth – University of Miami Health System"
+            },
+            {
+              "label": "Jackson Memorial Hospital"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "company": "BINYAN",
       "positions": [
         {
