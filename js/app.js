@@ -748,14 +748,13 @@ function renderExperience(experience) {
 
 // ---------------------------------------------------------------
 // Header background image. A single layer behind the hero text
-// (see .hud-bg in CSS) whose background-image is swapped — hard cut,
-// no crossfade — as you scroll through the header. Each image gets a
-// third of the header's own height, so the sequence moves faster
-// than one image per full header-height of scrolling; past the third
-// image there's nothing left to show until the header itself scrolls
-// out of view anyway. Reads /gallery/header/header.json, same
+// (see .hud-bg in CSS), hidden by default so the grid alone shows at
+// the top of the page, that fades in — no cycling, just this one
+// image — as soon as you start scrolling, and fades back out if you
+// scroll back to the top. Reads /gallery/header/header.json, same
 // manifest shape as gallery.json: an array of filenames (or
-// {file, caption} objects — caption is ignored here).
+// {file, caption} objects — caption is ignored, and only the first
+// entry is used).
 // ---------------------------------------------------------------
 
 async function loadHeaderBgManifest() {
@@ -773,26 +772,14 @@ function initHeaderBg(files) {
   const bg = document.getElementById('hud-bg');
   if (!bg || !files.length) return;
 
-  const hud = document.querySelector('.hud');
-  let currentIndex = -1;
+  bg.style.backgroundImage = `url('gallery/header/${files[0]}')`;
+
   let ticking = false;
-
-  function setImage(index) {
-    if (index === currentIndex) return;
-    currentIndex = index;
-    bg.style.backgroundImage = `url('gallery/header/${files[index]}')`;
-  }
-
   function update() {
-    const range = hud ? hud.offsetHeight : window.innerHeight;
-    const step = range / 3;
-    const scrolled = Math.max(0, Math.min(window.scrollY, range));
-    const index = Math.min(files.length - 1, Math.floor(scrolled / step));
-    setImage(index);
+    bg.classList.toggle('is-visible', window.scrollY > 0);
     ticking = false;
   }
 
-  setImage(0);
   window.addEventListener('scroll', () => {
     if (!ticking) {
       requestAnimationFrame(update);
