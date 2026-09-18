@@ -748,6 +748,8 @@ function renderExperience(experience) {
 
 let galleryImages = [];
 let galleryIndex = 0;
+let galleryShown = 0;
+const GALLERY_PAGE_SIZE = 15;
 
 async function loadGalleryManifest() {
   const res = await fetch('gallery/gallery.json');
@@ -761,23 +763,51 @@ async function loadGalleryManifest() {
 function renderGallery(images) {
   const container = document.getElementById('gallery-grid');
   container.innerHTML = '';
+  galleryShown = 0;
 
   if (!images.length) {
     container.innerHTML = '<p class="loading">No renders yet — drop images into the gallery/ folder and list them in gallery/gallery.json.</p>';
+    updateGalleryLoadMoreVisibility();
     return;
   }
 
-  images.forEach((image, i) => {
+  appendGalleryBatch();
+}
+
+// Appends the next page of gallery items (GALLERY_PAGE_SIZE at a time)
+// to the grid without touching what's already rendered, then shows or
+// hides the "Load more" button depending on whether any images remain.
+function appendGalleryBatch() {
+  const container = document.getElementById('gallery-grid');
+  const nextImages = galleryImages.slice(galleryShown, galleryShown + GALLERY_PAGE_SIZE);
+
+  nextImages.forEach((image, offset) => {
+    const i = galleryShown + offset;
     const item = document.createElement('div');
     item.className = 'gallery-item';
     item.innerHTML = `<img src="gallery/${image.file}" alt="${image.caption || 'Render'}" loading="lazy">`;
     item.addEventListener('click', () => openLightbox(i));
     makeActivatable(item, image.caption ? `Open render: ${image.caption}` : 'Open render');
     item.querySelector('img').onerror = function () { item.remove(); };
-    markReveal(item, i % 6);
+    markReveal(item, offset % 6);
     container.appendChild(item);
   });
   observeReveal(container);
+
+  galleryShown += nextImages.length;
+  updateGalleryLoadMoreVisibility();
+}
+
+function updateGalleryLoadMoreVisibility() {
+  const btn = document.getElementById('gallery-load-more');
+  if (!btn) return;
+  btn.hidden = galleryShown >= galleryImages.length;
+}
+
+function initGalleryLoadMore() {
+  const btn = document.getElementById('gallery-load-more');
+  if (!btn) return;
+  btn.addEventListener('click', () => appendGalleryBatch());
 }
 
 function openLightbox(index) {
@@ -931,6 +961,7 @@ async function init() {
     galleryImages = await loadGalleryManifest();
     renderGallery(galleryImages);
     initLightbox();
+    initGalleryLoadMore();
   } catch (err) {
     document.getElementById('gallery-grid').innerHTML =
       `<p class="loading">Couldn't load the gallery. (${err.message})</p>`;
