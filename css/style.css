@@ -73,40 +73,6 @@ body{
   pointer-events: none;
 }
 
-/* ---------- Header background image ---------- */
-/* Two stacked layers, each fixed to the viewport (not to .hud), so
-   the image itself never scrolls — only its opacity changes as you
-   scroll through the hero (see initHeaderBg in app.js). z-index -2
-   keeps both behind .site-grid (-1), so the grid stays visible on
-   top, and both stay behind .hud-inner's text (z-index auto).
-   Two layers (rather than one) exist so that switching themes can
-   cross-fade from the light-theme image to the dark-theme image
-   instead of cutting between them; only one is ever above opacity 0
-   at a time outside of that cross-fade. Opacity is driven entirely
-   from JS (inline style), scaled 0-1 by scroll progress, so this
-   transition governs both the scroll reveal and the theme cross-fade. */
-.hud-bg{
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-
-/* Sections need an explicit (opaque) background: with the header
-   background now fixed to the viewport instead of scrolling away
-   with .hud, anything below the hero must actively paint over it
-   rather than relying on scrolling it out of the layout — otherwise
-   it would show through wherever a section has no content of its
-   own. Same value as the body background, so this is invisible;
-   it only changes what's being masked underneath. */
-.section, .site-footer{
-  background: var(--bg);
-}
 
 a{ color: inherit; }
 

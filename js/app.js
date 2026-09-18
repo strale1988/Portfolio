@@ -769,107 +769,6 @@ function renderExperience(experience) {
 // ("01.jpg") or objects ({ "file": "01.jpg", "caption": "..." }).
 // ---------------------------------------------------------------
 
-// ---------------------------------------------------------------
-// Header background image. Sits behind the hero text (see .hud-bg
-// in CSS), fixed to the viewport so it doesn't scroll, hidden at the
-// very top of the page, and fades in once you're a quarter of the
-// way through scrolling past the hero (HEADER_SCROLL.BG_FADE_START)
-// — just after the hero text has finished fading out. It fades back
-// out again once you've scrolled a full hero-height, since past that
-// point the sections below take over and the fixed image would
-// otherwise sit there doing nothing useful behind them.
-//
-// Light theme uses the first image in the manifest; dark theme uses
-// the fourth ("04"). Switching themes cross-fades between the two,
-// using a second stacked layer so the outgoing image can fade out
-// while the incoming one fades in, rather than cutting between them.
-//
-// Reads /gallery/header/header.json, same manifest shape as
-// gallery.json: an array of filenames (or {file, caption} objects —
-// caption is ignored).
-// ---------------------------------------------------------------
-
-async function loadHeaderBgManifest() {
-  try {
-    const res = await fetch('gallery/header/header.json');
-    if (!res.ok) return [];
-    const raw = await res.json();
-    return raw.map(entry => (typeof entry === 'string' ? entry : entry.file)).filter(Boolean);
-  } catch (err) {
-    return [];
-  }
-}
-
-function initHeaderBg(files) {
-  const layers = [document.getElementById('hud-bg-a'), document.getElementById('hud-bg-b')];
-  const hud = document.querySelector('.hud');
-  if (!layers[0] || !layers[1] || !hud || !files.length) return;
-
-  // files[0] = "01" (light), files[3] = "04" (dark) — fall back to
-  // the light image if a fourth one isn't present in the manifest.
-  const imageForTheme = (theme) => (theme === 'dark' ? (files[3] || files[0]) : files[0]);
-  const urlFor = (file) => `url('gallery/header/${file}')`;
-
-  let activeIndex = 0; // which layer currently shows the current theme's image
-  let revealOpacity = 0; // current scroll-driven 0-1 reveal level
-
-  function computeRevealOpacity() {
-    const range = hud.offsetHeight; // fixed 100vh, doesn't change with scroll
-    const scrolled = window.scrollY;
-    if (scrolled >= range) return 0; // past the hero — let the sections below take over
-    const progress = scrolled / range;
-    return Math.max(0, Math.min((progress - HEADER_SCROLL.BG_FADE_START) / (1 - HEADER_SCROLL.BG_FADE_START), 1));
-  }
-
-  let ticking = false;
-  function update() {
-    revealOpacity = computeRevealOpacity();
-    layers[activeIndex].style.opacity = String(revealOpacity);
-    ticking = false;
-  }
-
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(update);
-      ticking = true;
-    }
-  }, { passive: true });
-
-  // Sets the image for a given theme. On first load (animate: false)
-  // this just paints the active layer directly, no transition. On a
-  // theme switch (animate: true) the new image is placed on the
-  // currently-hidden layer, faded up to the same reveal level the
-  // outgoing layer is at, while the outgoing layer fades down —
-  // a cross-fade between the two images.
-  function setThemeImage(theme, animate) {
-    const file = imageForTheme(theme);
-    const url = urlFor(file);
-    const activeLayer = layers[activeIndex];
-
-    if (activeLayer.style.backgroundImage === url) return; // already showing this image
-
-    if (!animate) {
-      activeLayer.style.backgroundImage = url;
-      activeLayer.style.opacity = String(revealOpacity);
-      return;
-    }
-
-    const nextIndex = 1 - activeIndex;
-    const nextLayer = layers[nextIndex];
-    nextLayer.style.backgroundImage = url;
-    nextLayer.style.opacity = String(revealOpacity);
-    activeLayer.style.opacity = '0';
-    activeIndex = nextIndex;
-  }
-
-  update();
-  setThemeImage(document.documentElement.getAttribute('data-theme') || 'light', false);
-
-  document.addEventListener('themechange', (e) => {
-    setThemeImage(e.detail.theme, true);
-  });
-}
-
 let galleryImages = [];
 let galleryIndex = 0;
 let galleryShown = 0;
@@ -1068,13 +967,6 @@ async function init() {
   document.querySelectorAll('.section-head').forEach(el => markReveal(el));
   observeReveal();
   initContactLinks();
-
-  try {
-    const headerImages = await loadHeaderBgManifest();
-    initHeaderBg(headerImages);
-  } catch (err) {
-    console.error(err);
-  }
 
   try {
     const slugs = await loadManifest();
