@@ -748,14 +748,14 @@ function renderExperience(experience) {
 
 // ---------------------------------------------------------------
 // Header background stripes (see the CSS comment for how the
-// hard-cut effect works). Reads /header/header.json — an array of
+// hard-cut effect works). Reads /gallery/header/header.json — an array of
 // filenames, same manifest shape as gallery.json. Missing manifest
 // or empty list just removes the container, no error shown.
 // ---------------------------------------------------------------
 
 async function loadHeaderBgManifest() {
   try {
-    const res = await fetch('header/header.json');
+    const res = await fetch('gallery/header/header.json');
     if (!res.ok) return [];
     const raw = await res.json();
     return raw.map(entry => (typeof entry === 'string' ? entry : entry.file)).filter(Boolean);
@@ -772,7 +772,7 @@ function renderHeaderBgStripes(files) {
     return;
   }
   container.innerHTML = files
-    .map(file => `<div class="header-bg-stripe" style="background-image:url('header/${file}')"></div>`)
+    .map(file => `<div class="header-bg-stripe" style="background-image:url('gallery/header/${file}')"></div>`)
     .join('');
 }
 
