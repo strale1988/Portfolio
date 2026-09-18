@@ -73,6 +73,32 @@ body{
   pointer-events: none;
 }
 
+/* ---------- Header background stripes ---------- */
+/* Normal-flow stack (not fixed itself) so it adds real scroll height
+   after the hero; each stripe's own background-image uses
+   background-attachment: fixed so it stays glued to the viewport
+   while its div scrolls — once the next stripe's div covers the
+   screen its image hard-cuts in, same trick as the old site's
+   #stripe_background_0N sections. z-index -2 keeps every stripe
+   behind .site-grid (-1), so the grid stays visible on top. */
+.header-bg-stripes{
+  position: relative;
+  z-index: -2;
+}
+.header-bg-stripe{
+  height: 100vh;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  background-attachment: fixed;
+}
+/* background-attachment: fixed is unreliable/janky on touch devices
+   (iOS Safari in particular repaints instead of compositing it), so
+   fall back to a normal scrolling background there. */
+@media (pointer: coarse){
+  .header-bg-stripe{ background-attachment: scroll; }
+}
+
 a{ color: inherit; }
 
 :focus-visible{

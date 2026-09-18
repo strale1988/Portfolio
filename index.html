@@ -44,6 +44,15 @@
   </div>
 </header>
 
+<!-- Stacked background stripes: each is a full-viewport div whose
+     background-image is fixed-attachment, so as you scroll through
+     them the image behind hard-cuts to the next one, like the old
+     site's #stripe_background sections. Populated from
+     header/header.json — drop images in header/ and list their
+     filenames there. Sits behind .site-grid (z-index -2 vs -1) so
+     the grid stays visible in front of the images. -->
+<div class="header-bg-stripes" id="header-bg-stripes"></div>
+
 <nav class="site-nav">
   <a href="#work">Where I've worked</a>
   <a href="#projects">Projects</a>

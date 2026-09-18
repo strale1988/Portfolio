@@ -746,6 +746,36 @@ function renderExperience(experience) {
 // ("01.jpg") or objects ({ "file": "01.jpg", "caption": "..." }).
 // ---------------------------------------------------------------
 
+// ---------------------------------------------------------------
+// Header background stripes (see the CSS comment for how the
+// hard-cut effect works). Reads /header/header.json — an array of
+// filenames, same manifest shape as gallery.json. Missing manifest
+// or empty list just removes the container, no error shown.
+// ---------------------------------------------------------------
+
+async function loadHeaderBgManifest() {
+  try {
+    const res = await fetch('header/header.json');
+    if (!res.ok) return [];
+    const raw = await res.json();
+    return raw.map(entry => (typeof entry === 'string' ? entry : entry.file)).filter(Boolean);
+  } catch (err) {
+    return [];
+  }
+}
+
+function renderHeaderBgStripes(files) {
+  const container = document.getElementById('header-bg-stripes');
+  if (!container) return;
+  if (!files.length) {
+    container.remove();
+    return;
+  }
+  container.innerHTML = files
+    .map(file => `<div class="header-bg-stripe" style="background-image:url('header/${file}')"></div>`)
+    .join('');
+}
+
 let galleryImages = [];
 let galleryIndex = 0;
 let galleryShown = 0;
@@ -944,6 +974,13 @@ async function init() {
   document.querySelectorAll('.section-head').forEach(el => markReveal(el));
   observeReveal();
   initContactLinks();
+
+  try {
+    const headerImages = await loadHeaderBgManifest();
+    renderHeaderBgStripes(headerImages);
+  } catch (err) {
+    console.error(err);
+  }
 
   try {
     const slugs = await loadManifest();
