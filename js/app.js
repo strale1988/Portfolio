@@ -64,20 +64,12 @@ function observeReveal(root = document) {
 }
 
 // ---------------------------------------------------------------
-// Shared scroll-progress thresholds for the header. Both the hero
-// text (initHeaderParallax) and the header background image
-// (initHeaderBg) key off the same 0-1 progress value (how far
-// through the hero's own height you've scrolled), so their timing
-// is kept together here rather than duplicated as magic numbers in
-// each function.
-//   - Text is fully faded out by TEXT_FADE_END.
-//   - The background image doesn't start fading in until
-//     BG_FADE_START, which is just after the text has cleared, so
-//     the two never overlap: text finishes, then the image begins.
+// Scroll-progress threshold for the header text fade (how far
+// through the hero's own height you've scrolled before the hero
+// text is fully faded out — see initHeaderParallax).
 // ---------------------------------------------------------------
 const HEADER_SCROLL = {
-  TEXT_FADE_END: 0.22,
-  BG_FADE_START: 0.25
+  TEXT_FADE_END: 0.45
 };
 
 // ---------------------------------------------------------------
@@ -260,11 +252,18 @@ initActiveNav();
 //     it's moving.
 //  3. Random cells across the grid quietly light up and fade on
 //     their own the whole time, so the background never looks inert.
+//  4. The grid drifts slowly as the page scrolls — a subtle
+//     parallax at SCROLL_PARALLAX (25% of actual scroll speed), so
+//     it feels like it sits behind the content rather than
+//     scrolling in lockstep with it. Grid lines, the ambient
+//     flickers and the pointer glow are all drawn in this same
+//     scroll-shifted ("virtual") coordinate space via a single
+//     ctx.translate, so they stay aligned with each other and with
+//     the cell the pointer is actually over.
 //
-// Nothing here is tied to scroll position, so the grid never
-// appears to move as you scroll; only the effects above do.
 // Respects prefers-reduced-motion by keeping the (still correctly
-// aligned) static grid but skipping all pointer-driven animation.
+// aligned) static grid but skipping all pointer-driven and
+// scroll-driven animation.
 // ---------------------------------------------------------------
 function initSiteGrid() {
   const canvas = document.querySelector('.site-grid');
@@ -279,11 +278,13 @@ function initSiteGrid() {
   const FLICKER_DURATION = 900; // ms
   const FLICKER_MIN_GAP = 500; // ms between ambient flickers
   const FLICKER_MAX_GAP = 1600;
+  const SCROLL_PARALLAX = 0.25; // grid moves at 25% of actual scroll speed
 
   let cssWidth = 0, cssHeight = 0;
   let cell = DEFAULT_CELL, rowOffset = 0;
   let lineColor = 'rgba(0,0,0,0.05)';
   let lastFrameTime = 0;
+  let scrollOffset = reduceMotion ? 0 : window.scrollY * SCROLL_PARALLAX;
 
   function readColor() {
     lineColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-line').trim() || lineColor;
@@ -402,7 +403,7 @@ function initSiteGrid() {
       const row = Math.floor(Math.random() * rows);
       flickers.push({
         x: col * cell + cell / 2,
-        y: rowOffset + row * cell + cell / 2,
+        y: rowOffset + row * cell + cell / 2 + scrollOffset,
         start: performance.now(),
       });
       ensureLoop();
@@ -462,15 +463,27 @@ function initSiteGrid() {
     const tealRgba = (a) => hexToRgba(tealHex, a);
     const baseGlowAlpha = isDark ? 0.22 : 0.14;
 
-    // Base grid, straight and cheap.
+    // Everything below is drawn in "virtual" (scroll-shifted) space:
+    // translating the context by -scrollOffset once here means grid
+    // lines, the pointer glow and the ambient flicker can all just
+    // use their normal rowOffset-relative coordinates and land in
+    // the right place on screen, already aligned with each other.
+    ctx.save();
+    ctx.translate(0, -scrollOffset);
+
+    // Base grid, straight and cheap. Lines are drawn across the
+    // full virtual range the viewport currently covers (scrollOffset
+    // to scrollOffset + cssHeight), not just 0..cssHeight, since the
+    // translate has shifted what "on screen" means in this space.
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = 1;
     ctx.beginPath();
     for (let x = 0; x <= cssWidth + 1; x += cell) {
-      ctx.moveTo(Math.round(x) + 0.5, 0);
-      ctx.lineTo(Math.round(x) + 0.5, cssHeight);
+      ctx.moveTo(Math.round(x) + 0.5, scrollOffset);
+      ctx.lineTo(Math.round(x) + 0.5, scrollOffset + cssHeight);
     }
-    for (let y = ((rowOffset % cell) + cell) % cell; y <= cssHeight + 1; y += cell) {
+    const firstLineY = rowOffset + Math.floor((scrollOffset - rowOffset) / cell) * cell;
+    for (let y = firstLineY; y <= scrollOffset + cssHeight + cell; y += cell) {
       ctx.moveTo(0, Math.round(y) + 0.5);
       ctx.lineTo(cssWidth, Math.round(y) + 0.5);
     }
@@ -484,15 +497,19 @@ function initSiteGrid() {
       const reach = cell * (1.6 + speedBoost * 0.9);
       const strengthMult = 1 + speedBoost * 0.6;
 
+      // The pointer's own position is a fixed point on screen (it
+      // doesn't move when the page scrolls), so it's converted into
+      // the same virtual space as the grid before picking a cell.
+      const pointerVirtualY = p.drawY + scrollOffset;
       const col = Math.floor(p.drawX / cell);
-      const row = Math.floor((p.drawY - rowOffset) / cell);
+      const row = Math.floor((pointerVirtualY - rowOffset) / cell);
       const spread = speedBoost > 0.5 ? 2 : 1;
 
       for (let dr = -spread; dr <= spread; dr++) {
         for (let dc = -spread; dc <= spread; dc++) {
           const cx = (col + dc) * cell;
           const cy = rowOffset + (row + dr) * cell;
-          const dist = Math.hypot(cx + cell / 2 - p.drawX, cy + cell / 2 - p.drawY);
+          const dist = Math.hypot(cx + cell / 2 - p.drawX, cy + cell / 2 - pointerVirtualY);
           const falloff = Math.max(0, 1 - dist / reach);
           if (falloff <= 0) continue;
           const alpha = falloff * p.strength * baseGlowAlpha * strengthMult;
@@ -503,7 +520,10 @@ function initSiteGrid() {
       }
     }
 
-    // Ambient flicker: a single cell softly breathing in/out.
+    // Ambient flicker: a single cell softly breathing in/out. Each
+    // flicker's y was recorded in virtual space at the moment it was
+    // scheduled, so it naturally drifts along with the grid if the
+    // page keeps scrolling during its short lifetime.
     for (let i = flickers.length - 1; i >= 0; i--) {
       const f = flickers[i];
       const age = now - f.start;
@@ -514,6 +534,8 @@ function initSiteGrid() {
       const row = Math.floor((f.y - rowOffset) / cell);
       fillCell(col, row, alpha, tealRgba);
     }
+
+    ctx.restore();
   }
 
   function drawStatic() {
@@ -565,6 +587,24 @@ function initSiteGrid() {
   window.addEventListener('resize', resize);
   document.fonts?.ready?.then(resize);
   new MutationObserver(resize).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // Grid parallax: redraws on scroll so the grid visibly drifts at
+  // SCROLL_PARALLAX of actual scroll speed, independent of the
+  // pointer/flicker animation loop (which only runs while something
+  // is actively animating).
+  if (!reduceMotion) {
+    let scrollTicking = false;
+    window.addEventListener('scroll', () => {
+      if (!scrollTicking) {
+        requestAnimationFrame(() => {
+          scrollOffset = window.scrollY * SCROLL_PARALLAX;
+          draw(performance.now());
+          scrollTicking = false;
+        });
+        scrollTicking = true;
+      }
+    }, { passive: true });
+  }
 
   resize();
   if (!reduceMotion) {
