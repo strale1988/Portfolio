@@ -29,6 +29,10 @@
 <canvas class="site-grid" aria-hidden="true"></canvas>
 
 <header class="hud">
+  <!-- Behind the hero text (and behind .site-grid, which keeps its
+       own -1 z-index above this). Swapped by JS as you scroll —
+       see initHeaderBg() in js/app.js. -->
+  <div class="hud-bg" id="hud-bg" aria-hidden="true"></div>
   <div class="hud-inner">
 
     <div class="hero-content">
@@ -43,15 +47,6 @@
     <div class="hud-readout bottom-left">scroll<span class="scroll-arrow">↓</span></div>
   </div>
 </header>
-
-<!-- Stacked background stripes: each is a full-viewport div whose
-     background-image is fixed-attachment, so as you scroll through
-     them the image behind hard-cuts to the next one, like the old
-     site's #stripe_background sections. Populated from
-     header/header.json — drop images in header/ and list their
-     filenames there. Sits behind .site-grid (z-index -2 vs -1) so
-     the grid stays visible in front of the images. -->
-<div class="header-bg-stripes" id="header-bg-stripes"></div>
 
 <nav class="site-nav">
   <a href="#work">Where I've worked</a>

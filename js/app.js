@@ -747,10 +747,15 @@ function renderExperience(experience) {
 // ---------------------------------------------------------------
 
 // ---------------------------------------------------------------
-// Header background stripes (see the CSS comment for how the
-// hard-cut effect works). Reads /gallery/header/header.json — an array of
-// filenames, same manifest shape as gallery.json. Missing manifest
-// or empty list just removes the container, no error shown.
+// Header background image. A single layer behind the hero text
+// (see .hud-bg in CSS) whose background-image is swapped — hard cut,
+// no crossfade — as you scroll through the header. Each image gets a
+// third of the header's own height, so the sequence moves faster
+// than one image per full header-height of scrolling; past the third
+// image there's nothing left to show until the header itself scrolls
+// out of view anyway. Reads /gallery/header/header.json, same
+// manifest shape as gallery.json: an array of filenames (or
+// {file, caption} objects — caption is ignored here).
 // ---------------------------------------------------------------
 
 async function loadHeaderBgManifest() {
@@ -764,16 +769,36 @@ async function loadHeaderBgManifest() {
   }
 }
 
-function renderHeaderBgStripes(files) {
-  const container = document.getElementById('header-bg-stripes');
-  if (!container) return;
-  if (!files.length) {
-    container.remove();
-    return;
+function initHeaderBg(files) {
+  const bg = document.getElementById('hud-bg');
+  if (!bg || !files.length) return;
+
+  const hud = document.querySelector('.hud');
+  let currentIndex = -1;
+  let ticking = false;
+
+  function setImage(index) {
+    if (index === currentIndex) return;
+    currentIndex = index;
+    bg.style.backgroundImage = `url('gallery/header/${files[index]}')`;
   }
-  container.innerHTML = files
-    .map(file => `<div class="header-bg-stripe" style="background-image:url('gallery/header/${file}')"></div>`)
-    .join('');
+
+  function update() {
+    const range = hud ? hud.offsetHeight : window.innerHeight;
+    const step = range / 3;
+    const scrolled = Math.max(0, Math.min(window.scrollY, range));
+    const index = Math.min(files.length - 1, Math.floor(scrolled / step));
+    setImage(index);
+    ticking = false;
+  }
+
+  setImage(0);
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
 }
 
 let galleryImages = [];
@@ -977,7 +1002,7 @@ async function init() {
 
   try {
     const headerImages = await loadHeaderBgManifest();
-    renderHeaderBgStripes(headerImages);
+    initHeaderBg(headerImages);
   } catch (err) {
     console.error(err);
   }
