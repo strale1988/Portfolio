@@ -31,6 +31,7 @@ function initThemeToggle() {
     const next = current === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
+    document.dispatchEvent(new CustomEvent('themechange', { detail: { theme: next } }));
   });
 }
 
@@ -63,12 +64,29 @@ function observeReveal(root = document) {
 }
 
 // ---------------------------------------------------------------
+// Shared scroll-progress thresholds for the header. Both the hero
+// text (initHeaderParallax) and the header background image
+// (initHeaderBg) key off the same 0-1 progress value (how far
+// through the hero's own height you've scrolled), so their timing
+// is kept together here rather than duplicated as magic numbers in
+// each function.
+//   - Text is fully faded out by TEXT_FADE_END.
+//   - The background image doesn't start fading in until
+//     BG_FADE_START, which is just after the text has cleared, so
+//     the two never overlap: text finishes, then the image begins.
+// ---------------------------------------------------------------
+const HEADER_SCROLL = {
+  TEXT_FADE_END: 0.22,
+  BG_FADE_START: 0.25
+};
+
+// ---------------------------------------------------------------
 // Header parallax: as you scroll through the hero, the text drifts
-// upward and fades a bit faster than the page itself scrolls,
-// giving it a sense of depth. Driven by a throttled scroll listener
-// and only ever writes transform/opacity (compositor-only, no
-// layout reads of anything that changes shape) — safe from the
-// jitter the old height-driven effect had.
+// upward and fades out completely well before you've scrolled a
+// full hero-height (see HEADER_SCROLL.TEXT_FADE_END). Driven by a
+// throttled scroll listener and only ever writes transform/opacity
+// (compositor-only, no layout reads of anything that changes shape)
+// — safe from the jitter the old height-driven effect had.
 // ---------------------------------------------------------------
 function initHeaderParallax() {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -90,10 +108,15 @@ function initHeaderParallax() {
     // downward offset here makes the text lag behind, i.e. feel like it
     // scrolls slower than the rest of the header.
     hero.style.transform = `translateY(${scrolled * 0.35}px)`;
-    hero.style.opacity = String(1 - progress * 0.85);
+
+    // Fully faded out by TEXT_FADE_END rather than fading gradually
+    // across the whole hero, so it's out of the way before the
+    // background image starts appearing.
+    const textOpacity = 1 - Math.min(progress / HEADER_SCROLL.TEXT_FADE_END, 1);
+    hero.style.opacity = String(textOpacity);
 
     heroReadouts.forEach(el => {
-      el.style.opacity = String(1 - progress * 1.3);
+      el.style.opacity = String(textOpacity);
     });
 
     ticking = false;
@@ -747,14 +770,23 @@ function renderExperience(experience) {
 // ---------------------------------------------------------------
 
 // ---------------------------------------------------------------
-// Header background image. A single layer behind the hero text
-// (see .hud-bg in CSS), hidden by default so the grid alone shows at
-// the top of the page, that fades in — no cycling, just this one
-// image — as soon as you start scrolling, and fades back out if you
-// scroll back to the top. Reads /gallery/header/header.json, same
-// manifest shape as gallery.json: an array of filenames (or
-// {file, caption} objects — caption is ignored, and only the first
-// entry is used).
+// Header background image. Sits behind the hero text (see .hud-bg
+// in CSS), fixed to the viewport so it doesn't scroll, hidden at the
+// very top of the page, and fades in once you're a quarter of the
+// way through scrolling past the hero (HEADER_SCROLL.BG_FADE_START)
+// — just after the hero text has finished fading out. It fades back
+// out again once you've scrolled a full hero-height, since past that
+// point the sections below take over and the fixed image would
+// otherwise sit there doing nothing useful behind them.
+//
+// Light theme uses the first image in the manifest; dark theme uses
+// the fourth ("04"). Switching themes cross-fades between the two,
+// using a second stacked layer so the outgoing image can fade out
+// while the incoming one fades in, rather than cutting between them.
+//
+// Reads /gallery/header/header.json, same manifest shape as
+// gallery.json: an array of filenames (or {file, caption} objects —
+// caption is ignored).
 // ---------------------------------------------------------------
 
 async function loadHeaderBgManifest() {
@@ -769,14 +801,30 @@ async function loadHeaderBgManifest() {
 }
 
 function initHeaderBg(files) {
-  const bg = document.getElementById('hud-bg');
-  if (!bg || !files.length) return;
+  const layers = [document.getElementById('hud-bg-a'), document.getElementById('hud-bg-b')];
+  const hud = document.querySelector('.hud');
+  if (!layers[0] || !layers[1] || !hud || !files.length) return;
 
-  bg.style.backgroundImage = `url('gallery/header/${files[0]}')`;
+  // files[0] = "01" (light), files[3] = "04" (dark) — fall back to
+  // the light image if a fourth one isn't present in the manifest.
+  const imageForTheme = (theme) => (theme === 'dark' ? (files[3] || files[0]) : files[0]);
+  const urlFor = (file) => `url('gallery/header/${file}')`;
+
+  let activeIndex = 0; // which layer currently shows the current theme's image
+  let revealOpacity = 0; // current scroll-driven 0-1 reveal level
+
+  function computeRevealOpacity() {
+    const range = hud.offsetHeight; // fixed 100vh, doesn't change with scroll
+    const scrolled = window.scrollY;
+    if (scrolled >= range) return 0; // past the hero — let the sections below take over
+    const progress = scrolled / range;
+    return Math.max(0, Math.min((progress - HEADER_SCROLL.BG_FADE_START) / (1 - HEADER_SCROLL.BG_FADE_START), 1));
+  }
 
   let ticking = false;
   function update() {
-    bg.classList.toggle('is-visible', window.scrollY > 0);
+    revealOpacity = computeRevealOpacity();
+    layers[activeIndex].style.opacity = String(revealOpacity);
     ticking = false;
   }
 
@@ -786,6 +834,40 @@ function initHeaderBg(files) {
       ticking = true;
     }
   }, { passive: true });
+
+  // Sets the image for a given theme. On first load (animate: false)
+  // this just paints the active layer directly, no transition. On a
+  // theme switch (animate: true) the new image is placed on the
+  // currently-hidden layer, faded up to the same reveal level the
+  // outgoing layer is at, while the outgoing layer fades down —
+  // a cross-fade between the two images.
+  function setThemeImage(theme, animate) {
+    const file = imageForTheme(theme);
+    const url = urlFor(file);
+    const activeLayer = layers[activeIndex];
+
+    if (activeLayer.style.backgroundImage === url) return; // already showing this image
+
+    if (!animate) {
+      activeLayer.style.backgroundImage = url;
+      activeLayer.style.opacity = String(revealOpacity);
+      return;
+    }
+
+    const nextIndex = 1 - activeIndex;
+    const nextLayer = layers[nextIndex];
+    nextLayer.style.backgroundImage = url;
+    nextLayer.style.opacity = String(revealOpacity);
+    activeLayer.style.opacity = '0';
+    activeIndex = nextIndex;
+  }
+
+  update();
+  setThemeImage(document.documentElement.getAttribute('data-theme') || 'light', false);
+
+  document.addEventListener('themechange', (e) => {
+    setThemeImage(e.detail.theme, true);
+  });
 }
 
 let galleryImages = [];
