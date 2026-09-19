@@ -810,10 +810,10 @@ function renderExperience(experience) {
 // ---------------------------------------------------------------
 
 let allGalleryItems = [];
-let visibleGalleryItems = [];
+let visibleItemsByTab = { image: [], video: [] };
+let galleryShownByTab = { image: 0, video: 0 };
 let galleryTab = 'image';
 let galleryIndex = 0;
-let galleryShown = 0;
 const GALLERY_PAGE_SIZE = 15;
 
 const GALLERY_TAB_COPY = {
@@ -841,30 +841,35 @@ async function loadGalleryManifest() {
   });
 }
 
-function renderGallery(images) {
-  const container = document.getElementById('gallery-grid');
+// Builds a tab's grid from scratch. Called for BOTH tabs right at
+// startup (not lazily on click) so video thumbnails have already
+// finished loading their first frame by the time the visitor switches
+// to the Video gallery tab.
+function renderGalleryTab(tab) {
+  const container = document.getElementById(`gallery-grid-${tab}`);
   container.innerHTML = '';
-  galleryShown = 0;
+  galleryShownByTab[tab] = 0;
 
-  if (!images.length) {
-    const emptyMsg = galleryTab === 'video'
+  if (!visibleItemsByTab[tab].length) {
+    const emptyMsg = tab === 'video'
       ? 'No animations yet — drop video files into the gallery/ folder and list them in gallery/gallery.json.'
       : 'No renders yet — drop images into the gallery/ folder and list them in gallery/gallery.json.';
     container.innerHTML = `<p class="loading">${emptyMsg}</p>`;
-    updateGalleryLoadMoreVisibility();
+    if (tab === galleryTab) updateGalleryLoadMoreVisibility();
     return;
   }
 
-  appendGalleryBatch();
+  appendGalleryBatch(tab);
 }
 
-// Switches the gallery grid between the "Render gallery" and "Video
-// gallery" tabs: refilters the already-loaded manifest and re-renders
-// from scratch, no refetch needed.
+// Switching tabs just toggles which prebuilt grid is visible — both
+// were already rendered (and, for video, already loading) at startup.
 function switchGalleryTab(tab) {
   if (tab === galleryTab) return;
   galleryTab = tab;
-  visibleGalleryItems = allGalleryItems.filter(item => item.type === tab);
+
+  document.getElementById('gallery-grid-image').hidden = tab !== 'image';
+  document.getElementById('gallery-grid-video').hidden = tab !== 'video';
 
   document.querySelectorAll('.gallery-tab').forEach(btn => {
     const active = btn.dataset.tab === tab;
@@ -874,7 +879,7 @@ function switchGalleryTab(tab) {
   const sub = document.getElementById('gallery-sub');
   if (sub) sub.textContent = GALLERY_TAB_COPY[tab] || '';
 
-  renderGallery(visibleGalleryItems);
+  updateGalleryLoadMoreVisibility();
 }
 
 function initGalleryTabs() {
@@ -885,15 +890,17 @@ function initGalleryTabs() {
   });
 }
 
-// Appends the next page of gallery items (GALLERY_PAGE_SIZE at a time)
-// to the grid without touching what's already rendered, then shows or
-// hides the "Load more" button depending on whether any images remain.
-function appendGalleryBatch() {
-  const container = document.getElementById('gallery-grid');
-  const nextImages = visibleGalleryItems.slice(galleryShown, galleryShown + GALLERY_PAGE_SIZE);
+// Appends the next page of a tab's items (GALLERY_PAGE_SIZE at a time)
+// without touching what's already rendered, then shows or hides the
+// "Load more" button depending on whether any items remain in that tab.
+function appendGalleryBatch(tab) {
+  const container = document.getElementById(`gallery-grid-${tab}`);
+  const items = visibleItemsByTab[tab];
+  const shown = galleryShownByTab[tab];
+  const nextImages = items.slice(shown, shown + GALLERY_PAGE_SIZE);
 
   nextImages.forEach((image, offset) => {
-    const i = galleryShown + offset;
+    const i = shown + offset;
     const item = document.createElement('div');
     item.className = 'gallery-item' + (image.type === 'video' ? ' is-video' : '');
 
@@ -902,6 +909,15 @@ function appendGalleryBatch() {
       item.innerHTML = `<video src="gallery/${image.file}"${posterAttr} muted loop playsinline preload="metadata" aria-label="${image.caption || 'Animation'}"></video>`;
       const video = item.querySelector('video');
       video.onerror = function () { item.remove(); };
+      // "metadata" preload alone leaves most browsers showing a blank
+      // black frame until playback starts. Nudging the playhead a
+      // fraction of a second in once the metadata is in forces the
+      // browser to decode and paint that frame as a thumbnail, without
+      // downloading the rest of the file. Building both tabs at
+      // startup means this already happened before the tab is clicked.
+      video.addEventListener('loadedmetadata', () => {
+        if (!image.poster) video.currentTime = Math.min(0.1, (video.duration || 1) / 2);
+      }, { once: true });
       // Autoplay only once it's actually on screen, and stop again the
       // moment it scrolls away — keeps a page full of clips from all
       // decoding video at once.
@@ -917,30 +933,31 @@ function appendGalleryBatch() {
       item.querySelector('img').onerror = function () { item.remove(); };
     }
 
-    item.addEventListener('click', () => openLightbox(i));
+    item.addEventListener('click', () => openLightbox(tab, i));
     makeActivatable(item, image.caption ? `Open render: ${image.caption}` : 'Open render');
     markReveal(item, offset % 6);
     container.appendChild(item);
   });
   observeReveal(container);
 
-  galleryShown += nextImages.length;
-  updateGalleryLoadMoreVisibility();
+  galleryShownByTab[tab] += nextImages.length;
+  if (tab === galleryTab) updateGalleryLoadMoreVisibility();
 }
 
 function updateGalleryLoadMoreVisibility() {
   const btn = document.getElementById('gallery-load-more');
   if (!btn) return;
-  btn.hidden = galleryShown >= visibleGalleryItems.length;
+  btn.hidden = galleryShownByTab[galleryTab] >= visibleItemsByTab[galleryTab].length;
 }
 
 function initGalleryLoadMore() {
   const btn = document.getElementById('gallery-load-more');
   if (!btn) return;
-  btn.addEventListener('click', () => appendGalleryBatch());
+  btn.addEventListener('click', () => appendGalleryBatch(galleryTab));
 }
 
-function openLightbox(index) {
+function openLightbox(tab, index) {
+  galleryTab = tab;
   galleryIndex = index;
   const lightbox = document.getElementById('lightbox');
   updateLightbox();
@@ -957,7 +974,7 @@ function closeLightbox() {
 }
 
 function updateLightbox() {
-  const image = visibleGalleryItems[galleryIndex];
+  const image = visibleItemsByTab[galleryTab][galleryIndex];
   const imgEl = document.getElementById('lightbox-img');
   const videoEl = document.getElementById('lightbox-video');
 
@@ -982,7 +999,8 @@ function updateLightbox() {
 }
 
 function stepLightbox(delta) {
-  galleryIndex = (galleryIndex + delta + visibleGalleryItems.length) % visibleGalleryItems.length;
+  const items = visibleItemsByTab[galleryTab];
+  galleryIndex = (galleryIndex + delta + items.length) % items.length;
   updateLightbox();
 }
 
@@ -1109,13 +1127,15 @@ async function init() {
 
   try {
     allGalleryItems = await loadGalleryManifest();
-    visibleGalleryItems = allGalleryItems.filter(item => item.type === galleryTab);
-    renderGallery(visibleGalleryItems);
+    visibleItemsByTab.image = allGalleryItems.filter(item => item.type === 'image');
+    visibleItemsByTab.video = allGalleryItems.filter(item => item.type === 'video');
+    renderGalleryTab('image');
+    renderGalleryTab('video');
     initLightbox();
     initGalleryLoadMore();
     initGalleryTabs();
   } catch (err) {
-    document.getElementById('gallery-grid').innerHTML =
+    document.getElementById('gallery-grid-image').innerHTML =
       `<p class="loading">Couldn't load the gallery. (${err.message})</p>`;
     console.error(err);
   }
