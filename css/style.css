@@ -423,6 +423,32 @@ a{ color: inherit; }
 
 /* ---------- Render gallery ---------- */
 
+.gallery-tabs{
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.gallery-tab{
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0 0 4px;
+  cursor: pointer;
+  color: var(--text-dim);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.gallery-tab + .gallery-tab{
+  margin-left: 18px;
+}
+.gallery-tab:hover{ color: var(--text); }
+.gallery-tab.active{
+  color: var(--text);
+  border-bottom-color: var(--teal);
+}
+
 .gallery-grid{
   display: grid;
   grid-template-columns: repeat(3, 1fr);

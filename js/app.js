@@ -809,10 +809,17 @@ function renderExperience(experience) {
 // ("01.jpg") or objects ({ "file": "01.jpg", "caption": "..." }).
 // ---------------------------------------------------------------
 
-let galleryImages = [];
+let allGalleryItems = [];
+let visibleGalleryItems = [];
+let galleryTab = 'image';
 let galleryIndex = 0;
 let galleryShown = 0;
 const GALLERY_PAGE_SIZE = 15;
+
+const GALLERY_TAB_COPY = {
+  image: 'Standalone stills.',
+  video: 'Animations and turntables.'
+};
 
 const GALLERY_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v'];
 
@@ -840,7 +847,10 @@ function renderGallery(images) {
   galleryShown = 0;
 
   if (!images.length) {
-    container.innerHTML = '<p class="loading">No renders yet — drop images into the gallery/ folder and list them in gallery/gallery.json.</p>';
+    const emptyMsg = galleryTab === 'video'
+      ? 'No animations yet — drop video files into the gallery/ folder and list them in gallery/gallery.json.'
+      : 'No renders yet — drop images into the gallery/ folder and list them in gallery/gallery.json.';
+    container.innerHTML = `<p class="loading">${emptyMsg}</p>`;
     updateGalleryLoadMoreVisibility();
     return;
   }
@@ -848,12 +858,39 @@ function renderGallery(images) {
   appendGalleryBatch();
 }
 
+// Switches the gallery grid between the "Render gallery" and "Video
+// gallery" tabs: refilters the already-loaded manifest and re-renders
+// from scratch, no refetch needed.
+function switchGalleryTab(tab) {
+  if (tab === galleryTab) return;
+  galleryTab = tab;
+  visibleGalleryItems = allGalleryItems.filter(item => item.type === tab);
+
+  document.querySelectorAll('.gallery-tab').forEach(btn => {
+    const active = btn.dataset.tab === tab;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-selected', String(active));
+  });
+  const sub = document.getElementById('gallery-sub');
+  if (sub) sub.textContent = GALLERY_TAB_COPY[tab] || '';
+
+  renderGallery(visibleGalleryItems);
+}
+
+function initGalleryTabs() {
+  const tabs = document.getElementById('gallery-tabs');
+  if (!tabs) return;
+  tabs.querySelectorAll('.gallery-tab').forEach(btn => {
+    btn.addEventListener('click', () => switchGalleryTab(btn.dataset.tab));
+  });
+}
+
 // Appends the next page of gallery items (GALLERY_PAGE_SIZE at a time)
 // to the grid without touching what's already rendered, then shows or
 // hides the "Load more" button depending on whether any images remain.
 function appendGalleryBatch() {
   const container = document.getElementById('gallery-grid');
-  const nextImages = galleryImages.slice(galleryShown, galleryShown + GALLERY_PAGE_SIZE);
+  const nextImages = visibleGalleryItems.slice(galleryShown, galleryShown + GALLERY_PAGE_SIZE);
 
   nextImages.forEach((image, offset) => {
     const i = galleryShown + offset;
@@ -894,7 +931,7 @@ function appendGalleryBatch() {
 function updateGalleryLoadMoreVisibility() {
   const btn = document.getElementById('gallery-load-more');
   if (!btn) return;
-  btn.hidden = galleryShown >= galleryImages.length;
+  btn.hidden = galleryShown >= visibleGalleryItems.length;
 }
 
 function initGalleryLoadMore() {
@@ -920,7 +957,7 @@ function closeLightbox() {
 }
 
 function updateLightbox() {
-  const image = galleryImages[galleryIndex];
+  const image = visibleGalleryItems[galleryIndex];
   const imgEl = document.getElementById('lightbox-img');
   const videoEl = document.getElementById('lightbox-video');
 
@@ -945,7 +982,7 @@ function updateLightbox() {
 }
 
 function stepLightbox(delta) {
-  galleryIndex = (galleryIndex + delta + galleryImages.length) % galleryImages.length;
+  galleryIndex = (galleryIndex + delta + visibleGalleryItems.length) % visibleGalleryItems.length;
   updateLightbox();
 }
 
@@ -1071,10 +1108,12 @@ async function init() {
   }
 
   try {
-    galleryImages = await loadGalleryManifest();
-    renderGallery(galleryImages);
+    allGalleryItems = await loadGalleryManifest();
+    visibleGalleryItems = allGalleryItems.filter(item => item.type === galleryTab);
+    renderGallery(visibleGalleryItems);
     initLightbox();
     initGalleryLoadMore();
+    initGalleryTabs();
   } catch (err) {
     document.getElementById('gallery-grid').innerHTML =
       `<p class="loading">Couldn't load the gallery. (${err.message})</p>`;
