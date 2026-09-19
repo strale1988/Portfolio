@@ -454,6 +454,7 @@ a{ color: inherit; }
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
 }
+.gallery-grid[hidden]{ display: none; }
 
 .gallery-item{
   position: relative;
