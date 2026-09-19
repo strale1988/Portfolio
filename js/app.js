@@ -814,13 +814,24 @@ let galleryIndex = 0;
 let galleryShown = 0;
 const GALLERY_PAGE_SIZE = 15;
 
+const GALLERY_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v'];
+
+function galleryFileExt(file) {
+  const match = /\.([a-z0-9]+)$/i.exec(file || '');
+  return match ? match[1].toLowerCase() : '';
+}
+
 async function loadGalleryManifest() {
   const res = await fetch('gallery/gallery.json');
   if (!res.ok) throw new Error('Could not load gallery/gallery.json');
   const raw = await res.json();
-  return raw.map(entry => typeof entry === 'string'
-    ? { file: entry, caption: '' }
-    : { file: entry.file, caption: entry.caption || '' });
+  return raw.map(entry => {
+    const e = typeof entry === 'string' ? { file: entry } : entry;
+    const type = e.type === 'video' || e.type === 'image'
+      ? e.type
+      : (GALLERY_VIDEO_EXTENSIONS.includes(galleryFileExt(e.file)) ? 'video' : 'image');
+    return { file: e.file, caption: e.caption || '', poster: e.poster || '', type };
+  });
 }
 
 function renderGallery(images) {
@@ -847,11 +858,30 @@ function appendGalleryBatch() {
   nextImages.forEach((image, offset) => {
     const i = galleryShown + offset;
     const item = document.createElement('div');
-    item.className = 'gallery-item';
-    item.innerHTML = `<img src="gallery/${image.file}" alt="${image.caption || 'Render'}" loading="lazy">`;
+    item.className = 'gallery-item' + (image.type === 'video' ? ' is-video' : '');
+
+    if (image.type === 'video') {
+      const posterAttr = image.poster ? ` poster="gallery/${image.poster}"` : '';
+      item.innerHTML = `<video src="gallery/${image.file}"${posterAttr} muted loop playsinline preload="metadata" aria-label="${image.caption || 'Animation'}"></video>`;
+      const video = item.querySelector('video');
+      video.onerror = function () { item.remove(); };
+      // Autoplay only once it's actually on screen, and stop again the
+      // moment it scrolls away — keeps a page full of clips from all
+      // decoding video at once.
+      const gridPlayObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) video.play().catch(() => {});
+          else video.pause();
+        });
+      }, { threshold: 0.4 });
+      gridPlayObserver.observe(video);
+    } else {
+      item.innerHTML = `<img src="gallery/${image.file}" alt="${image.caption || 'Render'}" loading="lazy">`;
+      item.querySelector('img').onerror = function () { item.remove(); };
+    }
+
     item.addEventListener('click', () => openLightbox(i));
     makeActivatable(item, image.caption ? `Open render: ${image.caption}` : 'Open render');
-    item.querySelector('img').onerror = function () { item.remove(); };
     markReveal(item, offset % 6);
     container.appendChild(item);
   });
@@ -885,12 +915,32 @@ function closeLightbox() {
   const lightbox = document.getElementById('lightbox');
   lightbox.classList.remove('open');
   lightbox.setAttribute('aria-hidden', 'true');
+  const video = document.getElementById('lightbox-video');
+  if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
 }
 
 function updateLightbox() {
   const image = galleryImages[galleryIndex];
-  document.getElementById('lightbox-img').src = `gallery/${image.file}`;
-  document.getElementById('lightbox-img').alt = image.caption || 'Render';
+  const imgEl = document.getElementById('lightbox-img');
+  const videoEl = document.getElementById('lightbox-video');
+
+  if (image.type === 'video') {
+    imgEl.hidden = true;
+    imgEl.removeAttribute('src');
+    videoEl.hidden = false;
+    videoEl.src = `gallery/${image.file}`;
+    if (image.poster) videoEl.poster = `gallery/${image.poster}`;
+    videoEl.currentTime = 0;
+    videoEl.play().catch(() => {});
+  } else {
+    videoEl.hidden = true;
+    videoEl.pause();
+    videoEl.removeAttribute('src');
+    imgEl.hidden = false;
+    imgEl.src = `gallery/${image.file}`;
+    imgEl.alt = image.caption || 'Render';
+  }
+
   document.getElementById('lightbox-caption').textContent = image.caption || '';
 }
 
