@@ -4,3 +4,4 @@ date: 2025–2026
 description: An air quality and wildfire monitoring tool built on the TraceTheStuff platform, layering live NASA FIRMS fire data over air quality stations with severity-scaled markers.
 tags: Leaflet.js, NASA FIRMS, Supabase
 link: Live site | https://toxin.tracethestuff.com/
+cover: cover.webp

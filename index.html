@@ -45,9 +45,8 @@
 </header>
 
 <nav class="site-nav">
-  <a href="#work">Where I've worked</a>
-  <a href="#projects">Projects</a>
-  <a href="#gallery">Gallery</a>
+  <a href="#work">Work</a>
+  <a href="#experience">Experience</a>
   <a href="#skills">Skills</a>
   <a href="#achievements">Achievements</a>
   <a href="#education">Education</a>
@@ -61,42 +60,20 @@
 
 <button type="button" class="back-to-top" id="back-to-top" aria-label="Back to top">&#8593;</button>
 
-<!-- ===================== WORK HISTORY ===================== -->
+<!-- ===================== WORK ===================== -->
 <section id="work" class="section">
   <div class="section-head">
-    <h2>Where I've worked</h2>
-    <p class="section-sub">Employment history.</p>
+    <h2>Work</h2>
+    <p class="section-sub" id="work-sub">Selected work.</p>
   </div>
-  <div class="exp-list" id="exp-list"></div>
-</section>
-
-<!-- ===================== PROJECTS ===================== -->
-<section id="projects" class="section">
-  <div class="section-head">
-    <h2>Projects</h2>
-    <p class="section-sub">Interactive apps and tools.</p>
-  </div>
-  <nav class="filters" id="filters" aria-label="Filter projects by category"></nav>
-  <div class="projects-grid" id="timeline-items"></div>
-</section>
-
-<!-- ===================== GALLERY ===================== -->
-<section id="gallery" class="section">
-  <div class="section-head">
-    <div class="gallery-tabs" role="tablist" id="gallery-tabs">
-      <button type="button" class="gallery-tab active" data-tab="image" role="tab" aria-selected="true">Render gallery</button>
-      <button type="button" class="gallery-tab" data-tab="video" role="tab" aria-selected="false">Video gallery</button>
-    </div>
-    <p class="section-sub" id="gallery-sub">Standalone stills.</p>
-  </div>
-  <div class="gallery-grid" id="gallery-grid-image"></div>
-  <div class="gallery-grid" id="gallery-grid-video" hidden></div>
+  <nav class="filters" id="filters" aria-label="Filter work"></nav>
+  <div class="gallery-grid" id="work-grid"></div>
   <div class="gallery-load-more-row">
-    <button type="button" class="load-more-btn" id="gallery-load-more" hidden>Load more</button>
+    <button type="button" class="load-more-btn" id="work-load-more" hidden>Load more</button>
   </div>
 </section>
 
-<!-- Lightbox for the render gallery -->
+<!-- Lightbox for stills and videos -->
 <div class="lightbox" id="lightbox" aria-hidden="true">
   <button class="lightbox-close" id="lightbox-close" aria-label="Close">&times;</button>
   <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous image">&#8249;</button>
@@ -105,6 +82,24 @@
   <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next image">&#8250;</button>
   <p class="lightbox-caption" id="lightbox-caption"></p>
 </div>
+
+<!-- Detail panel for apps & tools -->
+<div class="lightbox app-detail" id="app-detail" role="dialog" aria-modal="true" aria-labelledby="app-detail-title" aria-hidden="true">
+  <button type="button" class="lightbox-close" id="app-detail-close" aria-label="Close">&times;</button>
+  <div class="app-detail-panel">
+    <img class="app-detail-cover" id="app-detail-cover" src="" alt="" hidden>
+    <div class="app-detail-body" id="app-detail-body"></div>
+  </div>
+</div>
+
+<!-- ===================== EXPERIENCE ===================== -->
+<section id="experience" class="section">
+  <div class="section-head">
+    <h2>Experience</h2>
+    <p class="section-sub">Employment history.</p>
+  </div>
+  <div class="exp-list" id="exp-list"></div>
+</section>
 
 <!-- ===================== SKILLS ===================== -->
 <section id="skills" class="section">

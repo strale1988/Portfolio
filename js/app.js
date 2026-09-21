@@ -615,30 +615,115 @@ function initSiteGrid() {
 initSiteGrid();
 
 // ---------------------------------------------------------------
-// Portfolio timeline renderer.
-// Reads /projects.json (a list of folder names), then reads
-// /projects/<slug>/info.txt for each one. No build step required.
+// Work: one grid for stills, animations and apps.
+//
+// Two sources, normalised into the same "item" shape:
+//   gallery/gallery.json                        stills + videos
+//                                               (kept up to date by generate_manifest.py)
+//   projects.json + projects/<slug>/info.txt    apps & tools
+//
+// Every item ends up with:
+//   kind      'media' | 'app'
+//   category  'visualization' | 'animation' | 'app'
+//   year      from the filename prefix (media) or `date:` (apps)
+//   featured  false | true | a rank number (1 = first in Selected)
+//
+// The chips above the grid are just different views over that list:
+//   Selected            featured items (ranked ones first, then newest)
+//   Visualization / Animation / Apps & Tools    one category, newest first
+//   Archive             everything, newest first, grouped under year headings
 // ---------------------------------------------------------------
 
-async function loadManifest() {
-  const res = await fetch('projects.json');
-  if (!res.ok) throw new Error('Could not load projects.json');
-  return res.json();
+const WORK_PAGE_SIZE = 18; // divisible by 2 and 3, so rows fill on every layout
+const WORK_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v'];
+
+const WORK_FILTERS = [
+  { id: 'selected',      label: 'Selected',      sub: 'A curated selection of recent and favourite work.', test: it => it.featured },
+  { id: 'visualization', label: 'Visualization', sub: 'Architectural stills and renders.',                  test: it => it.category === 'visualization' },
+  { id: 'animation',     label: 'Animation',     sub: 'Animations and turntables.',                         test: it => it.category === 'animation' },
+  { id: 'app',           label: 'Apps & Tools',  sub: 'Interactive apps, web tools and experiences.',       test: it => it.category === 'app' },
+  { id: 'archive',       label: 'Archive',       sub: 'Everything, newest first.',                          test: () => true, byYear: true }
+];
+
+let workItems = [];       // every item, newest first
+let workView = [];        // items matching the active chip
+let workMedia = [];       // the image/video subset of workView (what the lightbox steps through)
+let workShown = 0;        // how many of workView are on screen
+let workFilter = 'archive';
+let workLastYear = null;  // last year heading drawn (Archive only)
+let workLightboxIndex = 0;
+
+// One observer for every grid video: play while visible, pause when not.
+// Shared (and disconnected on each re-render) so switching chips doesn't
+// leave a pile of old observers behind.
+const workVideoObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.play().catch(() => {});
+    else entry.target.pause();
+  });
+}, { threshold: 0.4 });
+
+// ---- data loading ----------------------------------------------
+
+function fileExt(file) {
+  const match = /\.([a-z0-9]+)$/i.exec(file || '');
+  return match ? match[1].toLowerCase() : '';
 }
 
-async function loadProject(slug) {
-  const res = await fetch(`projects/${slug}/info.txt`);
-  if (!res.ok) throw new Error(`Missing info.txt for ${slug}`);
-  const raw = await res.text();
-  return parseInfo(raw, slug);
+// "2024_Forest House.webp" -> 2024. No prefix -> 0 (shown as "Undated", sorted last).
+function yearFromFilename(file) {
+  const match = /^(\d{4})/.exec(file || '');
+  return match ? parseInt(match[1], 10) : 0;
+}
+
+// Pulls a sortable year out of a date string like "2024" or "2019-2023".
+function sortYear(dateStr) {
+  const match = (dateStr || '').match(/\d{4}/g);
+  return match ? parseInt(match[match.length - 1], 10) : 0;
+}
+
+// `featured: yes` -> true, `featured: 3` -> rank 3, anything else -> false.
+function parseFeatured(value) {
+  const v = value.trim().toLowerCase();
+  if (/^\d+$/.test(v)) return parseInt(v, 10) || false;
+  return ['yes', 'true', 'y'].includes(v);
+}
+
+async function loadGalleryItems() {
+  const res = await fetch('gallery/gallery.json');
+  if (!res.ok) throw new Error('Could not load gallery/gallery.json');
+  const raw = await res.json();
+  return raw.map(entry => {
+    const e = typeof entry === 'string' ? { file: entry } : entry;
+    const media = e.type === 'video' || e.type === 'image'
+      ? e.type
+      : (WORK_VIDEO_EXTENSIONS.includes(fileExt(e.file)) ? 'video' : 'image');
+    // Category follows the file type; an optional "category" in gallery.json
+    // can override it (e.g. an animation frame you want under Animation).
+    const category = ['visualization', 'animation'].includes(e.category)
+      ? e.category
+      : (media === 'video' ? 'animation' : 'visualization');
+    return {
+      kind: 'media',
+      media,
+      category,
+      file: e.file,
+      caption: e.caption || '',
+      poster: e.poster || '',
+      featured: e.featured || false,
+      year: e.year || yearFromFilename(e.file)
+    };
+  });
 }
 
 // Parses the simple "key: value" info.txt format.
 // - Lines starting with # are comments.
 // - `link:` may repeat; format is "Label | https://url".
 // - `tags:` is a comma separated list.
+// - `cover:` is an image inside the project's folder (e.g. cover.webp).
+// - `featured:` is yes, or a number to rank it within Selected.
 function parseInfo(raw, slug) {
-  const project = { slug, title: slug, category: 'Uncategorized', date: '', description: '', tags: [], links: [] };
+  const project = { slug, title: slug, category: '', date: '', description: '', cover: '', featured: false, tags: [], links: [] };
   const lines = raw.split('\n');
   for (const line of lines) {
     const trimmed = line.trim();
@@ -652,6 +737,8 @@ function parseInfo(raw, slug) {
       case 'category': project.category = value; break;
       case 'date': project.date = value; break;
       case 'description': project.description = value; break;
+      case 'cover': project.cover = value; break;
+      case 'featured': project.featured = parseFeatured(value); break;
       case 'tags': project.tags = value.split(',').map(s => s.trim()).filter(Boolean); break;
       case 'link': {
         const [label, url] = value.split('|').map(s => s.trim());
@@ -664,11 +751,38 @@ function parseInfo(raw, slug) {
   return project;
 }
 
-// Pulls a sortable year out of a date string like "2024" or "2019-2023".
-function sortYear(dateStr) {
-  const match = dateStr.match(/\d{4}/g);
-  return match ? parseInt(match[match.length - 1], 10) : 0;
+async function loadProject(slug) {
+  const res = await fetch(`projects/${slug}/info.txt`);
+  if (!res.ok) throw new Error(`Missing info.txt for ${slug}`);
+  return parseInfo(await res.text(), slug);
 }
+
+// Everything listed in projects.json is an app/tool. A project with a
+// broken or missing info.txt is skipped instead of taking the rest down.
+async function loadAppItems() {
+  const res = await fetch('projects.json');
+  if (!res.ok) throw new Error('Could not load projects.json');
+  const slugs = await res.json();
+  const projects = await Promise.all(
+    slugs.map(slug => loadProject(slug).catch(err => { console.warn(err); return null; }))
+  );
+  return projects.filter(Boolean).map(p => ({
+    kind: 'app',
+    category: 'app',
+    slug: p.slug,
+    title: p.title,
+    label: p.category,   // the free-text category from info.txt, shown on the card
+    date: p.date,
+    year: sortYear(p.date),
+    description: p.description,
+    tags: p.tags,
+    links: p.links,
+    cover: p.cover ? `projects/${p.slug}/${p.cover}` : '',
+    featured: p.featured
+  }));
+}
+
+// ---- cards -----------------------------------------------------
 
 // Makes a div behave like a button for keyboard users: focusable,
 // announced correctly, and activated by Enter or Space — same as
@@ -685,72 +799,290 @@ function makeActivatable(el, label) {
   });
 }
 
-function buildCard(project) {
+function buildMediaCard(item) {
   const card = document.createElement('div');
-  card.className = 'project-card';
-  card.dataset.category = project.category;
+  card.className = 'gallery-item' + (item.media === 'video' ? ' is-video' : '');
 
-  const tagsRow = project.tags.length
-    ? `<div class="tag-list">${project.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`
-    : '';
+  if (item.media === 'video') {
+    const posterAttr = item.poster ? ` poster="gallery/${item.poster}"` : '';
+    card.innerHTML = `<video src="gallery/${item.file}"${posterAttr} muted loop playsinline preload="metadata" aria-label="${item.caption || 'Animation'}"></video>`;
+    const video = card.querySelector('video');
+    video.onerror = function () { card.remove(); };
+    // "metadata" preload alone leaves most browsers showing a blank
+    // black frame until playback starts. Nudging the playhead a
+    // fraction of a second in once the metadata is in forces the
+    // browser to decode and paint that frame as a thumbnail, without
+    // downloading the rest of the file.
+    video.addEventListener('loadedmetadata', () => {
+      if (!item.poster) video.currentTime = Math.min(0.1, (video.duration || 1) / 2);
+    }, { once: true });
+    workVideoObserver.observe(video);
+  } else {
+    card.innerHTML = `<img src="gallery/${item.file}" alt="${item.caption || 'Render'}" loading="lazy">`;
+    card.querySelector('img').onerror = function () { card.remove(); };
+  }
 
-  const linksRow = project.links.length
-    ? `<div class="links-row">${project.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('')}</div>`
-    : '';
-
-  card.innerHTML = `
-    <div class="project-tags-row">
-      <span class="meta-chip category">${project.category}</span>
-      <span class="meta-chip">${project.date}</span>
-    </div>
-    <h3>${project.title}</h3>
-    <p class="desc">${project.description}</p>
-    ${tagsRow}
-    ${linksRow}
-  `;
-
+  card.addEventListener('click', () => openLightbox(workMedia.indexOf(item)));
+  makeActivatable(card, item.caption ? `Open ${item.caption}` : (item.media === 'video' ? 'Open animation' : 'Open render'));
   return card;
 }
 
-function render(projects, activeCategory) {
-  const container = document.getElementById('timeline-items');
-  container.innerHTML = '';
-
-  const filtered = activeCategory === 'All'
-    ? projects
-    : projects.filter(p => p.category === activeCategory);
-
-  if (!filtered.length) {
-    container.innerHTML = '<p class="loading">Nothing here yet.</p>';
-    return;
-  }
-
-  let i = 0;
-  for (const project of filtered) {
-    const card = buildCard(project);
-    markReveal(card, i++ % 6);
-    container.appendChild(card);
-  }
-  observeReveal(container);
+// Apps sit in the same 4:3 cell as the stills and open a detail panel on
+// click (full description, tech tags, links). With a `cover:` the image
+// fills the cell with a caption strip along the bottom; without one the
+// cell is a typographic tile (category + date, title, tech tags).
+function appMeta(item) {
+  return [item.label || 'App', item.date].filter(Boolean).join(' · ');
 }
 
-function buildFilters(projects) {
-  const categories = ['All', ...new Set(projects.map(p => p.category))];
+function appTags(item) {
+  return item.tags.length
+    ? `<div class="tag-list">${item.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`
+    : '';
+}
+
+function appTileHtml(item) {
+  return `<div class="app-tile">
+      <p class="app-meta">${appMeta(item)}</p>
+      <h3>${item.title}</h3>
+      ${appTags(item)}
+    </div>`;
+}
+
+function buildAppCard(item) {
+  const card = document.createElement('div');
+  card.className = 'gallery-item is-app' + (item.cover ? '' : ' no-cover');
+
+  if (item.cover) {
+    card.innerHTML = `<img src="${item.cover}" alt="${item.title}" loading="lazy">
+      <div class="app-caption"><p class="app-meta">${appMeta(item)}</p><h3>${item.title}</h3></div>`;
+    // Missing cover file? Fall back to the tile instead of a broken image.
+    card.querySelector('img').onerror = function () {
+      card.classList.add('no-cover');
+      card.innerHTML = appTileHtml(item);
+    };
+  } else {
+    card.innerHTML = appTileHtml(item);
+  }
+
+  card.addEventListener('click', () => openAppDetail(item));
+  makeActivatable(card, `Open details: ${item.title}`);
+  return card;
+}
+
+// ---- app detail panel ------------------------------------------
+
+let appDetailReturnFocus = null;
+
+function openAppDetail(item) {
+  const overlay = document.getElementById('app-detail');
+  const cover = document.getElementById('app-detail-cover');
+
+  if (item.cover) {
+    cover.hidden = false;
+    cover.alt = item.title;
+    cover.onerror = function () { cover.hidden = true; };
+    cover.src = item.cover;
+  } else {
+    cover.hidden = true;
+    cover.removeAttribute('src');
+  }
+
+  const links = item.links.length
+    ? `<div class="links-row">${item.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('')}</div>`
+    : '';
+  document.getElementById('app-detail-body').innerHTML = `
+    <p class="app-meta">${appMeta(item)}</p>
+    <h3 id="app-detail-title">${item.title}</h3>
+    ${item.description ? `<p class="app-detail-desc">${item.description}</p>` : ''}
+    ${appTags(item)}
+    ${links}`;
+
+  appDetailReturnFocus = document.activeElement;
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.getElementById('app-detail-close').focus();
+}
+
+function closeAppDetail() {
+  const overlay = document.getElementById('app-detail');
+  overlay.classList.remove('open');
+  overlay.setAttribute('aria-hidden', 'true');
+  if (appDetailReturnFocus && appDetailReturnFocus.focus) appDetailReturnFocus.focus();
+  appDetailReturnFocus = null;
+}
+
+function initAppDetail() {
+  const overlay = document.getElementById('app-detail');
+  if (!overlay) return;
+  document.getElementById('app-detail-close').addEventListener('click', closeAppDetail);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeAppDetail(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeAppDetail();
+  });
+}
+
+// ---- filters, grid, paging -------------------------------------
+
+function buildWorkFilters() {
   const nav = document.getElementById('filters');
   nav.innerHTML = '';
 
-  let active = 'All';
-  categories.forEach(cat => {
-    const chip = document.createElement('button');
-    chip.className = 'filter-chip' + (cat === 'All' ? ' active' : '');
-    chip.textContent = cat;
-    chip.addEventListener('click', () => {
-      active = cat;
-      nav.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      render(projects, active);
-    });
-    nav.appendChild(chip);
+  // Only offer chips that would actually show something (Archive always does).
+  const chips = WORK_FILTERS.filter(f => f.id === 'archive' || workItems.some(f.test));
+  chips.forEach(f => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'filter-chip';
+    btn.dataset.filter = f.id;
+    btn.textContent = f.label;
+    btn.addEventListener('click', () => setWorkFilter(f.id));
+    nav.appendChild(btn);
+  });
+
+  // Land on Selected once something is featured; until then, Archive.
+  setWorkFilter(chips.some(f => f.id === 'selected') ? 'selected' : 'archive');
+}
+
+function setWorkFilter(id) {
+  const def = WORK_FILTERS.find(f => f.id === id);
+  workFilter = id;
+
+  document.querySelectorAll('#filters .filter-chip').forEach(chip => {
+    const on = chip.dataset.filter === id;
+    chip.classList.toggle('active', on);
+    chip.setAttribute('aria-pressed', String(on));
+  });
+  const sub = document.getElementById('work-sub');
+  if (sub) sub.textContent = def.sub;
+
+  workView = workItems.filter(def.test);
+  if (id === 'selected') {
+    // Numbered items first (1, 2, 3...), everything else keeps newest-first order.
+    const rank = it => (typeof it.featured === 'number' ? it.featured : Number.MAX_SAFE_INTEGER);
+    workView.sort((a, b) => rank(a) - rank(b));
+  }
+  workMedia = workView.filter(it => it.kind === 'media');
+
+  renderWorkGrid();
+}
+
+function renderWorkGrid() {
+  const grid = document.getElementById('work-grid');
+  workVideoObserver.disconnect();
+  grid.innerHTML = '';
+  workShown = 0;
+  workLastYear = null;
+
+  if (!workView.length) {
+    grid.innerHTML = '<p class="loading">Nothing here yet.</p>';
+    updateWorkLoadMore();
+    return;
+  }
+  appendWorkBatch();
+}
+
+// Appends the next page of the active view without touching what's
+// already on screen, adding a year heading whenever the year changes
+// (Archive only).
+function appendWorkBatch() {
+  const grid = document.getElementById('work-grid');
+  const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
+  const batch = workView.slice(workShown, workShown + WORK_PAGE_SIZE);
+
+  batch.forEach((item, offset) => {
+    if (byYear && item.year !== workLastYear) {
+      const heading = document.createElement('h3');
+      heading.className = 'work-year';
+      heading.textContent = item.year || 'Undated';
+      grid.appendChild(heading);
+      workLastYear = item.year;
+    }
+    const card = item.kind === 'app' ? buildAppCard(item) : buildMediaCard(item);
+    markReveal(card, offset % 6);
+    grid.appendChild(card);
+  });
+  observeReveal(grid);
+
+  workShown += batch.length;
+  updateWorkLoadMore();
+}
+
+function updateWorkLoadMore() {
+  const btn = document.getElementById('work-load-more');
+  if (btn) btn.hidden = workShown >= workView.length;
+}
+
+function initWorkLoadMore() {
+  const btn = document.getElementById('work-load-more');
+  if (btn) btn.addEventListener('click', appendWorkBatch);
+}
+
+// ---- lightbox (stills + videos only; apps open their own detail panel) ----
+
+function openLightbox(index) {
+  if (index < 0) return;
+  workLightboxIndex = index;
+  const lightbox = document.getElementById('lightbox');
+  updateLightbox();
+  lightbox.classList.add('open');
+  lightbox.setAttribute('aria-hidden', 'false');
+}
+
+function closeLightbox() {
+  const lightbox = document.getElementById('lightbox');
+  lightbox.classList.remove('open');
+  lightbox.setAttribute('aria-hidden', 'true');
+  const video = document.getElementById('lightbox-video');
+  if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
+}
+
+function updateLightbox() {
+  const item = workMedia[workLightboxIndex];
+  if (!item) return;
+  const imgEl = document.getElementById('lightbox-img');
+  const videoEl = document.getElementById('lightbox-video');
+
+  if (item.media === 'video') {
+    imgEl.hidden = true;
+    imgEl.removeAttribute('src');
+    videoEl.hidden = false;
+    videoEl.src = `gallery/${item.file}`;
+    if (item.poster) videoEl.poster = `gallery/${item.poster}`;
+    videoEl.currentTime = 0;
+    videoEl.play().catch(() => {});
+  } else {
+    videoEl.hidden = true;
+    videoEl.pause();
+    videoEl.removeAttribute('src');
+    imgEl.hidden = false;
+    imgEl.src = `gallery/${item.file}`;
+    imgEl.alt = item.caption || 'Render';
+  }
+
+  document.getElementById('lightbox-caption').textContent = item.caption || '';
+}
+
+function stepLightbox(delta) {
+  const n = workMedia.length;
+  if (!n) return;
+  workLightboxIndex = (workLightboxIndex + delta + n) % n;
+  updateLightbox();
+}
+
+function initLightbox() {
+  document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+  document.getElementById('lightbox-prev').addEventListener('click', () => stepLightbox(-1));
+  document.getElementById('lightbox-next').addEventListener('click', () => stepLightbox(1));
+  document.getElementById('lightbox').addEventListener('click', (e) => {
+    if (e.target.id === 'lightbox') closeLightbox();
+  });
+  document.addEventListener('keydown', (e) => {
+    const lightbox = document.getElementById('lightbox');
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') stepLightbox(-1);
+    if (e.key === 'ArrowRight') stepLightbox(1);
   });
 }
 
@@ -801,223 +1133,6 @@ function renderExperience(experience) {
     `;
   }).join('');
   observeReveal(container);
-}
-
-// ---------------------------------------------------------------
-// Render gallery (standalone images, not tied to a project).
-// Reads /gallery/gallery.json — an array of either strings
-// ("01.jpg") or objects ({ "file": "01.jpg", "caption": "..." }).
-// ---------------------------------------------------------------
-
-let allGalleryItems = [];
-let visibleItemsByTab = { image: [], video: [] };
-let galleryShownByTab = { image: 0, video: 0 };
-let galleryTab = 'image';
-let galleryIndex = 0;
-const GALLERY_PAGE_SIZE = 15;
-
-const GALLERY_TAB_COPY = {
-  image: 'Standalone stills.',
-  video: 'Animations and turntables.'
-};
-
-const GALLERY_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v'];
-
-function galleryFileExt(file) {
-  const match = /\.([a-z0-9]+)$/i.exec(file || '');
-  return match ? match[1].toLowerCase() : '';
-}
-
-async function loadGalleryManifest() {
-  const res = await fetch('gallery/gallery.json');
-  if (!res.ok) throw new Error('Could not load gallery/gallery.json');
-  const raw = await res.json();
-  return raw.map(entry => {
-    const e = typeof entry === 'string' ? { file: entry } : entry;
-    const type = e.type === 'video' || e.type === 'image'
-      ? e.type
-      : (GALLERY_VIDEO_EXTENSIONS.includes(galleryFileExt(e.file)) ? 'video' : 'image');
-    return { file: e.file, caption: e.caption || '', poster: e.poster || '', type };
-  });
-}
-
-// Builds a tab's grid from scratch. Called for BOTH tabs right at
-// startup (not lazily on click) so video thumbnails have already
-// finished loading their first frame by the time the visitor switches
-// to the Video gallery tab.
-function renderGalleryTab(tab) {
-  const container = document.getElementById(`gallery-grid-${tab}`);
-  container.innerHTML = '';
-  galleryShownByTab[tab] = 0;
-
-  if (!visibleItemsByTab[tab].length) {
-    const emptyMsg = tab === 'video'
-      ? 'No animations yet — drop video files into the gallery/ folder and list them in gallery/gallery.json.'
-      : 'No renders yet — drop images into the gallery/ folder and list them in gallery/gallery.json.';
-    container.innerHTML = `<p class="loading">${emptyMsg}</p>`;
-    if (tab === galleryTab) updateGalleryLoadMoreVisibility();
-    return;
-  }
-
-  appendGalleryBatch(tab);
-}
-
-// Switching tabs just toggles which prebuilt grid is visible — both
-// were already rendered (and, for video, already loading) at startup.
-function switchGalleryTab(tab) {
-  if (tab === galleryTab) return;
-  galleryTab = tab;
-
-  document.getElementById('gallery-grid-image').hidden = tab !== 'image';
-  document.getElementById('gallery-grid-video').hidden = tab !== 'video';
-
-  document.querySelectorAll('.gallery-tab').forEach(btn => {
-    const active = btn.dataset.tab === tab;
-    btn.classList.toggle('active', active);
-    btn.setAttribute('aria-selected', String(active));
-  });
-  const sub = document.getElementById('gallery-sub');
-  if (sub) sub.textContent = GALLERY_TAB_COPY[tab] || '';
-
-  updateGalleryLoadMoreVisibility();
-}
-
-function initGalleryTabs() {
-  const tabs = document.getElementById('gallery-tabs');
-  if (!tabs) return;
-  tabs.querySelectorAll('.gallery-tab').forEach(btn => {
-    btn.addEventListener('click', () => switchGalleryTab(btn.dataset.tab));
-  });
-}
-
-// Appends the next page of a tab's items (GALLERY_PAGE_SIZE at a time)
-// without touching what's already rendered, then shows or hides the
-// "Load more" button depending on whether any items remain in that tab.
-function appendGalleryBatch(tab) {
-  const container = document.getElementById(`gallery-grid-${tab}`);
-  const items = visibleItemsByTab[tab];
-  const shown = galleryShownByTab[tab];
-  const nextImages = items.slice(shown, shown + GALLERY_PAGE_SIZE);
-
-  nextImages.forEach((image, offset) => {
-    const i = shown + offset;
-    const item = document.createElement('div');
-    item.className = 'gallery-item' + (image.type === 'video' ? ' is-video' : '');
-
-    if (image.type === 'video') {
-      const posterAttr = image.poster ? ` poster="gallery/${image.poster}"` : '';
-      item.innerHTML = `<video src="gallery/${image.file}"${posterAttr} muted loop playsinline preload="metadata" aria-label="${image.caption || 'Animation'}"></video>`;
-      const video = item.querySelector('video');
-      video.onerror = function () { item.remove(); };
-      // "metadata" preload alone leaves most browsers showing a blank
-      // black frame until playback starts. Nudging the playhead a
-      // fraction of a second in once the metadata is in forces the
-      // browser to decode and paint that frame as a thumbnail, without
-      // downloading the rest of the file. Building both tabs at
-      // startup means this already happened before the tab is clicked.
-      video.addEventListener('loadedmetadata', () => {
-        if (!image.poster) video.currentTime = Math.min(0.1, (video.duration || 1) / 2);
-      }, { once: true });
-      // Autoplay only once it's actually on screen, and stop again the
-      // moment it scrolls away — keeps a page full of clips from all
-      // decoding video at once.
-      const gridPlayObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) video.play().catch(() => {});
-          else video.pause();
-        });
-      }, { threshold: 0.4 });
-      gridPlayObserver.observe(video);
-    } else {
-      item.innerHTML = `<img src="gallery/${image.file}" alt="${image.caption || 'Render'}" loading="lazy">`;
-      item.querySelector('img').onerror = function () { item.remove(); };
-    }
-
-    item.addEventListener('click', () => openLightbox(tab, i));
-    makeActivatable(item, image.caption ? `Open render: ${image.caption}` : 'Open render');
-    markReveal(item, offset % 6);
-    container.appendChild(item);
-  });
-  observeReveal(container);
-
-  galleryShownByTab[tab] += nextImages.length;
-  if (tab === galleryTab) updateGalleryLoadMoreVisibility();
-}
-
-function updateGalleryLoadMoreVisibility() {
-  const btn = document.getElementById('gallery-load-more');
-  if (!btn) return;
-  btn.hidden = galleryShownByTab[galleryTab] >= visibleItemsByTab[galleryTab].length;
-}
-
-function initGalleryLoadMore() {
-  const btn = document.getElementById('gallery-load-more');
-  if (!btn) return;
-  btn.addEventListener('click', () => appendGalleryBatch(galleryTab));
-}
-
-function openLightbox(tab, index) {
-  galleryTab = tab;
-  galleryIndex = index;
-  const lightbox = document.getElementById('lightbox');
-  updateLightbox();
-  lightbox.classList.add('open');
-  lightbox.setAttribute('aria-hidden', 'false');
-}
-
-function closeLightbox() {
-  const lightbox = document.getElementById('lightbox');
-  lightbox.classList.remove('open');
-  lightbox.setAttribute('aria-hidden', 'true');
-  const video = document.getElementById('lightbox-video');
-  if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
-}
-
-function updateLightbox() {
-  const image = visibleItemsByTab[galleryTab][galleryIndex];
-  const imgEl = document.getElementById('lightbox-img');
-  const videoEl = document.getElementById('lightbox-video');
-
-  if (image.type === 'video') {
-    imgEl.hidden = true;
-    imgEl.removeAttribute('src');
-    videoEl.hidden = false;
-    videoEl.src = `gallery/${image.file}`;
-    if (image.poster) videoEl.poster = `gallery/${image.poster}`;
-    videoEl.currentTime = 0;
-    videoEl.play().catch(() => {});
-  } else {
-    videoEl.hidden = true;
-    videoEl.pause();
-    videoEl.removeAttribute('src');
-    imgEl.hidden = false;
-    imgEl.src = `gallery/${image.file}`;
-    imgEl.alt = image.caption || 'Render';
-  }
-
-  document.getElementById('lightbox-caption').textContent = image.caption || '';
-}
-
-function stepLightbox(delta) {
-  const items = visibleItemsByTab[galleryTab];
-  galleryIndex = (galleryIndex + delta + items.length) % items.length;
-  updateLightbox();
-}
-
-function initLightbox() {
-  document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
-  document.getElementById('lightbox-prev').addEventListener('click', () => stepLightbox(-1));
-  document.getElementById('lightbox-next').addEventListener('click', () => stepLightbox(1));
-  document.getElementById('lightbox').addEventListener('click', (e) => {
-    if (e.target.id === 'lightbox') closeLightbox();
-  });
-  document.addEventListener('keydown', (e) => {
-    const lightbox = document.getElementById('lightbox');
-    if (!lightbox.classList.contains('open')) return;
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft') stepLightbox(-1);
-    if (e.key === 'ArrowRight') stepLightbox(1);
-  });
 }
 
 function renderSkills(skills) {
@@ -1114,29 +1229,19 @@ async function init() {
   initContactLinks();
 
   try {
-    const slugs = await loadManifest();
-    const projects = (await Promise.all(slugs.map(loadProject)))
-      .sort((a, b) => sortYear(b.date) - sortYear(a.date));
-    buildFilters(projects);
-    render(projects, 'All');
-  } catch (err) {
-    document.getElementById('timeline-items').innerHTML =
-      `<p class="loading">Couldn't load projects — if you opened this file directly, run it through a local server instead (see README). (${err.message})</p>`;
-    console.error(err);
-  }
-
-  try {
-    allGalleryItems = await loadGalleryManifest();
-    visibleItemsByTab.image = allGalleryItems.filter(item => item.type === 'image');
-    visibleItemsByTab.video = allGalleryItems.filter(item => item.type === 'video');
-    renderGalleryTab('image');
-    renderGalleryTab('video');
+    const [apps, media] = await Promise.all([
+      loadAppItems().catch(err => { console.error(err); return []; }),
+      loadGalleryItems().catch(err => { console.error(err); return []; })
+    ]);
+    workItems = [...apps, ...media].sort((a, b) => b.year - a.year); // stable: apps first within a year
     initLightbox();
-    initGalleryLoadMore();
-    initGalleryTabs();
+    initAppDetail();
+    initWorkLoadMore();
+    if (!workItems.length) throw new Error('nothing found in projects.json or gallery/gallery.json');
+    buildWorkFilters();
   } catch (err) {
-    document.getElementById('gallery-grid-image').innerHTML =
-      `<p class="loading">Couldn't load the gallery. (${err.message})</p>`;
+    document.getElementById('work-grid').innerHTML =
+      `<p class="loading">Couldn't load work — if you opened this file directly, run it through a local server instead (see README). (${err.message})</p>`;
     console.error(err);
   }
 

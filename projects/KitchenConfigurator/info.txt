@@ -5,3 +5,4 @@ date: 2021
 description: A realtime interactive kitchen configurator demo, letting users swap and preview materials, colors, and finishes on cabinets and surfaces directly in the browser.
 tags: Unity, WebGL, C#, 3D
 link: Play | https://strale1988.github.io/Portfolio/projects/KitchenConfigurator/
+cover: cover.webp

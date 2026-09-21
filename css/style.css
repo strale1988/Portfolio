@@ -421,40 +421,14 @@ a{ color: inherit; }
   color: var(--text-dim);
 }
 
-/* ---------- Render gallery ---------- */
+/* ---------- Work grid ---------- */
 
-.gallery-tabs{
-  display: flex;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-.gallery-tab{
-  font-family: var(--font-display);
-  font-size: 1.9rem;
-  font-weight: 600;
-  background: none;
-  border: none;
-  padding: 0 0 4px;
-  cursor: pointer;
-  color: var(--text-dim);
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s ease, border-color 0.2s ease;
-}
-.gallery-tab + .gallery-tab{
-  margin-left: 18px;
-}
-.gallery-tab:hover{ color: var(--text); }
-.gallery-tab.active{
-  color: var(--text);
-  border-bottom-color: var(--teal);
-}
 
 .gallery-grid{
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
 }
-.gallery-grid[hidden]{ display: none; }
 
 .gallery-item{
   position: relative;
@@ -564,7 +538,7 @@ a{ color: inherit; }
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 20px;
 }
 
 .filter-chip{
@@ -581,53 +555,13 @@ a{ color: inherit; }
 .filter-chip:hover{ color: var(--text); border-color: var(--text-dim); }
 .filter-chip.active{ color: var(--bg); background: var(--teal); border-color: var(--teal); }
 
-/* ---------- Projects grid ---------- */
 
-.projects-grid{
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 28px;
-  padding: 8px 0 20px;
-}
 
 .loading{ font-family: var(--font-mono); color: var(--text-dim); font-size: 13px; }
 
-.project-card{
-  position: relative;
-  padding: 24px 0 0;
-  border-top: 2px solid var(--teal);
-  transition: border-color 0.2s ease;
-}
-.project-card:hover{ border-top-color: var(--amber); }
 
-.project-card h3{
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 600;
-  margin: 0 0 8px;
-}
 
-.project-tags-row{
-  display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-}
-.meta-chip{
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-dim);
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  padding: 2px 8px;
-}
-.meta-chip.category{ color: var(--amber); border-color: rgba(242,169,59,0.4); }
 
-.project-card p.desc{
-  margin: 0 0 12px;
-  color: var(--text);
-  max-width: 62ch;
-}
 
 .tag-list{
   display: flex;
@@ -784,12 +718,117 @@ a{ color: inherit; }
 .footer-langs{ display: flex; gap: 12px; }
 .footer-langs span{ padding: 0; }
 
+/* ---------- Work: year headings + app cells ---------- */
+
+.work-year{
+  grid-column: 1 / -1;
+  margin: 18px 0 0;
+  padding-bottom: 8px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--line-soft);
+}
+.work-year:first-child{ margin-top: 0; }
+
+/* Apps share the photo grid's 4:3 cell. */
+.gallery-item.is-app{ background: var(--panel); }
+.app-meta{
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* No cover: typographic tile. */
+.app-tile{
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 18px 16px;
+  border-top: 2px solid var(--teal);
+  transition: border-color 0.2s ease;
+}
+.gallery-item.is-app:hover .app-tile{ border-top-color: var(--amber); }
+.app-tile h3{
+  margin: auto 0;
+  padding: 10px 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.app-tile .tag-list{ margin: 0; }
+
+/* With cover: image fills the cell, caption strip along the bottom. */
+.app-caption{
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 14px 12px;
+  background: var(--lightbox-bg);
+  border-top: 2px solid var(--teal);
+  transition: border-color 0.2s ease;
+}
+.gallery-item.is-app:hover .app-caption{ border-top-color: var(--amber); }
+.app-caption h3{
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+/* Detail panel (reuses the lightbox overlay + close button). */
+.app-detail-panel{
+  width: min(620px, 100%);
+  max-height: 82vh;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--teal);
+}
+.app-detail-cover{
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+.app-detail-cover[hidden]{ display: none; }
+.app-detail-body{ padding: 24px 26px 26px; }
+.app-detail-body h3{
+  margin: 4px 0 12px;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.app-detail-desc{
+  margin: 0 0 16px;
+  line-height: 1.65;
+  max-width: 62ch;
+}
+.app-detail-body .tag-list{ margin-bottom: 16px; }
+.app-detail-body .links-row{ gap: 22px; }
+
+@media (max-width: 720px){
+  .app-tile{ padding: 12px; }
+  .app-tile h3{ font-size: 1.1rem; }
+  .app-tile .tag-list{ display: none; }
+  .app-caption{ padding: 8px 10px 10px; }
+  .app-caption h3{ font-size: 0.95rem; }
+  .lightbox.app-detail{ padding: 16px; }
+  .app-detail-body{ padding: 20px; }
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 720px){
   .hud-inner, .site-nav, .section, .site-footer{ padding-left: 24px; padding-right: 24px; }
   .bottom-left{ left: 24px; }
-  .projects-grid{ grid-template-columns: 1fr; gap: 24px; }
   .exp-position{ grid-template-columns: 1fr; gap: 6px; }
   .skills-grid{ grid-template-columns: 1fr; gap: 24px; }
   .edu-lang-grid{ grid-template-columns: 1fr; gap: 24px; }
