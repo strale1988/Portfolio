@@ -6,11 +6,13 @@
   },
   {
     "file": "2025_Wienerberger_Ext_Cam 01_1920.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 25
   },
   {
     "file": "2025_RS 01.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 24
   },
   {
     "file": "2025_NSB_Cam01.webp",
@@ -24,7 +26,7 @@
   {
     "file": "2025_CC_01.webp",
     "caption": "",
-    "featured": 15
+    "featured": 31
   },
   {
     "file": "2025_BV_02.webp",
@@ -33,7 +35,8 @@
   },
   {
     "file": "2025_AC_Sunset.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 18
   },
   {
     "file": "2025_AC_Moonlight.webp",
@@ -52,7 +55,8 @@
   },
   {
     "file": "2024_Escalquens_Ext_Cam 01.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 36
   },
   {
     "file": "2024_CU_Ext_Cam 001.webp",
@@ -64,16 +68,18 @@
   },
   {
     "file": "2023_UWHealth_Exterior_Cam08.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 35
   },
   {
     "file": "2023_SwedenUniversityConcept_Ext_Cam_06.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 20
   },
   {
     "file": "2023_RC_Cam02.webp",
     "caption": "",
-    "featured": 13
+    "featured": 14
   },
   {
     "file": "2023_RC_Cam01.webp",
@@ -85,7 +91,8 @@
   },
   {
     "file": "2023_MountainCabin_Ext_Cam02.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 27
   },
   {
     "file": "2023_MountainCabin_Ext_Cam01.webp",
@@ -97,7 +104,8 @@
   },
   {
     "file": "2023_Library_Int_Cam001.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 26
   },
   {
     "file": "2023_Library_Ext_Cam003.webp",
@@ -114,7 +122,8 @@
   },
   {
     "file": "2023_DuchFarmhouse_Int_Cam003.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 17
   },
   {
     "file": "2023_DuchFarmhouse_Int_Cam001.webp",
@@ -126,11 +135,13 @@
   },
   {
     "file": "2023_DuchFarmhouse_Ext_Cam001.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 34
   },
   {
     "file": "2023_BronOffices_Ext_Cam002.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 32
   },
   {
     "file": "2023_BronOffices_Ext_Cam001.webp",
@@ -147,7 +158,8 @@
   },
   {
     "file": "2022_HKS_040 UWHealth Exterior_Cam 05.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 22
   },
   {
     "file": "2022_HKS_040 UWHealth Exterior_Cam 01.webp",
@@ -155,7 +167,8 @@
   },
   {
     "file": "2022_DH_01.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 21
   },
   {
     "file": "2022_BuaLuangPoolSpa_v02.webp",
@@ -173,11 +186,13 @@
   },
   {
     "file": "2020_UWHealth_Interior_Cam 02.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 23
   },
   {
     "file": "2020_UWHealth_Exterior_Cam 04.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 13
   },
   {
     "file": "2020_Option 01 Day.webp",
@@ -190,7 +205,8 @@
   },
   {
     "file": "2018_UHealth_Cam 05 Var 02.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 19
   },
   {
     "file": "2018_UHealth_Cam 04.webp",
@@ -199,7 +215,8 @@
   },
   {
     "file": "2018_Pulse Memorial.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 16
   },
   {
     "file": "2018_Building 03_warmer.webp",
@@ -211,11 +228,13 @@
   },
   {
     "file": "2017_Tomorrow 01.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 33
   },
   {
     "file": "2017_TAC_Final.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 29
   },
   {
     "file": "2017_Option01v03.webp",
@@ -224,7 +243,8 @@
   },
   {
     "file": "2017_JDH_Cam Match.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 28
   },
   {
     "file": "2017_Crowded miniCHALLENGE 05.webp",
@@ -233,11 +253,12 @@
   {
     "file": "2016_HKS004_Cam05.webp",
     "caption": "",
-    "featured": 14
+    "featured": 15
   },
   {
     "file": "2016_BMDA_Cam 03.webp",
-    "caption": ""
+    "caption": "",
+    "featured": 30
   },
   {
     "file": "2015_HKS001_CAM_02_optC.webp",
