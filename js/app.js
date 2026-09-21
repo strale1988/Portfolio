@@ -626,19 +626,19 @@ initSiteGrid();
 //   kind      'media' | 'app'
 //   category  'visualization' | 'animation' | 'app'
 //   year      from the filename prefix (media) or `date:` (apps)
-//   featured  false | true | a rank number (1 = first in Selected)
+//   featured  false | true | a position number (1 = first in its view)
 //
-// The chips above the grid are just different views over that list:
-//   Selected            featured items (ranked ones first, then newest)
-//   Visualization / Animation / Apps & Tools    one category, newest first
-//   Archive             everything, newest first, grouped under year headings
+// The chips above the grid are different views over that list:
+//   Visualization / Animation / Apps & Tools    one category each. Items with a
+//                       `featured` number are pinned first, in that order; the
+//                       rest follow, newest first.
+//   Archive             everything, strictly newest first, under year headings
 // ---------------------------------------------------------------
 
 const WORK_PAGE_SIZE = 18; // divisible by 2 and 3, so rows fill on every layout
 const WORK_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v'];
 
 const WORK_FILTERS = [
-  { id: 'selected',      label: 'Selected',      sub: 'A curated selection of recent and favourite work.', test: it => it.featured },
   { id: 'visualization', label: 'Visualization', sub: 'Architectural stills and renders.',                  test: it => it.category === 'visualization' },
   { id: 'animation',     label: 'Animation',     sub: 'Animations and turntables.',                         test: it => it.category === 'animation' },
   { id: 'app',           label: 'Apps & Tools',  sub: 'Interactive apps, web tools and experiences.',       test: it => it.category === 'app' },
@@ -682,7 +682,7 @@ function sortYear(dateStr) {
   return match ? parseInt(match[match.length - 1], 10) : 0;
 }
 
-// `featured: yes` -> true, `featured: 3` -> rank 3, anything else -> false.
+// `featured: 3` -> pinned at position 3, `featured: yes` -> pinned after the numbered ones, else false.
 function parseFeatured(value) {
   const v = value.trim().toLowerCase();
   if (/^\d+$/.test(v)) return parseInt(v, 10) || false;
@@ -940,8 +940,8 @@ function buildWorkFilters() {
     nav.appendChild(btn);
   });
 
-  // Land on Selected once something is featured; until then, Archive.
-  setWorkFilter(chips.some(f => f.id === 'selected') ? 'selected' : 'archive');
+  // Open on the first chip (Visualization).
+  setWorkFilter(chips[0].id);
 }
 
 function setWorkFilter(id) {
@@ -957,9 +957,11 @@ function setWorkFilter(id) {
   if (sub) sub.textContent = def.sub;
 
   workView = workItems.filter(def.test);
-  if (id === 'selected') {
-    // Numbered items first (1, 2, 3...), everything else keeps newest-first order.
-    const rank = it => (typeof it.featured === 'number' ? it.featured : Number.MAX_SAFE_INTEGER);
+  if (!def.byYear) {
+    // Pinned items first: numbered ones in order (1, 2, 3...), then anything
+    // marked true/yes, then everything else in its existing newest-first order
+    // (Array.sort is stable). Archive skips this: it's strictly chronological.
+    const rank = it => (typeof it.featured === 'number' ? it.featured : (it.featured ? 1e6 : Number.MAX_SAFE_INTEGER));
     workView.sort((a, b) => rank(a) - rank(b));
   }
   workMedia = workView.filter(it => it.kind === 'media');
