@@ -37,6 +37,20 @@ function initThemeToggle() {
 
 initThemeToggle();
 
+// Swap the NDA placeholder image in place when the theme flips, instead
+// of waiting for a re-render — covers both grid cards already on screen
+// and an open lightbox, if that's what's showing.
+document.addEventListener('themechange', () => {
+  document.querySelectorAll('img[data-nda-img]').forEach(img => {
+    img.src = galleryPath('NDA');
+  });
+  const lightbox = document.getElementById('lightbox');
+  if (lightbox && lightbox.classList.contains('open')) {
+    const item = workMedia[workLightboxIndex];
+    if (item && item.file.includes('NDA')) updateLightbox();
+  }
+});
+
 // ---------------------------------------------------------------
 // Minimal scroll-triggered reveal. Uses IntersectionObserver (not a
 // scroll listener) and only touches opacity/transform, so it's
@@ -638,13 +652,17 @@ initSiteGrid();
 const WORK_PAGE_SIZE = 18; // divisible by 2 and 3, so rows fill on every layout
 const WORK_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v'];
 
-// NDA-covered work lives in its own subfolder so it can be kept/rotated
-// separately from the public gallery assets. To save space, every NDA
-// item shares one placeholder image (nda_images/NDA.webp) rather than
-// its own file — the original per-item filename in gallery.json is kept
-// only for year-sorting/grouping, not for the actual image served.
+// NDA-covered work is swapped for a single placeholder image, kept
+// right in gallery/ alongside everything else, with a light and a dark
+// variant so it still reads correctly whichever theme is active. The
+// original per-item filename in gallery.json is kept only for
+// year-sorting/grouping, not for the actual image served.
 function galleryPath(filename) {
-  return filename.includes('NDA') ? 'gallery/nda_images/NDA.webp' : `gallery/${filename}`;
+  if (filename.includes('NDA')) {
+    const theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    return `gallery/NDA-${theme}.webp`;
+  }
+  return `gallery/${filename}`;
 }
 
 const WORK_FILTERS = [
@@ -830,7 +848,8 @@ function buildMediaCard(item) {
     }, { once: true });
     workVideoObserver.observe(video);
   } else {
-    card.innerHTML = `<img src="${galleryPath(item.file)}" alt="${item.caption || 'Render'}" loading="lazy">`;
+    const ndaAttr = item.file.includes('NDA') ? ' data-nda-img="true"' : '';
+    card.innerHTML = `<img src="${galleryPath(item.file)}" alt="${item.caption || 'Render'}" loading="lazy"${ndaAttr}>`;
     card.querySelector('img').onerror = function () { card.remove(); };
   }
 
