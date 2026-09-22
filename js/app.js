@@ -639,10 +639,12 @@ const WORK_PAGE_SIZE = 18; // divisible by 2 and 3, so rows fill on every layout
 const WORK_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v'];
 
 // NDA-covered work lives in its own subfolder so it can be kept/rotated
-// separately from the public gallery assets. Anything with "NDA" in the
-// filename is served from gallery/nda_images/ instead of gallery/.
+// separately from the public gallery assets. To save space, every NDA
+// item shares one placeholder image (nda_images/NDA.webp) rather than
+// its own file — the original per-item filename in gallery.json is kept
+// only for year-sorting/grouping, not for the actual image served.
 function galleryPath(filename) {
-  return filename.includes('NDA') ? `gallery/nda_images/${filename}` : `gallery/${filename}`;
+  return filename.includes('NDA') ? 'gallery/nda_images/NDA.webp' : `gallery/${filename}`;
 }
 
 const WORK_FILTERS = [
