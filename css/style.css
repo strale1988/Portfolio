@@ -454,24 +454,12 @@ a{ color: inherit; }
   .gallery-grid{ grid-template-columns: repeat(2, 1fr); }
 }
 
-.gallery-load-more-row{
-  display: flex;
-  justify-content: center;
-  margin-top: 28px;
+/* Invisible trigger for infinite scroll — sits just below the grid so
+   the IntersectionObserver's rootMargin fires the next batch early. */
+.work-sentinel{
+  height: 1px;
 }
-.load-more-btn{
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text-dim);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 9px 22px;
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-.load-more-btn:hover{ color: var(--teal); border-color: var(--teal); }
-.load-more-btn[hidden]{ display: none; }
+.work-sentinel[hidden]{ display: none; }
 
 .lightbox{
   position: fixed;
@@ -728,7 +716,6 @@ a{ color: inherit; }
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--text-dim);
-  border-bottom: 1px solid var(--line-soft);
 }
 .work-year:first-child{ margin-top: 0; }
 

@@ -638,6 +638,13 @@ initSiteGrid();
 const WORK_PAGE_SIZE = 18; // divisible by 2 and 3, so rows fill on every layout
 const WORK_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v'];
 
+// NDA-covered work lives in its own subfolder so it can be kept/rotated
+// separately from the public gallery assets. Anything with "NDA" in the
+// filename is served from gallery/nda_images/ instead of gallery/.
+function galleryPath(filename) {
+  return filename.includes('NDA') ? `gallery/nda_images/${filename}` : `gallery/${filename}`;
+}
+
 const WORK_FILTERS = [
   { id: 'visualization', label: 'Visualization', sub: 'Architectural stills and renders.',                  test: it => it.category === 'visualization' },
   { id: 'animation',     label: 'Animation',     sub: 'Animations and turntables.',                         test: it => it.category === 'animation' },
@@ -700,7 +707,10 @@ async function loadGalleryItems() {
       : (WORK_VIDEO_EXTENSIONS.includes(fileExt(e.file)) ? 'video' : 'image');
     // Category follows the file type; an optional "category" in gallery.json
     // can override it (e.g. an animation frame you want under Animation).
-    const category = ['visualization', 'animation'].includes(e.category)
+    // A category of "archive" (or anything else outside the two normal
+    // categories) deliberately matches no chip's test but still passes the
+    // Archive chip's `() => true`, so the item shows there only.
+    const category = e.category
       ? e.category
       : (media === 'video' ? 'animation' : 'visualization');
     return {
@@ -804,8 +814,8 @@ function buildMediaCard(item) {
   card.className = 'gallery-item' + (item.media === 'video' ? ' is-video' : '');
 
   if (item.media === 'video') {
-    const posterAttr = item.poster ? ` poster="gallery/${item.poster}"` : '';
-    card.innerHTML = `<video src="gallery/${item.file}"${posterAttr} muted loop playsinline preload="metadata" aria-label="${item.caption || 'Animation'}"></video>`;
+    const posterAttr = item.poster ? ` poster="${galleryPath(item.poster)}"` : '';
+    card.innerHTML = `<video src="${galleryPath(item.file)}"${posterAttr} muted loop playsinline preload="metadata" aria-label="${item.caption || 'Animation'}"></video>`;
     const video = card.querySelector('video');
     video.onerror = function () { card.remove(); };
     // "metadata" preload alone leaves most browsers showing a blank
@@ -818,7 +828,7 @@ function buildMediaCard(item) {
     }, { once: true });
     workVideoObserver.observe(video);
   } else {
-    card.innerHTML = `<img src="gallery/${item.file}" alt="${item.caption || 'Render'}" loading="lazy">`;
+    card.innerHTML = `<img src="${galleryPath(item.file)}" alt="${item.caption || 'Render'}" loading="lazy">`;
     card.querySelector('img').onerror = function () { card.remove(); };
   }
 
@@ -978,7 +988,7 @@ function renderWorkGrid() {
 
   if (!workView.length) {
     grid.innerHTML = '<p class="loading">Nothing here yet.</p>';
-    updateWorkLoadMore();
+    updateWorkSentinel();
     return;
   }
   appendWorkBatch();
@@ -1007,17 +1017,29 @@ function appendWorkBatch() {
   observeReveal(grid);
 
   workShown += batch.length;
-  updateWorkLoadMore();
+  updateWorkSentinel();
 }
 
-function updateWorkLoadMore() {
-  const btn = document.getElementById('work-load-more');
-  if (btn) btn.hidden = workShown >= workView.length;
+// Shows/hides the sentinel that triggers the next batch. Once every item
+// in the active view is on screen there's nothing left to watch for.
+function updateWorkSentinel() {
+  const sentinel = document.getElementById('work-sentinel');
+  if (sentinel) sentinel.hidden = workShown >= workView.length;
 }
 
-function initWorkLoadMore() {
-  const btn = document.getElementById('work-load-more');
-  if (btn) btn.addEventListener('click', appendWorkBatch);
+// Infinite scroll: a thin, empty element sits just below the grid.
+// As soon as it drifts into view (with a chunky rootMargin so the next
+// batch is already rendered before the visitor reaches the bottom),
+// the next page is appended — same reveal animation as everything else.
+const workScrollObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && workShown < workView.length) appendWorkBatch();
+  });
+}, { rootMargin: '600px 0px' });
+
+function initWorkInfiniteScroll() {
+  const sentinel = document.getElementById('work-sentinel');
+  if (sentinel) workScrollObserver.observe(sentinel);
 }
 
 // ---- lightbox (stills + videos only; apps open their own detail panel) ----
@@ -1049,8 +1071,8 @@ function updateLightbox() {
     imgEl.hidden = true;
     imgEl.removeAttribute('src');
     videoEl.hidden = false;
-    videoEl.src = `gallery/${item.file}`;
-    if (item.poster) videoEl.poster = `gallery/${item.poster}`;
+    videoEl.src = galleryPath(item.file);
+    if (item.poster) videoEl.poster = galleryPath(item.poster);
     videoEl.currentTime = 0;
     videoEl.play().catch(() => {});
   } else {
@@ -1058,7 +1080,7 @@ function updateLightbox() {
     videoEl.pause();
     videoEl.removeAttribute('src');
     imgEl.hidden = false;
-    imgEl.src = `gallery/${item.file}`;
+    imgEl.src = galleryPath(item.file);
     imgEl.alt = item.caption || 'Render';
   }
 
@@ -1238,7 +1260,7 @@ async function init() {
     workItems = [...apps, ...media].sort((a, b) => b.year - a.year); // stable: apps first within a year
     initLightbox();
     initAppDetail();
-    initWorkLoadMore();
+    initWorkInfiniteScroll();
     if (!workItems.length) throw new Error('nothing found in projects.json or gallery/gallery.json');
     buildWorkFilters();
   } catch (err) {
