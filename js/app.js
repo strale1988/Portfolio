@@ -649,7 +649,9 @@ initSiteGrid();
 //   Archive             everything, strictly newest first, under year headings
 // ---------------------------------------------------------------
 
-const WORK_PAGE_SIZE = 18; // divisible by 2 and 3, so rows fill on every layout
+const WORK_PAGE_SIZE = 18; // Archive's infinite-scroll batch size (divisible by 2 and 3)
+const WORK_INITIAL_SIZE = 15; // first batch for chips with a Load More button (Visualization/Animation/Apps)
+const WORK_LOAD_MORE_SIZE = 10; // subsequent batches for those chips, per button click
 const WORK_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v'];
 
 // NDA-covered work is swapped for a single placeholder image, kept
@@ -666,7 +668,9 @@ function galleryPath(filename) {
 }
 
 const WORK_FILTERS = [
-  { id: 'visualization', label: 'Visualization', sub: 'Architectural stills and renders.',                  test: it => it.category === 'visualization' },
+  // NDA-covered work is kept out of Visualization entirely (not just swapped
+  // for the placeholder) — it still shows up under Archive.
+  { id: 'visualization', label: 'Visualization', sub: 'Architectural stills and renders.',                  test: it => it.category === 'visualization' && !(it.file || '').includes('NDA') },
   { id: 'animation',     label: 'Animation',     sub: 'Animations and turntables.',                         test: it => it.category === 'animation' },
   { id: 'app',           label: 'Apps & Tools',  sub: 'Interactive apps, web tools and experiences.',       test: it => it.category === 'app' },
   { id: 'archive',       label: 'Archive',       sub: 'Everything, newest first.',                          test: () => true, byYear: true }
@@ -1009,19 +1013,22 @@ function renderWorkGrid() {
 
   if (!workView.length) {
     grid.innerHTML = '<p class="loading">Nothing here yet.</p>';
-    updateWorkSentinel();
+    updateWorkPaging();
     return;
   }
-  appendWorkBatch();
+  // Archive scrolls in continuously (WORK_PAGE_SIZE per batch); the other
+  // chips start with WORK_INITIAL_SIZE and grow via the Load More button.
+  const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
+  appendWorkBatch(byYear ? WORK_PAGE_SIZE : WORK_INITIAL_SIZE);
 }
 
 // Appends the next page of the active view without touching what's
 // already on screen, adding a year heading whenever the year changes
 // (Archive only).
-function appendWorkBatch() {
+function appendWorkBatch(size) {
   const grid = document.getElementById('work-grid');
   const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
-  const batch = workView.slice(workShown, workShown + WORK_PAGE_SIZE);
+  const batch = workView.slice(workShown, workShown + size);
 
   batch.forEach((item, offset) => {
     if (byYear && item.year !== workLastYear) {
@@ -1038,29 +1045,40 @@ function appendWorkBatch() {
   observeReveal(grid);
 
   workShown += batch.length;
-  updateWorkSentinel();
+  updateWorkPaging();
 }
 
-// Shows/hides the sentinel that triggers the next batch. Once every item
-// in the active view is on screen there's nothing left to watch for.
-function updateWorkSentinel() {
+// Archive uses the infinite-scroll sentinel; every other chip (Visualization,
+// Animation, Apps & Tools) uses the Load More button instead — shows/hides
+// whichever one applies once every item in the active view is on screen.
+function updateWorkPaging() {
+  const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
+  const remaining = workShown < workView.length;
   const sentinel = document.getElementById('work-sentinel');
-  if (sentinel) sentinel.hidden = workShown >= workView.length;
+  const loadMoreBtn = document.getElementById('work-load-more');
+  if (sentinel) sentinel.hidden = !(byYear && remaining);
+  if (loadMoreBtn) loadMoreBtn.hidden = !(!byYear && remaining);
 }
 
-// Infinite scroll: a thin, empty element sits just below the grid.
-// As soon as it drifts into view (with a chunky rootMargin so the next
-// batch is already rendered before the visitor reaches the bottom),
-// the next page is appended — same reveal animation as everything else.
+// Infinite scroll (Archive only): a thin, empty element sits just below the
+// grid. As soon as it drifts into view (with a chunky rootMargin so the next
+// batch is already rendered before the visitor reaches the bottom), the next
+// page is appended — same reveal animation as everything else.
 const workScrollObserver = new IntersectionObserver((entries) => {
+  const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
   entries.forEach(entry => {
-    if (entry.isIntersecting && workShown < workView.length) appendWorkBatch();
+    if (entry.isIntersecting && byYear && workShown < workView.length) appendWorkBatch(WORK_PAGE_SIZE);
   });
 }, { rootMargin: '600px 0px' });
 
 function initWorkInfiniteScroll() {
   const sentinel = document.getElementById('work-sentinel');
   if (sentinel) workScrollObserver.observe(sentinel);
+
+  const loadMoreBtn = document.getElementById('work-load-more');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', () => appendWorkBatch(WORK_LOAD_MORE_SIZE));
+  }
 }
 
 // ---- lightbox (stills + videos only; apps open their own detail panel) ----

@@ -461,6 +461,26 @@ a{ color: inherit; }
 }
 .work-sentinel[hidden]{ display: none; }
 
+/* Load More — shown for every chip except Archive, which scrolls in
+   continuously instead. */
+.load-more-btn{
+  display: block;
+  margin: 32px auto 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 10px 28px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.load-more-btn:hover{ color: var(--text); border-color: var(--teal); }
+.load-more-btn[hidden]{ display: none; }
+
 .lightbox{
   position: fixed;
   inset: 0;
