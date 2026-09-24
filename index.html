@@ -18,7 +18,8 @@
   // Light is the default; dark only kicks in if the visitor
   // explicitly picked it before (saved in localStorage).
   (function(){
-    var saved = localStorage.getItem('theme');
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {} // storage can be blocked
     var theme = saved === 'dark' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
   })();
@@ -129,6 +130,7 @@
   </div>
 </footer>
 
+<script src="js/lenis.min.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

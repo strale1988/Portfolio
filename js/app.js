@@ -2,20 +2,120 @@
 // Always start at the top of the page, even on refresh with a
 // scroll position or hash the browser would otherwise restore.
 // ---------------------------------------------------------------
+// Instant (never animated, even though <html> has smooth scrolling in CSS),
+// with a fallback for browsers that don't know the 'instant' behavior yet.
+function jumpToTop() {
+  try { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }
+  catch (e) { window.scrollTo(0, 0); }
+}
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
 }
-window.scrollTo(0, 0);
-window.addEventListener('load', () => window.scrollTo(0, 0));
+jumpToTop();
+
+// Re-assert the top once everything has loaded, but only if the visitor
+// hasn't started scrolling yet. Otherwise a slow-loading page yanks them
+// back to the top mid-scroll when the load event finally fires.
+let visitorHasScrolled = false;
+['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(type => {
+  window.addEventListener(type, () => { visitorHasScrolled = true; }, { once: true, passive: true });
+});
+window.addEventListener('load', () => { if (!visitorHasScrolled) jumpToTop(); });
 
 // ---------------------------------------------------------------
 // Keep the page feeling "clean" — no right-click save/inspect menu,
 // no dragging images out, no accidental text selection from stray
 // clicks. CSS (user-select/user-drag) already blocks most of it;
 // this covers the couple of things CSS can't.
+// (One deliberate exception: right-clicking the footer email / phone
+// copies it — see initContactLinks.)
 // ---------------------------------------------------------------
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 document.addEventListener('dragstart', (e) => e.preventDefault());
+
+// ---------------------------------------------------------------
+// Smooth scrolling + one shared scroll feed.
+//
+// Lenis (js/lenis.min.js, MIT, vendored) adds eased, inertial mouse-wheel
+// scrolling. Everything else stays native on purpose: touch scrolling,
+// keyboard, find-in-page, the scrollbar. Lenis is skipped entirely for
+// visitors who prefer reduced motion, or if the script fails to load, and
+// everything below keeps working on plain native scrolling.
+//
+// Every scroll-driven effect (hero parallax, grid parallax, back-to-top)
+// subscribes through onScroll() instead of adding its own window scroll
+// listener. With Lenis the callback runs in the same frame in which Lenis
+// moves the page, so parallax layers can't lag a frame behind the content.
+// ---------------------------------------------------------------
+const SMOOTH_SCROLL = {
+  lerp: 0.09,           // 0-1: lower = longer, floatier glide (Lenis default is 0.1)
+  wheelMultiplier: 1,   // >1 travels further per wheel notch
+  anchorDuration: 1.2,  // seconds: nav-link glide (stretched a little for long distances)
+  topDuration: 1.4      // seconds: back-to-top glide
+};
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let lenis = null;
+const scrollListeners = [];
+
+function onScroll(fn) { scrollListeners.push(fn); }
+function currentScroll() { return lenis ? lenis.scroll : window.scrollY; }
+function emitScroll() {
+  const y = currentScroll();
+  for (const fn of scrollListeners) fn(y);
+}
+
+const easeInOutCubic = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+// Freezes page scrolling behind an open overlay (lightbox / app detail).
+function lockPageScroll(locked) {
+  if (lenis) {
+    if (locked) lenis.stop(); else lenis.start();
+  } else {
+    document.documentElement.classList.toggle('scroll-locked', locked);
+  }
+}
+
+function initSmoothScroll() {
+  if (!prefersReducedMotion && typeof window.Lenis === 'function') {
+    try {
+      lenis = new window.Lenis({
+        autoRaf: true,
+        lerp: SMOOTH_SCROLL.lerp,
+        wheelMultiplier: SMOOTH_SCROLL.wheelMultiplier,
+        smoothWheel: true,
+        allowNestedScroll: true // panels with their own overflow (app detail) keep native scrolling
+      });
+    } catch (err) {
+      console.warn('Smooth scroll unavailable, falling back to native scrolling.', err);
+      lenis = null;
+    }
+  }
+
+  if (lenis) lenis.on('scroll', emitScroll);
+  else window.addEventListener('scroll', emitScroll, { passive: true });
+
+  // Nav links glide instead of jumping. Without Lenis the browser's own
+  // anchor behavior (CSS scroll-behavior + scroll-margin-top) is used.
+  if (lenis) {
+    const nav = document.querySelector('.site-nav');
+    document.querySelectorAll('.site-nav a[href^="#"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const target = document.querySelector(link.getAttribute('href'));
+        if (!target) return;
+        e.preventDefault();
+        const offset = -(nav ? nav.offsetHeight : 60);
+        const distance = Math.abs(target.getBoundingClientRect().top + offset);
+        lenis.scrollTo(target, {
+          offset,
+          duration: Math.min(2.2, SMOOTH_SCROLL.anchorDuration + distance / 6000),
+          easing: easeInOutCubic
+        });
+      });
+    });
+  }
+}
+
+initSmoothScroll();
 
 // ---------------------------------------------------------------
 // Theme toggle. The initial theme is set inline in <head> (before
@@ -30,7 +130,7 @@ function initThemeToggle() {
     const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
     const next = current === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) { /* storage blocked: theme just won't persist */ }
     document.dispatchEvent(new CustomEvent('themechange', { detail: { theme: next } }));
   });
 }
@@ -89,53 +189,57 @@ const HEADER_SCROLL = {
 // ---------------------------------------------------------------
 // Header parallax: as you scroll through the hero, the text drifts
 // upward and fades out completely well before you've scrolled a
-// full hero-height (see HEADER_SCROLL.TEXT_FADE_END). Driven by a
-// throttled scroll listener and only ever writes transform/opacity
-// (compositor-only, no layout reads of anything that changes shape)
-// — safe from the jitter the old height-driven effect had.
+// full hero-height (see HEADER_SCROLL.TEXT_FADE_END). Driven by the
+// shared scroll feed (see onScroll) and only ever writes transform/opacity
+// (compositor-only, and no layout reads while scrolling) — safe from the
+// jitter the old height-driven effect had.
 // ---------------------------------------------------------------
 function initHeaderParallax() {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (prefersReducedMotion) return;
 
   const hero = document.querySelector('.hero-content');
   const hud = document.querySelector('.hud');
   if (!hero || !hud) return;
 
   const heroReadouts = document.querySelectorAll('.hud-readout');
-  let ticking = false;
+  let range = hud.offsetHeight || 1; // hero height: re-read on resize only, never while scrolling
+  let parked = false;                // text already fully faded: skip further style writes
 
-  function update() {
-    const range = hud.offsetHeight; // fixed 100vh, doesn't change with scroll
-    const scrolled = Math.min(window.scrollY, range);
+  function update(y) {
+    const scrolled = Math.min(Math.max(y, 0), range); // clamp: iOS rubber-banding reports y < 0
     const progress = scrolled / range;
+
+    if (progress >= HEADER_SCROLL.TEXT_FADE_END) {
+      if (parked) return;
+      parked = true;
+    } else {
+      parked = false;
+    }
 
     // Text drifts down relative to the page as you scroll — since the
     // page itself is already moving everything up 1:1, adding a partial
     // downward offset here makes the text lag behind, i.e. feel like it
     // scrolls slower than the rest of the header.
-    hero.style.transform = `translateY(${scrolled * 0.35}px)`;
+    hero.style.transform = `translate3d(0, ${scrolled * 0.35}px, 0)`;
 
     // Fully faded out by TEXT_FADE_END rather than fading gradually
     // across the whole hero, so it's out of the way before the
     // background image starts appearing.
     const textOpacity = 1 - Math.min(progress / HEADER_SCROLL.TEXT_FADE_END, 1);
     hero.style.opacity = String(textOpacity);
-
     heroReadouts.forEach(el => {
       el.style.opacity = String(textOpacity);
     });
-
-    ticking = false;
   }
 
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(update);
-      ticking = true;
-    }
-  }, { passive: true });
+  window.addEventListener('resize', () => {
+    range = hud.offsetHeight || 1;
+    parked = false;
+    update(currentScroll());
+  });
 
-  update();
+  onScroll(update);
+  update(currentScroll());
 }
 
 // ---------------------------------------------------------------
@@ -184,29 +288,24 @@ function initBackToTop() {
   const btn = document.getElementById('back-to-top');
   if (!btn) return;
 
-  const THRESHOLD = window.innerHeight;
-  let ticking = false;
-
-  function update() {
-    btn.classList.toggle('visible', window.scrollY > THRESHOLD);
-    ticking = false;
+  let visible = false;
+  function update(y) {
+    const show = y > window.innerHeight; // past one viewport height
+    if (show === visible) return;        // only touch the DOM when it actually flips
+    visible = show;
+    btn.classList.toggle('visible', show);
   }
-
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(update);
-      ticking = true;
-    }
-  }, { passive: true });
+  onScroll(update);
 
   btn.addEventListener('click', () => {
-    window.scrollTo({
-      top: 0,
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-    });
+    if (lenis) {
+      lenis.scrollTo(0, { duration: SMOOTH_SCROLL.topDuration, easing: easeInOutCubic });
+    } else {
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    }
   });
 
-  update();
+  update(currentScroll());
 }
 
 initBackToTop();
@@ -297,11 +396,17 @@ function initSiteGrid() {
   let cssWidth = 0, cssHeight = 0;
   let cell = DEFAULT_CELL, rowOffset = 0;
   let lineColor = 'rgba(0,0,0,0.05)';
+  let tealHex = '#0c7c6c';
+  let isDark = false;
   let lastFrameTime = 0;
   let scrollOffset = reduceMotion ? 0 : window.scrollY * SCROLL_PARALLAX;
 
+  // Read once per resize / theme change, not on every drawn frame.
   function readColor() {
-    lineColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-line').trim() || lineColor;
+    const styles = getComputedStyle(document.documentElement);
+    lineColor = styles.getPropertyValue('--grid-line').trim() || lineColor;
+    tealHex = styles.getPropertyValue('--teal').trim() || tealHex;
+    isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   }
 
   function hasClash(candidateCell, offset, bands) {
@@ -321,9 +426,14 @@ function initSiteGrid() {
     const heroEls = document.querySelectorAll('.hero-content > *');
     if (!heroEls.length) return { cell: DEFAULT_CELL, offset: 0 };
 
+    // Layout position (offsetTop chain), not getBoundingClientRect(): the latter
+    // includes the hero's scroll parallax, its entrance animation and the page's
+    // current scroll offset, which put the bands in the wrong place whenever a
+    // resize or font-load happened while the page was scrolled.
     const bands = Array.from(heroEls).map(el => {
-      const r = el.getBoundingClientRect();
-      return [r.top - TEXT_CLEARANCE, r.bottom + TEXT_CLEARANCE];
+      let top = 0;
+      for (let n = el; n; n = n.offsetParent) top += n.offsetTop;
+      return [top - TEXT_CLEARANCE, top + el.offsetHeight + TEXT_CLEARANCE];
     });
 
     for (let c = DEFAULT_CELL; c <= MAX_CELL; c++) {
@@ -339,10 +449,16 @@ function initSiteGrid() {
     return { cell: DEFAULT_CELL, offset: 0 };
   }
 
-  function resize() {
+  function resize(force) {
+    const w = canvas.clientWidth || window.innerWidth;
+    const h = canvas.clientHeight || window.innerHeight;
+    // Mobile browsers fire resize whenever the URL bar collapses mid-scroll.
+    // The canvas is sized in CSS (100lvh) so its box doesn't change then:
+    // skip the expensive buffer reallocation + row re-solve in that case.
+    if (!force && w === cssWidth && h === cssHeight) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    cssWidth = window.innerWidth;
-    cssHeight = window.innerHeight;
+    cssWidth = w;
+    cssHeight = h;
     canvas.width = Math.round(cssWidth * dpr);
     canvas.height = Math.round(cssHeight * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -472,8 +588,6 @@ function initSiteGrid() {
   function draw(now) {
     ctx.clearRect(0, 0, cssWidth, cssHeight);
 
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const tealHex = getComputedStyle(document.documentElement).getPropertyValue('--teal').trim();
     const tealRgba = (a) => hexToRgba(tealHex, a);
     const baseGlowAlpha = isDark ? 0.22 : 0.14;
 
@@ -598,29 +712,29 @@ function initSiteGrid() {
   window.addEventListener('touchmove', onTouchMove, { passive: true });
   window.addEventListener('touchend', onTouchEnd, { passive: true });
   window.addEventListener('touchcancel', onTouchEnd, { passive: true });
-  window.addEventListener('resize', resize);
-  document.fonts?.ready?.then(resize);
-  new MutationObserver(resize).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  window.addEventListener('resize', () => resize(false));
+  document.fonts?.ready?.then(() => resize(true)); // web fonts change the hero text metrics
+  // Theme flip: only the colors change, so no need to re-solve the row layout.
+  new MutationObserver(() => {
+    readColor();
+    if (!rafId) draw(performance.now());
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
   // Grid parallax: redraws on scroll so the grid visibly drifts at
   // SCROLL_PARALLAX of actual scroll speed, independent of the
   // pointer/flicker animation loop (which only runs while something
   // is actively animating).
   if (!reduceMotion) {
-    let scrollTicking = false;
-    window.addEventListener('scroll', () => {
-      if (!scrollTicking) {
-        requestAnimationFrame(() => {
-          scrollOffset = window.scrollY * SCROLL_PARALLAX;
-          draw(performance.now());
-          scrollTicking = false;
-        });
-        scrollTicking = true;
-      }
-    }, { passive: true });
+    onScroll((y) => {
+      scrollOffset = y * SCROLL_PARALLAX;
+      // While the glow/flicker loop is running it already redraws every
+      // frame and picks up the new offset; otherwise redraw right here.
+      // (Previously a separate rAF also drew on scroll, so busy frames drew twice.)
+      if (!rafId) draw(performance.now());
+    });
   }
 
-  resize();
+  resize(true);
   if (!reduceMotion) {
     flickerTimerId = setTimeout(scheduleFlicker, FLICKER_MIN_GAP + Math.random() * (FLICKER_MAX_GAP - FLICKER_MIN_GAP));
   }
@@ -853,7 +967,7 @@ function buildMediaCard(item) {
     workVideoObserver.observe(video);
   } else {
     const ndaAttr = item.file.includes('NDA') ? ' data-nda-img="true"' : '';
-    card.innerHTML = `<img src="${galleryPath(item.file)}" alt="${item.caption || 'Render'}" loading="lazy"${ndaAttr}>`;
+    card.innerHTML = `<img src="${galleryPath(item.file)}" alt="${item.caption || 'Render'}" loading="lazy" decoding="async"${ndaAttr}>`;
     card.querySelector('img').onerror = function () { card.remove(); };
   }
 
@@ -889,7 +1003,7 @@ function buildAppCard(item) {
   card.className = 'gallery-item is-app' + (item.cover ? '' : ' no-cover');
 
   if (item.cover) {
-    card.innerHTML = `<img src="${item.cover}" alt="${item.title}" loading="lazy">
+    card.innerHTML = `<img src="${item.cover}" alt="${item.title}" loading="lazy" decoding="async">
       <div class="app-caption"><p class="app-meta">${appMeta(item)}</p><h3>${item.title}</h3></div>`;
     // Missing cover file? Fall back to the tile instead of a broken image.
     card.querySelector('img').onerror = function () {
@@ -936,6 +1050,7 @@ function openAppDetail(item) {
   appDetailReturnFocus = document.activeElement;
   overlay.classList.add('open');
   overlay.setAttribute('aria-hidden', 'false');
+  lockPageScroll(true);
   document.getElementById('app-detail-close').focus();
 }
 
@@ -943,6 +1058,7 @@ function closeAppDetail() {
   const overlay = document.getElementById('app-detail');
   overlay.classList.remove('open');
   overlay.setAttribute('aria-hidden', 'true');
+  lockPageScroll(false);
   if (appDetailReturnFocus && appDetailReturnFocus.focus) appDetailReturnFocus.focus();
   appDetailReturnFocus = null;
 }
@@ -1090,12 +1206,14 @@ function openLightbox(index) {
   updateLightbox();
   lightbox.classList.add('open');
   lightbox.setAttribute('aria-hidden', 'false');
+  lockPageScroll(true);
 }
 
 function closeLightbox() {
   const lightbox = document.getElementById('lightbox');
   lightbox.classList.remove('open');
   lightbox.setAttribute('aria-hidden', 'true');
+  lockPageScroll(false);
   const video = document.getElementById('lightbox-video');
   if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
 }
@@ -1254,6 +1372,69 @@ function renderEducationAndLanguages(education, languages) {
 // pattern-match the page source don't pick up the raw address/number.
 // ---------------------------------------------------------------
 
+let toastEl = null;
+let toastTimer = null;
+
+// Small bottom-centre notice ("Email copied"). One shared element, reused.
+function showToast(message) {
+  if (!toastEl) {
+    toastEl = document.createElement('div');
+    toastEl.className = 'toast';
+    toastEl.setAttribute('role', 'status');
+    toastEl.setAttribute('aria-live', 'polite');
+    document.body.appendChild(toastEl);
+  }
+  toastEl.textContent = message;
+  // Restart the transition if a previous toast is still showing.
+  toastEl.classList.remove('visible');
+  void toastEl.offsetWidth;
+  toastEl.classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('visible'), 2000);
+}
+
+// Clipboard API first (needs HTTPS or localhost); execCommand as a fallback
+// for older browsers / plain-http previews. Resolves to true if it copied.
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) { /* fall through to the legacy path */ }
+
+  const previouslyFocused = document.activeElement;
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  // user-select:text because the whole page is user-select:none (Safari
+  // refuses to select() a textarea inside that).
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;-webkit-user-select:text;user-select:text;';
+  document.body.appendChild(ta);
+  let ok = false;
+  try {
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    ok = document.execCommand('copy');
+  } catch (e) { ok = false; }
+  ta.remove();
+  if (previouslyFocused && previouslyFocused.focus) previouslyFocused.focus({ preventScroll: true });
+  return ok;
+}
+
+// The page blocks the normal right-click menu (see top of file). On the
+// contact links, right-click (or long-press on Android, or the keyboard
+// Menu key) copies the value instead and confirms with a toast. A normal
+// click still opens mailto:/tel: as usual.
+function copyOnRightClick(link, value, label, hint) {
+  link.title = `${hint} · right-click to copy`;
+  link.addEventListener('contextmenu', async (e) => {
+    e.preventDefault();
+    const ok = await copyText(value);
+    showToast(ok ? `${label} copied` : `Couldn't copy — ${value}`);
+  });
+}
+
 function initContactLinks() {
   const emailUser = 'strahinja.drazic.cgi';
   const emailDomain = 'gmail.com';
@@ -1264,6 +1445,7 @@ function initContactLinks() {
     const a = document.createElement('a');
     a.href = `mailto:${email}`;
     a.textContent = email;
+    copyOnRightClick(a, email, 'Email', 'Click to email');
     emailEl.appendChild(a);
   }
 
@@ -1276,6 +1458,7 @@ function initContactLinks() {
     const a = document.createElement('a');
     a.href = `tel:${phoneHref}`;
     a.textContent = phoneDisplay;
+    copyOnRightClick(a, phoneDisplay, 'Phone number', 'Click to call');
     phoneEl.appendChild(a);
   }
 }

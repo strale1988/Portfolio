@@ -34,7 +34,29 @@
 
 *{ box-sizing: border-box; }
 
-html{ scroll-behavior: smooth; }
+html{
+  scroll-behavior: smooth;   /* native fallback: used when Lenis isn't running */
+  scrollbar-gutter: stable;  /* no layout shift when an overlay freezes page scroll */
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-dim) transparent;
+}
+
+/* ---------- Smooth scrolling (Lenis) ----------
+   Lenis adds these classes to <html> itself. It drives the scroll position,
+   so the browser's own smooth-scroll must be off or the two would fight. */
+html.lenis,
+html.lenis body{ height: auto; }
+.lenis.lenis-smooth{ scroll-behavior: auto !important; }
+.lenis:not(.lenis-autoToggle).lenis-stopped{ overflow: clip; }
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel],
+.lenis [data-lenis-prevent-touch],
+.lenis [data-lenis-prevent-vertical],
+.lenis [data-lenis-prevent-horizontal]{ overscroll-behavior: contain; }
+.lenis.lenis-smooth iframe{ pointer-events: none; }
+
+/* Same job as .lenis-stopped, for the native-scroll fallback. */
+html.scroll-locked{ overflow: hidden; }
 
 /* ---------- No text selection / image dragging / copying ---------- */
 html{
@@ -66,8 +88,9 @@ body{
 .site-grid{
   position: fixed;
   inset: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100lvh; /* largest viewport: the canvas keeps one size while a mobile URL bar collapses */
   z-index: -1;
   display: block;
   pointer-events: none;
@@ -90,6 +113,7 @@ a{ color: inherit; }
 .hud{
   position: relative;
   height: 100vh;
+  height: 100svh; /* fits the visible area on load; svh never changes while scrolling */
   overflow: hidden;
 }
 
@@ -198,8 +222,7 @@ a{ color: inherit; }
   align-items: center;
   gap: 28px;
   padding: 18px 64px;
-  background: var(--nav-bg);
-  backdrop-filter: blur(6px);
+  background: var(--nav-bg); /* already 92-94% opaque: a live blur behind a sticky bar costs scroll frames for no visible gain */
   border-top: 1px solid var(--line-soft);
   border-bottom: 1px solid var(--line-soft);
   transition: background-color 0.25s ease, border-color 0.25s ease;
@@ -490,6 +513,7 @@ a{ color: inherit; }
   justify-content: center;
   background: var(--lightbox-bg);
   padding: 40px;
+  overscroll-behavior: contain;
 }
 .lightbox.open{ display: flex; }
 
@@ -794,6 +818,7 @@ a{ color: inherit; }
   width: min(620px, 100%);
   max-height: 82vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--panel);
   border: 1px solid var(--line);
   border-top: 2px solid var(--teal);
@@ -840,6 +865,32 @@ a{ color: inherit; }
   .skills-grid{ grid-template-columns: 1fr; gap: 24px; }
   .edu-lang-grid{ grid-template-columns: 1fr; gap: 24px; }
   .site-nav{ gap: 16px; flex-wrap: wrap; }
+}
+
+/* ---------- Toast ("Email copied") ---------- */
+.toast{
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 200; /* above the lightbox (100) */
+  transform: translate(-50%, 12px);
+  padding: 10px 18px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--teal);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast.visible{
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+@media (max-width: 720px){
+  .toast{ bottom: 16px; max-width: calc(100% - 32px); }
 }
 
 /* ---------- Back to top ---------- */
