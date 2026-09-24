@@ -448,18 +448,38 @@ a{ color: inherit; }
 
 
 .gallery-grid{
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  --work-gap: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--work-gap);
 }
 
+/* Justified pairs: app.js puts the cards two to a row. Inside a row every
+   card gets flex-grow equal to its own aspect ratio (--ar), so the widths
+   split in proportion to the images and both cards come out the same
+   height. Row edges line up on all four sides and nothing is cropped
+   (beyond the clamp in app.js for extreme panoramas / tall portraits). */
+.gallery-row{
+  display: flex;
+  gap: var(--work-gap);
+}
+.gallery-row:empty{ display: none; }
+
 .gallery-item{
+  --ar: 1.3333; /* 4:3 until the real size is known (see setCardRatio in app.js) */
   position: relative;
-  aspect-ratio: 4 / 3;
+  flex: var(--ar) 1 0%;
+  min-width: 0;
+  aspect-ratio: var(--ar);
   overflow: hidden;
   border: 1px solid var(--line-soft);
   background: var(--panel-raised);
   cursor: pointer;
+}
+/* A card left alone in its row (odd one out at the end of a batch or a year)
+   takes half the row, like a normal grid cell, rather than stretching wide. */
+.gallery-row > .gallery-item:only-child{
+  flex: 0 0 calc((100% - var(--work-gap)) / 2);
 }
 .gallery-item img,
 .gallery-item video{
@@ -472,9 +492,14 @@ a{ color: inherit; }
 .gallery-item:hover img,
 .gallery-item:hover video{ transform: scale(1.05); opacity: 0.9; }
 
-
+/* Phones: one card per row, full width, still at its own aspect ratio. */
 @media (max-width: 720px){
-  .gallery-grid{ grid-template-columns: repeat(2, 1fr); }
+  .gallery-row{ flex-direction: column; }
+  .gallery-row > .gallery-item,
+  .gallery-row > .gallery-item:only-child{
+    flex: none;
+    width: 100%;
+  }
 }
 
 /* Invisible trigger for infinite scroll — sits just below the grid so
@@ -763,8 +788,8 @@ a{ color: inherit; }
 }
 .work-year:first-child{ margin-top: 0; }
 
-/* Apps share the photo grid's 4:3 cell. */
-.gallery-item.is-app{ background: var(--panel); }
+/* Apps keep a fixed 4:3 cell (the tile and caption strip are designed for it). */
+.gallery-item.is-app{ --ar: 1.3333; background: var(--panel); }
 .app-meta{
   margin: 0;
   font-family: var(--font-mono);

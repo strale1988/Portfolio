@@ -765,9 +765,18 @@ initSiteGrid();
 //                       animations of one project sit next to each other
 // ---------------------------------------------------------------
 
-const WORK_PAGE_SIZE = 18; // Archive's infinite-scroll batch size (divisible by 2 and 3)
-const WORK_INITIAL_SIZE = 15; // first batch for chips with a Load More button (Visualization/Animation/Apps)
+// Batch sizes are even on purpose: cards go into the grid two to a row, so an
+// even batch never leaves a lone card waiting for a partner.
+const WORK_PAGE_SIZE = 18; // Archive's infinite-scroll batch size
+const WORK_INITIAL_SIZE = 16; // first batch for chips with a Load More button (Visualization/Animation/Apps)
 const WORK_LOAD_MORE_SIZE = 10; // subsequent batches for those chips, per button click
+const WORK_COLUMNS = 2; // cards per row on desktop (phones stack to one, in CSS)
+
+// Thumbnails keep their real aspect ratio, clamped so a very wide panorama
+// or a very tall portrait can't wreck the rhythm of its row (those get a
+// gentle center-crop instead). Widen the range for less cropping.
+const WORK_MIN_RATIO = 0.75;  // 3:4 portrait
+const WORK_MAX_RATIO = 2.2;   // ~2.2:1 panorama
 const WORK_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v'];
 
 // NDA-covered work is swapped for a single placeholder image, kept
@@ -798,6 +807,7 @@ let workMedia = [];       // the image/video subset of workView (what the lightb
 let workShown = 0;        // how many of workView are on screen
 let workFilter = 'archive';
 let workLastYear = null;  // last year heading drawn (Archive only)
+let workOpenRow = null;   // the row cards are currently being added to
 let workLightboxIndex = 0;
 
 // One observer for every grid video: play while visible, pause when not.
@@ -880,6 +890,8 @@ async function loadGalleryItems() {
       file: e.file,
       caption: e.caption || '',
       poster: e.poster || '',
+      width: e.width || 0,   // optional: real pixel size, so the layout is right before the file loads
+      height: e.height || 0,
       featured: e.featured || false,
       year: e.year || yearFromFilename(e.file)
     };
@@ -969,6 +981,15 @@ function makeActivatable(el, label) {
   });
 }
 
+// Sets the card's aspect ratio (a CSS variable read by .gallery-item).
+// Called straight away if gallery.json gave a width/height, and again
+// when the image/video reports its real size, so the row re-balances.
+function setCardRatio(card, w, h) {
+  if (!w || !h) return;
+  const ratio = Math.min(WORK_MAX_RATIO, Math.max(WORK_MIN_RATIO, w / h));
+  card.style.setProperty('--ar', ratio.toFixed(4));
+}
+
 function buildMediaCard(item) {
   const card = document.createElement('div');
   card.className = 'gallery-item' + (item.media === 'video' ? ' is-video' : '');
@@ -986,11 +1007,17 @@ function buildMediaCard(item) {
     video.addEventListener('loadedmetadata', () => {
       if (!item.poster) video.currentTime = Math.min(0.1, (video.duration || 1) / 2);
     }, { once: true });
+    setCardRatio(card, item.width, item.height);
+    video.addEventListener('loadedmetadata', () => setCardRatio(card, video.videoWidth, video.videoHeight));
     workVideoObserver.observe(video);
   } else {
     const ndaAttr = item.file.includes('NDA') ? ' data-nda-img="true"' : '';
     card.innerHTML = `<img src="${galleryPath(item.file)}" alt="${item.caption || 'Render'}" loading="lazy" decoding="async"${ndaAttr}>`;
-    card.querySelector('img').onerror = function () { card.remove(); };
+    const img = card.querySelector('img');
+    img.onerror = function () { card.remove(); };
+    setCardRatio(card, item.width, item.height);
+    // Not once: the NDA placeholder swaps files on a theme change.
+    img.addEventListener('load', () => setCardRatio(card, img.naturalWidth, img.naturalHeight));
   }
 
   card.addEventListener('click', () => openLightbox(workMedia.indexOf(item)));
@@ -1148,6 +1175,7 @@ function renderWorkGrid() {
   grid.innerHTML = '';
   workShown = 0;
   workLastYear = null;
+  workOpenRow = null;
 
   if (!workView.length) {
     grid.innerHTML = '<p class="loading">Nothing here yet.</p>';
@@ -1175,10 +1203,17 @@ function appendWorkBatch(size) {
       heading.textContent = item.year || 'Undated';
       grid.appendChild(heading);
       workLastYear = item.year;
+      workOpenRow = null; // a new year always starts a fresh row
     }
     const card = item.kind === 'app' ? buildAppCard(item) : buildMediaCard(item);
     markReveal(card, offset % 6);
-    grid.appendChild(card);
+    // Two cards per row; a row that lost a card (broken image) takes the next one.
+    if (!workOpenRow || workOpenRow.children.length >= WORK_COLUMNS) {
+      workOpenRow = document.createElement('div');
+      workOpenRow.className = 'gallery-row';
+      grid.appendChild(workOpenRow);
+    }
+    workOpenRow.appendChild(card);
   });
   observeReveal(grid);
 
