@@ -848,9 +848,13 @@ async function loadGalleryItems() {
     // A category of "archive" (or anything else outside the two normal
     // categories) deliberately matches no chip's test but still passes the
     // Archive chip's `() => true`, so the item shows there only.
+    // "type": "archive" is treated the same way as "category": "archive"
+    // (that's how the manifest marks archive-only entries), unless an explicit
+    // category is also given. Whether it's an image or a video is still
+    // decided by the file extension.
     const category = e.category
       ? e.category
-      : (media === 'video' ? 'animation' : 'visualization');
+      : (e.type === 'archive' ? 'archive' : (media === 'video' ? 'animation' : 'visualization'));
     return {
       kind: 'media',
       media,
