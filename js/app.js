@@ -760,7 +760,9 @@ initSiteGrid();
 //   Visualization / Animation / Apps & Tools    one category each. Items with a
 //                       `featured` number are pinned first, in that order; the
 //                       rest follow, newest first.
-//   Archive             everything, strictly newest first, under year headings
+//   Archive             everything, newest year first under year headings, and
+//                       inside each year strictly A-Z by name, so the stills and
+//                       animations of one project sit next to each other
 // ---------------------------------------------------------------
 
 const WORK_PAGE_SIZE = 18; // Archive's infinite-scroll batch size (divisible by 2 and 3)
@@ -819,6 +821,22 @@ function fileExt(file) {
 function yearFromFilename(file) {
   const match = /^(\d{4})/.exec(file || '');
   return match ? parseInt(match[1], 10) : 0;
+}
+
+// The name an item is ordered by inside its year. For images and videos that's
+// the filename minus the leading "2024_" and the extension, so every file of a
+// project sorts together ("Library_Ext_Cam001", "Library_Int_Cam001", ...).
+// Apps use their title.
+function sortName(item) {
+  if (item.kind === 'app') return item.title || item.slug || '';
+  return (item.file || '').replace(/^\d{4}_?/, '').replace(/\.[a-z0-9]+$/i, '');
+}
+
+// Newest year first; within a year strictly A-Z by name and nothing else.
+// numeric: "Cam 2" sorts before "Cam 10"; base sensitivity: case never matters.
+const workNameCollator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
+function compareWorkItems(a, b) {
+  return (b.year - a.year) || workNameCollator.compare(sortName(a), sortName(b));
 }
 
 // Pulls a sortable year out of a date string like "2024" or "2019-2023".
@@ -1483,7 +1501,7 @@ async function init() {
       loadAppItems().catch(err => { console.error(err); return []; }),
       loadGalleryItems().catch(err => { console.error(err); return []; })
     ]);
-    workItems = [...apps, ...media].sort((a, b) => b.year - a.year); // stable: apps first within a year
+    workItems = [...apps, ...media].sort(compareWorkItems); // year (newest first), then name
     initLightbox();
     initAppDetail();
     initWorkInfiniteScroll();
