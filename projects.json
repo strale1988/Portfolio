@@ -1,1 +1,80 @@
-["tracethebreak","tracethetoxin","NoviDorcol","CurioBibliotheca","KitchenConfigurator"]
+[
+  {
+    "slug": "tracethebreak",
+    "title": "TraceTheBreak",
+    "category": "Web app",
+    "date": "2025–2026",
+    "description": "A civic infrastructure reporting platform: residents log road hazards and utility breaks on an interactive map, with photo verification and moderation running behind the scenes.",
+    "cover": "projects/tracethebreak/tracethebreak-cover.webp",
+    "tags": ["Supabase", "Leaflet.js", "Cloudflare Workers", "Vanilla JS"],
+    "links": [{ "label": "Live site", "url": "https://break.tracethestuff.com/" }],
+    "type": "app",
+    "embed": "",
+    "featured": false
+  },
+  {
+    "slug": "tracethetoxin",
+    "title": "TraceTheToxin",
+    "category": "Web app",
+    "date": "2025–2026",
+    "description": "An air quality and wildfire monitoring tool built on the TraceTheStuff platform, layering live NASA FIRMS fire data over air quality stations with severity-scaled markers.",
+    "cover": "projects/tracethetoxin/tracethetoxin-cover.webp",
+    "tags": ["Leaflet.js", "NASA FIRMS", "Supabase"],
+    "links": [{ "label": "Live site", "url": "https://toxin.tracethestuff.com/" }],
+    "type": "app",
+    "embed": "",
+    "featured": false
+  },
+  {
+    "slug": "NoviDorcol",
+    "title": "Novi Dorćol",
+    "category": "Interactive",
+    "date": "2023",
+    "description": "An interactive 3D visualization tool built for Novi Dorćol, a residential and commercial development by Deka Inženjering in Belgrade's Dorćol district. Lets prospective buyers explore the building exterior, browse floor-by-floor cross-sections, and check real-time apartment availability — built for client marketing while working at AR-TY.",
+    "cover": "projects/NoviDorcol/NoviDorcol-cover.webp",
+    "tags": ["Unity", "OpenGL", "C#", "3D"],
+    "links": [{ "label": "Play", "url": "https://strale1988.github.io/Portfolio/projects/NoviDorcol/" }],
+    "type": "app",
+    "embed": "",
+    "featured": false
+  },
+  {
+    "slug": "NoviDorcol-Tour",
+    "title": "Novi Dorćol — Virtual Tour",
+    "category": "Virtual Tour",
+    "date": "2023",
+    "description": "Immersive 360° interior walkthrough of the Novi Dorćol residential development.",
+    "cover": "projects/NoviDorcol/immersive-visit/NoviDorcol-Tour-cover.webp",
+    "tags": ["Unity", "OpenGL", "3D"],
+    "links": [],
+    "type": "tour",
+    "embed": "https://strale1988.github.io/Portfolio/projects/NoviDorcol/immersive-visit/Interior.html",
+    "featured": false
+  },
+  {
+    "slug": "CurioBibliotheca",
+    "title": "Curio Bibliotheca",
+    "category": "Interactive",
+    "date": "2024",
+    "description": "A browser-based ArchViz presentation tool built to showcase projects instantly, no downloads, installs, or special hardware needed, just a click. Now includes a freshly developed 360-degree tour system.",
+    "cover": "projects/CurioBibliotheca/CurioBibliotheca-cover.webp",
+    "tags": ["Unity", "WebGL", "C#", "3D"],
+    "links": [{ "label": "Play", "url": "https://strale1988.github.io/Portfolio/projects/CurioBibliotheca/" }],
+    "type": "app",
+    "embed": "",
+    "featured": false
+  },
+  {
+    "slug": "KitchenConfigurator",
+    "title": "Kitchen Configurator",
+    "category": "Interactive",
+    "date": "2021",
+    "description": "A realtime interactive kitchen configurator demo, letting users swap and preview materials, colors, and finishes on cabinets and surfaces directly in the browser.",
+    "cover": "projects/KitchenConfigurator/KitchenConfigurator-cover.webp",
+    "tags": ["Unity", "WebGL", "C#", "3D"],
+    "links": [{ "label": "Play", "url": "https://strale1988.github.io/Portfolio/projects/KitchenConfigurator/" }],
+    "type": "app",
+    "embed": "",
+    "featured": false
+  }
+]
