@@ -899,79 +899,38 @@ async function loadGalleryItems() {
   });
 }
 
-// Parses the simple "key: value" info.txt format.
-// - Lines starting with # are comments.
-// - `link:` may repeat; format is "Label | https://url".
-// - `tags:` is a comma separated list.
-// - `cover:` is an image inside the project's folder (e.g. cover.webp).
-// - `featured:` is yes, or a number to rank it within Selected.
-// - `embed:` is a URL (e.g. an immersive/virtual tour page) that can be
-//   launched inline inside the detail panel, with a fallback link to open
-//   it in a new tab.
-// - `type:` is 'app' (default) or 'tour'. 'tour' puts the project under the
+// projects.json is a flat array of full project records: slug, title,
+// category, date, description, cover, tags, links, type, embed, featured.
+// No per-project info.txt files — everything needed is already inline,
+// and `cover` is already a full relative path (e.g.
+// "projects/tracethebreak/tracethebreak-cover.webp").
+// - `type` is 'app' (default) or 'tour'. 'tour' puts the project under the
 //   Virtual Tours chip instead of Apps & Tools, and auto-starts its embed
 //   as soon as the detail panel opens (no launch click needed).
-function parseInfo(raw, slug) {
-  const project = { slug, title: slug, category: '', date: '', description: '', cover: '', featured: false, tags: [], links: [], embed: '', type: 'app' };
-  const lines = raw.split('\n');
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const idx = trimmed.indexOf(':');
-    if (idx === -1) continue;
-    const key = trimmed.slice(0, idx).trim().toLowerCase();
-    const value = trimmed.slice(idx + 1).trim();
-    switch (key) {
-      case 'title': project.title = value; break;
-      case 'category': project.category = value; break;
-      case 'date': project.date = value; break;
-      case 'description': project.description = value; break;
-      case 'cover': project.cover = value; break;
-      case 'featured': project.featured = parseFeatured(value); break;
-      case 'tags': project.tags = value.split(',').map(s => s.trim()).filter(Boolean); break;
-      case 'link': {
-        const [label, url] = value.split('|').map(s => s.trim());
-        if (url) project.links.push({ label: label || url, url });
-        break;
-      }
-      case 'embed': project.embed = value; break;
-      case 'type': project.type = value.trim().toLowerCase() === 'tour' ? 'tour' : 'app'; break;
-      default: break;
-    }
-  }
-  return project;
-}
-
-async function loadProject(slug) {
-  const res = await fetch(`projects/${slug}/info.txt`);
-  if (!res.ok) throw new Error(`Missing info.txt for ${slug}`);
-  return parseInfo(await res.text(), slug);
-}
-
-// Everything listed in projects.json is an app/tool. A project with a
-// broken or missing info.txt is skipped instead of taking the rest down.
+// - `category` here is a free-text label (e.g. "Web app") shown on the
+//   card, distinct from the app/tour split used for filtering.
+// A malformed entry is skipped instead of taking the rest down.
 async function loadAppItems() {
   const res = await fetch('projects.json');
   if (!res.ok) throw new Error('Could not load projects.json');
-  const slugs = await res.json();
-  const projects = await Promise.all(
-    slugs.map(slug => loadProject(slug).catch(err => { console.warn(err); return null; }))
-  );
-  return projects.filter(Boolean).map(p => ({
-    kind: 'app',
-    category: p.type === 'tour' ? 'tour' : 'app',
-    slug: p.slug,
-    title: p.title,
-    label: p.category,   // the free-text category from info.txt, shown on the card
-    date: p.date,
-    year: sortYear(p.date),
-    description: p.description,
-    tags: p.tags,
-    links: p.links,
-    embed: p.embed || '',
-    cover: p.cover ? `projects/${p.slug}/${p.cover}` : '',
-    featured: p.featured
-  }));
+  const projects = await res.json();
+  return projects
+    .filter(p => p && p.slug)
+    .map(p => ({
+      kind: 'app',
+      category: p.type === 'tour' ? 'tour' : 'app',
+      slug: p.slug,
+      title: p.title || p.slug,
+      label: p.category || '',
+      date: p.date || '',
+      year: sortYear(p.date),
+      description: p.description || '',
+      tags: p.tags || [],
+      links: p.links || [],
+      embed: p.embed || '',
+      cover: p.cover || '',
+      featured: p.featured || false
+    }));
 }
 
 // ---- cards -----------------------------------------------------
