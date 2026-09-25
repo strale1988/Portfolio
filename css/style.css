@@ -115,6 +115,13 @@ a{ color: inherit; }
   height: 100vh;
   height: 100svh; /* fits the visible area on load; svh never changes while scrolling */
   overflow: hidden;
+  background-color: var(--bg); /* fallback while the still loads */
+  background-image:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 58%, transparent) 0%, color-mix(in srgb, var(--bg) 92%, transparent) 100%),
+    url('../projects/CurioBibliotheca/CurioBibliotheca-cover.webp');
+  background-size: cover;
+  background-position: center 40%;
+  background-repeat: no-repeat;
 }
 
 .hud-inner{
@@ -259,6 +266,22 @@ a{ color: inherit; }
 }
 .cv-download:hover{ color: var(--teal); border-color: var(--teal); }
 .cv-download-icon{ font-size: 12px; line-height: 1; }
+
+.nav-contact{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s ease, border-color 0.15s ease, transform 0.3s ease;
+}
+.nav-contact:hover{ color: var(--teal); border-color: var(--teal); }
+.nav-contact:active{ transform: scale(0.9); }
+.nav-contact svg{ width: 14px; height: 14px; display: block; }
 
 .theme-toggle{
   margin-left: 0;
@@ -727,6 +750,40 @@ a{ color: inherit; }
 }
 .lang-item:first-child{ border-top: none; }
 .lang-item .level{ font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+
+/* ---------- Contact CTA (before footer) ---------- */
+
+.contact-cta{ text-align: center; }
+.contact-cta .section-head{ margin-bottom: 22px; }
+.contact-cta .section-sub{ margin-left: auto; margin-right: auto; }
+.contact-cta-row{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px 30px;
+  font-family: var(--font-mono);
+  font-size: 15px;
+}
+.contact-cta-row a{
+  position: relative;
+  color: var(--teal);
+  text-decoration: none;
+  padding-bottom: 3px;
+}
+.contact-cta-row a::after{
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.contact-cta-row a:hover::after{ transform: scaleX(1); }
 
 /* ---------- Footer ---------- */
 

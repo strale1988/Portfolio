@@ -100,7 +100,11 @@ function initSmoothScroll() {
     const nav = document.querySelector('.site-nav');
     document.querySelectorAll('.site-nav a[href^="#"]').forEach(link => {
       link.addEventListener('click', (e) => {
-        const target = document.querySelector(link.getAttribute('href'));
+        const href = link.getAttribute('href');
+        // Skip links whose href has since been upgraded away from a hash
+        // target (e.g. the nav mail icon, rewritten to mailto: by initContactLinks).
+        if (!href || href.charAt(0) !== '#') return;
+        const target = document.querySelector(href);
         if (!target) return;
         e.preventDefault();
         const offset = -(nav ? nav.offsetHeight : 60);
@@ -1496,6 +1500,11 @@ function initContactLinks() {
   const emailDomain = 'gmail.com';
   const email = `${emailUser}@${emailDomain}`;
 
+  const phoneDigits = ['+381', '61', '1649636'];
+  const phoneDisplay = '+381 61 1649636';
+  const phoneHref = phoneDigits.join('');
+
+  // Footer
   const emailEl = document.getElementById('footer-email');
   if (emailEl) {
     const a = document.createElement('a');
@@ -1504,11 +1513,6 @@ function initContactLinks() {
     copyOnRightClick(a, email, 'Email', 'Click to email');
     emailEl.appendChild(a);
   }
-
-  const phoneDigits = ['+381', '61', '1649636'];
-  const phoneDisplay = '+381 61 1649636';
-  const phoneHref = phoneDigits.join('');
-
   const phoneEl = document.getElementById('footer-phone');
   if (phoneEl) {
     const a = document.createElement('a');
@@ -1516,6 +1520,32 @@ function initContactLinks() {
     a.textContent = phoneDisplay;
     copyOnRightClick(a, phoneDisplay, 'Phone number', 'Click to call');
     phoneEl.appendChild(a);
+  }
+
+  // Persistent nav icon — starts as a plain #contact anchor (in the HTML,
+  // for no-JS visitors) and gets upgraded to a real mailto: here.
+  const navContactEl = document.getElementById('nav-contact');
+  if (navContactEl) {
+    navContactEl.href = `mailto:${email}`;
+    copyOnRightClick(navContactEl, email, 'Email', 'Click to email');
+  }
+
+  // "Let's talk" CTA block above the footer
+  const ctaEmailEl = document.getElementById('cta-email');
+  if (ctaEmailEl) {
+    const a = document.createElement('a');
+    a.href = `mailto:${email}`;
+    a.textContent = email;
+    copyOnRightClick(a, email, 'Email', 'Click to email');
+    ctaEmailEl.appendChild(a);
+  }
+  const ctaPhoneEl = document.getElementById('cta-phone');
+  if (ctaPhoneEl) {
+    const a = document.createElement('a');
+    a.href = `tel:${phoneHref}`;
+    a.textContent = phoneDisplay;
+    copyOnRightClick(a, phoneDisplay, 'Phone number', 'Click to call');
+    ctaPhoneEl.appendChild(a);
   }
 }
 
