@@ -871,6 +871,33 @@ a{ color: inherit; }
 .app-detail-body .tag-list{ margin-bottom: 16px; }
 .app-detail-body .links-row{ gap: 22px; }
 
+.app-embed-wrap{ margin: 4px 0 20px; }
+.app-embed-launch{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--teal);
+  background: var(--panel-raised);
+  border: 1px dashed var(--line);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.app-embed-launch:hover{ color: var(--amber); border-color: var(--text-dim); }
+.app-embed-frame{
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
 @media (max-width: 720px){
   .app-tile{ padding: 12px; }
   .app-tile h3{ font-size: 1.1rem; }

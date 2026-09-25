@@ -904,8 +904,11 @@ async function loadGalleryItems() {
 // - `tags:` is a comma separated list.
 // - `cover:` is an image inside the project's folder (e.g. cover.webp).
 // - `featured:` is yes, or a number to rank it within Selected.
+// - `embed:` is a URL (e.g. an immersive/virtual tour page) that can be
+//   launched inline inside the detail panel, with a fallback link to open
+//   it in a new tab.
 function parseInfo(raw, slug) {
-  const project = { slug, title: slug, category: '', date: '', description: '', cover: '', featured: false, tags: [], links: [] };
+  const project = { slug, title: slug, category: '', date: '', description: '', cover: '', featured: false, tags: [], links: [], embed: '' };
   const lines = raw.split('\n');
   for (const line of lines) {
     const trimmed = line.trim();
@@ -927,6 +930,7 @@ function parseInfo(raw, slug) {
         if (url) project.links.push({ label: label || url, url });
         break;
       }
+      case 'embed': project.embed = value; break;
       default: break;
     }
   }
@@ -959,6 +963,7 @@ async function loadAppItems() {
     description: p.description,
     tags: p.tags,
     links: p.links,
+    embed: p.embed || '',
     cover: p.cover ? `projects/${p.slug}/${p.cover}` : '',
     featured: p.featured
   }));
@@ -1086,15 +1091,32 @@ function openAppDetail(item) {
     cover.removeAttribute('src');
   }
 
-  const links = item.links.length
-    ? `<div class="links-row">${item.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('')}</div>`
+  const allLinks = item.embed
+    ? [{ label: 'Open in new tab', url: item.embed }, ...item.links]
+    : item.links;
+  const links = allLinks.length
+    ? `<div class="links-row">${allLinks.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('')}</div>`
+    : '';
+  const embed = item.embed
+    ? `<div class="app-embed-wrap">
+        <button type="button" class="app-embed-launch">▶ Launch virtual tour on this page</button>
+      </div>`
     : '';
   document.getElementById('app-detail-body').innerHTML = `
     <p class="app-meta">${appMeta(item)}</p>
     <h3 id="app-detail-title">${item.title}</h3>
     ${item.description ? `<p class="app-detail-desc">${item.description}</p>` : ''}
     ${appTags(item)}
+    ${embed}
     ${links}`;
+
+  if (item.embed) {
+    const launchBtn = document.querySelector('.app-embed-launch');
+    launchBtn.addEventListener('click', () => {
+      const wrap = launchBtn.closest('.app-embed-wrap');
+      wrap.innerHTML = `<iframe class="app-embed-frame" src="${item.embed}" loading="lazy" allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope" allowfullscreen title="${item.title} — virtual tour"></iframe>`;
+    });
+  }
 
   appDetailReturnFocus = document.activeElement;
   overlay.classList.add('open');
@@ -1108,6 +1130,10 @@ function closeAppDetail() {
   overlay.classList.remove('open');
   overlay.setAttribute('aria-hidden', 'true');
   lockPageScroll(false);
+  // Tear down any running embed (e.g. a virtual tour) so it stops
+  // executing in the background once the panel is closed.
+  const embedWrap = overlay.querySelector('.app-embed-wrap');
+  if (embedWrap) embedWrap.innerHTML = '';
   if (appDetailReturnFocus && appDetailReturnFocus.focus) appDetailReturnFocus.focus();
   appDetailReturnFocus = null;
 }
