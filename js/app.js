@@ -1045,7 +1045,12 @@ function openAppDetail(item) {
   const overlay = document.getElementById('app-detail');
   const cover = document.getElementById('app-detail-cover');
 
-  if (item.cover) {
+  const isTour = item.category === 'tour' && item.embed;
+
+  // Tours jump straight into the embed: no cover to click through and no
+  // "open in new tab" link, since the tour itself is the whole point of
+  // opening the panel.
+  if (item.cover && !isTour) {
     cover.hidden = false;
     cover.alt = item.title;
     cover.onerror = function () { cover.hidden = true; };
@@ -1055,13 +1060,12 @@ function openAppDetail(item) {
     cover.removeAttribute('src');
   }
 
-  const allLinks = item.embed
+  const allLinks = (item.embed && !isTour)
     ? [{ label: 'Open in new tab', url: item.embed }, ...item.links]
     : item.links;
   const links = allLinks.length
     ? `<div class="links-row">${allLinks.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('')}</div>`
     : '';
-  const isTour = item.category === 'tour' && item.embed;
   const embed = item.embed
     ? (isTour
         // Tours auto-start: no launch click needed, the iframe loads as
