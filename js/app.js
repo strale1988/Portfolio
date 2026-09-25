@@ -752,14 +752,14 @@ initSiteGrid();
 //
 // Every item ends up with:
 //   kind      'media' | 'app'
-//   category  'visualization' | 'animation' | 'app'
+//   category  'visualization' | 'animation' | 'app' | 'tour'
 //   year      from the filename prefix (media) or `date:` (apps)
 //   featured  false | true | a position number (1 = first in its view)
 //
 // The chips above the grid are different views over that list:
-//   Visualization / Animation / Apps & Tools    one category each. Items with a
-//                       `featured` number are pinned first, in that order; the
-//                       rest follow, newest first.
+//   Visualization / Animation / Apps & Tools / Virtual Tours    one category
+//                       each. Items with a `featured` number are pinned
+//                       first, in that order; the rest follow, newest first.
 //   Archive             everything, newest year first under year headings, and
 //                       inside each year strictly A-Z by name, so the stills and
 //                       animations of one project sit next to each other
@@ -798,6 +798,7 @@ const WORK_FILTERS = [
   { id: 'visualization', label: 'Visualization', sub: 'Architectural stills and renders.',                  test: it => it.category === 'visualization' && !(it.file || '').includes('NDA') },
   { id: 'animation',     label: 'Animation',     sub: 'Animations and turntables.',                         test: it => it.category === 'animation' },
   { id: 'app',           label: 'Apps & Tools',  sub: 'Interactive apps, web tools and experiences.',       test: it => it.category === 'app' },
+  { id: 'tour',          label: 'Virtual Tours', sub: 'Immersive 360° walkthroughs.',                       test: it => it.category === 'tour' },
   { id: 'archive',       label: 'Archive',       sub: 'Everything, newest first.',                          test: () => true, byYear: true }
 ];
 
@@ -907,8 +908,11 @@ async function loadGalleryItems() {
 // - `embed:` is a URL (e.g. an immersive/virtual tour page) that can be
 //   launched inline inside the detail panel, with a fallback link to open
 //   it in a new tab.
+// - `type:` is 'app' (default) or 'tour'. 'tour' puts the project under the
+//   Virtual Tours chip instead of Apps & Tools, and auto-starts its embed
+//   as soon as the detail panel opens (no launch click needed).
 function parseInfo(raw, slug) {
-  const project = { slug, title: slug, category: '', date: '', description: '', cover: '', featured: false, tags: [], links: [], embed: '' };
+  const project = { slug, title: slug, category: '', date: '', description: '', cover: '', featured: false, tags: [], links: [], embed: '', type: 'app' };
   const lines = raw.split('\n');
   for (const line of lines) {
     const trimmed = line.trim();
@@ -931,6 +935,7 @@ function parseInfo(raw, slug) {
         break;
       }
       case 'embed': project.embed = value; break;
+      case 'type': project.type = value.trim().toLowerCase() === 'tour' ? 'tour' : 'app'; break;
       default: break;
     }
   }
@@ -954,7 +959,7 @@ async function loadAppItems() {
   );
   return projects.filter(Boolean).map(p => ({
     kind: 'app',
-    category: 'app',
+    category: p.type === 'tour' ? 'tour' : 'app',
     slug: p.slug,
     title: p.title,
     label: p.category,   // the free-text category from info.txt, shown on the card
@@ -1097,10 +1102,15 @@ function openAppDetail(item) {
   const links = allLinks.length
     ? `<div class="links-row">${allLinks.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('')}</div>`
     : '';
+  const isTour = item.category === 'tour' && item.embed;
   const embed = item.embed
-    ? `<div class="app-embed-wrap">
-        <button type="button" class="app-embed-launch">▶ Launch virtual tour on this page</button>
-      </div>`
+    ? (isTour
+        // Tours auto-start: no launch click needed, the iframe loads as
+        // soon as the panel opens.
+        ? `<div class="app-embed-wrap"><iframe class="app-embed-frame" src="${item.embed}" loading="lazy" allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope" allowfullscreen title="${item.title} — virtual tour"></iframe></div>`
+        : `<div class="app-embed-wrap">
+            <button type="button" class="app-embed-launch">▶ Launch on this page</button>
+          </div>`)
     : '';
   document.getElementById('app-detail-body').innerHTML = `
     <p class="app-meta">${appMeta(item)}</p>
@@ -1110,7 +1120,7 @@ function openAppDetail(item) {
     ${embed}
     ${links}`;
 
-  if (item.embed) {
+  if (item.embed && !isTour) {
     const launchBtn = document.querySelector('.app-embed-launch');
     launchBtn.addEventListener('click', () => {
       const wrap = launchBtn.closest('.app-embed-wrap');
