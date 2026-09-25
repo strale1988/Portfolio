@@ -6,3 +6,4 @@ description: An interactive 3D visualization tool built for Novi Dorcol, a resid
 tags: Unity, OpenGL, C#, 3D
 link: Play | https://strale1988.github.io/Portfolio/projects/NoviDorcol/
 cover: cover.webp
+embed: https://strale1988.github.io/Portfolio/projects/NoviDorcol/immersive-visit/Interior.html
