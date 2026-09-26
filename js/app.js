@@ -342,6 +342,32 @@ function initTabs() {
 
 initTabs();
 
+function initPanelSmoothScroll() {
+  if (typeof window.Lenis !== 'function') return;
+
+  // Each tab panel scrolls independently (overflow-y: auto) and sits outside
+  // the main window-scroll Lenis instance. Giving each one its own Lenis
+  // instance, scoped to that panel via `wrapper`, keeps the eased feel
+  // consistent once you're past the hero, instead of falling back to a
+  // plain native scroll inside Work/Resume/Contact.
+  document.querySelectorAll('.tab-panel').forEach(panel => {
+    try {
+      new window.Lenis({
+        wrapper: panel,
+        content: panel,
+        autoRaf: true,
+        lerp: SMOOTH_SCROLL.lerp,
+        wheelMultiplier: SMOOTH_SCROLL.wheelMultiplier,
+        smoothWheel: true
+      });
+    } catch (err) {
+      console.warn('Smooth scroll unavailable for a tab panel.', err);
+    }
+  });
+}
+
+initPanelSmoothScroll();
+
 function initSiteGrid() {
   const canvas = document.querySelector('.site-grid');
   if (!canvas || !canvas.getContext) return;
