@@ -118,6 +118,16 @@ a{ color: inherit; }
   background-repeat: no-repeat;
 }
 
+.hero-dissolve{
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
 .hud-inner{
   position: relative;
   display: flex;
@@ -233,6 +243,8 @@ a{ color: inherit; }
   border: none;
   background: none;
   color: var(--text-dim);
+  text-decoration: none;
+  display: inline-block;
   cursor: pointer;
   position: relative;
   transition: color 0.2s ease;
@@ -305,45 +317,17 @@ a{ color: inherit; }
   box-shadow: 3px -3px 0 1px var(--nav-bg) inset;
 }
 
-/* ---------- Tab stage (Work / Resume / Contact) ---------- */
+/* ---------- Page sections (Work / Resume / Contact) ---------- */
+/* The nav is sticky (see .site-nav above) and the sections below it are
+   plain block-level content — the whole page scrolls as one continuous
+   flow, and the nav links just smooth-scroll to the relevant section. */
 
-.tab-viewport{
+.page-flow{
   position: relative;
-  overflow: hidden;
-  height: calc(100vh - var(--nav-h, 60px));
-  height: calc(100svh - var(--nav-h, 60px));
 }
-.tab-stage{
-  display: flex;
-  width: 300%;
-  height: 100%;
-  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform;
-}
-.tab-stage[data-active="work"]{ transform: translateX(0%); }
-.tab-stage[data-active="resume"]{ transform: translateX(-33.3334%); }
-.tab-stage[data-active="contact"]{ transform: translateX(-66.6667%); }
 
-.tab-panel{
-  width: 33.3334%;
-  flex: 0 0 33.3334%;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.tab-panel::-webkit-scrollbar{ display: none; }
-
-/* While the hero header hasn't fully scrolled away yet, the tab panels
-   shouldn't accept their own scroll input — otherwise a wheel/touch
-   gesture near the boundary can start scrolling the gallery before the
-   nav has actually settled at the top. */
-.tab-viewport.gallery-scroll-locked .tab-panel{ overflow: hidden !important; }
-
-@media (prefers-reduced-motion: reduce){
-  .tab-stage{ transition: none; }
+.tab-section{
+  scroll-margin-top: var(--nav-h, 60px);
 }
 
 .reveal{
@@ -746,11 +730,13 @@ a{ color: inherit; }
 .lang-item:first-child{ border-top: none; }
 .lang-item .level{ font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
 
-#panel-contact{
+#contact{
   display: flex;
   align-items: center;
+  min-height: calc(100vh - var(--nav-h, 60px));
+  min-height: calc(100svh - var(--nav-h, 60px));
 }
-#panel-contact .section{ width: 100%; }
+#contact .section{ width: 100%; }
 
 .contact-cta{ text-align: center; }
 .contact-cta .section-head{ margin-bottom: 22px; }

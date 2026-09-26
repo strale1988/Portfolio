@@ -196,6 +196,110 @@ initSitePreloader();
 
 initHeaderParallax();
 
+// As the hero scrolls by, an overlay canvas dissolves it into squares —
+// bottom rows first, with a little per-cell jitter so the wipe line reads
+// as organic rather than a straight edge — matching the site's grid motif
+// and giving the hero a more deliberate exit than a plain scroll-away.
+function initHeroDissolve() {
+  if (prefersReducedMotion) return;
+
+  const canvas = document.querySelector('.hero-dissolve');
+  const hud = document.querySelector('.hud');
+  if (!canvas || !hud || !canvas.getContext) return;
+
+  const ctx = canvas.getContext('2d');
+  const CELL = 44;
+  const START = 0.2;   // reveal progress (0-1 of hero height) where dissolve begins
+  const END = 0.92;    // progress where the hero is fully gone
+  const BAND = 0.16;   // how quickly each cell fades in, in progress units
+  const JITTER = 0.22; // per-cell randomness added to its row threshold
+
+  let cssWidth = 0, cssHeight = 0, cols = 0, rows = 0;
+  let jitters = [];
+  let bgColor = '#f5f4ef';
+  let range = hud.offsetHeight || 1;
+  let lastR = -1;
+  let fullyDrawn = false;
+
+  function seededRandom(seed) {
+    const x = Math.sin(seed * 12.9898) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function readColor() {
+    bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || bgColor;
+  }
+
+  function buildGrid() {
+    const w = hud.clientWidth || window.innerWidth;
+    const h = hud.clientHeight || window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cssWidth = w;
+    cssHeight = h;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    cols = Math.max(1, Math.ceil(w / CELL));
+    rows = Math.max(1, Math.ceil(h / CELL));
+    jitters = [];
+    for (let r = 0; r < rows; r++) {
+      const row = [];
+      for (let c = 0; c < cols; c++) row.push((seededRandom(r * 97 + c * 31 + 1) - 0.5) * JITTER);
+      jitters.push(row);
+    }
+    range = hud.offsetHeight || 1;
+    lastR = -1;
+    render(currentScroll());
+  }
+
+  function render(y) {
+    const progress = Math.min(Math.max(y, 0), range) / range;
+    const r = Math.min(Math.max((progress - START) / (END - START), 0), 1);
+    if (r === lastR) return;
+    lastR = r;
+
+    if (r <= 0) {
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+      fullyDrawn = false;
+      return;
+    }
+    if (r >= 1 && fullyDrawn) return;
+
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+    ctx.fillStyle = bgColor;
+
+    for (let row = 0; row < rows; row++) {
+      const rowThreshold = rows > 1 ? 1 - (row / (rows - 1)) : 1;
+      for (let col = 0; col < cols; col++) {
+        const threshold = Math.min(Math.max(rowThreshold + jitters[row][col], 0), 1);
+        const alpha = Math.min(Math.max((r - threshold) / BAND, 0), 1);
+        if (alpha <= 0) continue;
+        ctx.globalAlpha = alpha;
+        ctx.fillRect(col * CELL, row * CELL, CELL + 1, CELL + 1);
+      }
+    }
+    ctx.globalAlpha = 1;
+    fullyDrawn = r >= 1;
+  }
+
+  readColor();
+  buildGrid();
+
+  onScroll(render);
+  window.addEventListener('resize', buildGrid);
+  document.addEventListener('themechange', () => {
+    readColor();
+    lastR = -1;
+    render(currentScroll());
+  });
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(buildGrid).catch(() => {});
+  }
+}
+
+initHeroDissolve();
+
 let autoScrolling = false;
 
 function smoothScrollTo(target, duration) {
@@ -233,99 +337,49 @@ function initBackToTop() {
 
 initBackToTop();
 
-function initGalleryScrollLock() {
-  const hud = document.querySelector('.hud');
-  const tabViewport = document.querySelector('.tab-viewport');
-  if (!hud || !tabViewport) return;
-
-  let locked = null;
-  function apply(isLocked) {
-    if (locked === isLocked) return;
-    locked = isLocked;
-    tabViewport.classList.toggle('gallery-scroll-locked', isLocked);
-  }
-
-  // Poll the hero's real on-screen position every animation frame instead
-  // of depending on scroll/resize events or an IntersectionObserver firing
-  // reliably. Both proved unreliable here: address-bar-driven viewport
-  // resizing on mobile broke a scrollY-vs-cached-height comparison, an
-  // IntersectionObserver didn't consistently re-fire while the page kept
-  // scrolling, and either gap can leave the gallery locked with no way to
-  // recover. getBoundingClientRect() read fresh every frame is always
-  // correct for whatever the current real viewport happens to be.
-  function tick() {
-    apply(hud.getBoundingClientRect().bottom > 0);
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
-
-initGalleryScrollLock();
-
 function initTabs() {
-  const stage = document.getElementById('tab-stage');
   const buttons = Array.from(document.querySelectorAll('.tab-btn'));
-  if (!stage || !buttons.length) return;
+  const sections = buttons
+    .map(btn => document.getElementById(btn.dataset.panel))
+    .filter(Boolean);
+  if (!buttons.length || !sections.length) return;
 
-  const order = ['work', 'resume', 'contact'];
+  function setActive(panel) {
+    buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.panel === panel));
+  }
 
-  function activate(panel) {
-    const fromIndex = order.indexOf(stage.dataset.active);
-    const toIndex = order.indexOf(panel);
-    if (toIndex === -1 || toIndex === fromIndex) return;
-
-    stage.dataset.active = panel;
-    buttons.forEach(btn => {
-      const isActive = btn.dataset.panel === panel;
-      btn.classList.toggle('active', isActive);
-      btn.setAttribute('aria-selected', String(isActive));
-    });
-
-    if (window.__gridSweep) window.__gridSweep(toIndex > fromIndex ? 1 : -1);
+  function navHeight() {
+    const nav = document.querySelector('.site-nav');
+    return nav ? nav.offsetHeight : 0;
   }
 
   buttons.forEach(btn => {
-    btn.addEventListener('click', () => activate(btn.dataset.panel));
+    btn.addEventListener('click', (e) => {
+      const target = document.getElementById(btn.dataset.panel);
+      if (!target) return;
+      e.preventDefault();
+
+      const fromTop = target.getBoundingClientRect().top + currentScroll();
+      const goingDown = fromTop > currentScroll();
+      if (window.__gridSweep) window.__gridSweep(goingDown ? 1 : -1);
+
+      smoothScrollTo(fromTop - navHeight(), SMOOTH_SCROLL.anchorDuration);
+      setActive(btn.dataset.panel);
+    });
   });
+
+  // Scrollspy: highlight whichever section currently owns the band just
+  // below the sticky nav, so the active tab tracks natural scrolling too.
+  const spyObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) setActive(entry.target.id);
+    });
+  }, { rootMargin: `-${Math.max(navHeight(), 1)}px 0px -70% 0px`, threshold: 0 });
+
+  sections.forEach(sec => spyObserver.observe(sec));
 }
 
 initTabs();
-
-function initPanelSmoothScroll() {
-  if (typeof window.Lenis !== 'function') return;
-
-  // Each tab panel scrolls independently (overflow-y: auto) and sits outside
-  // the main window-scroll Lenis instance. Giving each one its own Lenis
-  // instance, scoped to that panel via `wrapper`, keeps the eased feel
-  // consistent once you're past the hero, instead of falling back to a
-  // plain native scroll inside Work/Resume/Contact.
-  document.querySelectorAll('.tab-panel').forEach(panel => {
-    // Lenis needs a dedicated `content` node, distinct from the wrapper, so
-    // its ResizeObserver can see the panel grow once the work grid/resume
-    // lists/etc. are filled in by JS later. Watching the wrapper itself
-    // never fires for that: the wrapper's own box height is fixed by CSS,
-    // only a growing child inside it changes size.
-    const content = document.createElement('div');
-    content.className = 'tab-panel-content';
-    while (panel.firstChild) content.appendChild(panel.firstChild);
-    panel.appendChild(content);
-
-    try {
-      new window.Lenis({
-        wrapper: panel,
-        content,
-        autoRaf: true,
-        lerp: SMOOTH_SCROLL.lerp,
-        wheelMultiplier: SMOOTH_SCROLL.wheelMultiplier,
-        smoothWheel: true
-      });
-    } catch (err) {
-      console.warn('Smooth scroll unavailable for a tab panel.', err);
-    }
-  });
-}
-
-initPanelSmoothScroll();
 
 function initSiteGrid() {
   const canvas = document.querySelector('.site-grid');
@@ -1055,7 +1109,7 @@ const workScrollObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting && byYear && workShown < workView.length) appendWorkBatch(WORK_PAGE_SIZE);
   });
-}, { root: document.getElementById('panel-work'), rootMargin: '600px 0px' });
+}, { root: null, rootMargin: '600px 0px' });
 
 function initWorkInfiniteScroll() {
   const sentinel = document.getElementById('work-sentinel');

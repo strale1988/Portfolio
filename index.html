@@ -40,6 +40,7 @@
 
 <header class="hud">
   <div class="hud-photo" aria-hidden="true"></div>
+  <canvas class="hero-dissolve" aria-hidden="true"></canvas>
   <div class="hud-inner">
 
     <div class="hero-content">
@@ -56,10 +57,10 @@
 </header>
 
 <nav class="site-nav">
-  <div class="tabs" id="tabs" role="tablist" aria-label="Sections">
-    <button type="button" class="tab-btn active" data-panel="work" role="tab" aria-selected="true" aria-controls="panel-work" id="tab-work">Work</button>
-    <button type="button" class="tab-btn" data-panel="resume" role="tab" aria-selected="false" aria-controls="panel-resume" id="tab-resume">Resume</button>
-    <button type="button" class="tab-btn" data-panel="contact" role="tab" aria-selected="false" aria-controls="panel-contact" id="tab-contact">Contact</button>
+  <div class="tabs" id="tabs" aria-label="Sections">
+    <a href="#work" class="tab-btn active" data-panel="work" id="tab-work">Work</a>
+    <a href="#resume" class="tab-btn" data-panel="resume" id="tab-resume">Resume</a>
+    <a href="#contact" class="tab-btn" data-panel="contact" id="tab-contact">Contact</a>
   </div>
   <a class="cv-download" href="cv/Strahinja_Drazic_CV.pdf" download>
     <span class="cv-download-icon" aria-hidden="true">&#8595;</span> CV
@@ -71,68 +72,66 @@
 
 <button type="button" class="back-to-top" id="back-to-top" aria-label="Back to top">&#8593;</button>
 
-<div class="tab-viewport">
-  <div class="tab-stage" id="tab-stage" data-active="work">
+<main class="page-flow">
 
-    <div class="tab-panel" id="panel-work" role="tabpanel" aria-labelledby="tab-work">
-      <section class="section">
-        <div class="section-head">
-          <h2>Work</h2>
-          <p class="section-sub" id="work-sub">Selected work.</p>
-        </div>
-        <nav class="filters" id="filters" aria-label="Filter work"></nav>
-        <div class="gallery-grid" id="work-grid"></div>
-        <button type="button" class="load-more-btn" id="work-load-more" hidden>Load more</button>
-        <div class="work-sentinel" id="work-sentinel" aria-hidden="true"></div>
-      </section>
-    </div>
-
-    <div class="tab-panel" id="panel-resume" role="tabpanel" aria-labelledby="tab-resume">
-      <section class="section">
-        <div class="section-head">
-          <h2>Experience</h2>
-          <p class="section-sub">Employment history.</p>
-        </div>
-        <div class="exp-list" id="exp-list"></div>
-      </section>
-
-      <section class="section">
-        <div class="section-head">
-          <h2>Skills</h2>
-          <p class="section-sub">Software, technical expertise and how I work.</p>
-        </div>
-        <div class="skills-grid" id="skills-grid"></div>
-      </section>
-
-      <section class="section">
-        <div class="section-head">
-          <h2>Achievements</h2>
-          <p class="section-sub">Rendering challenges and community placements.</p>
-        </div>
-        <div class="achievements-list" id="achievements-list"></div>
-      </section>
-
-      <section class="section section-tight">
-        <div class="edu-lang-grid" id="edu-lang-grid"></div>
-      </section>
-    </div>
-
-    <div class="tab-panel" id="panel-contact" role="tabpanel" aria-labelledby="tab-contact">
-      <section class="section section-tight contact-cta">
-        <div class="section-head">
-          <h2>Let&rsquo;s talk</h2>
-          <p class="section-sub">Open to new projects and roles. Reach out any time.</p>
-        </div>
-        <div class="contact-cta-row">
-          <span id="cta-email"></span>
-          <span id="cta-phone"></span>
-          <a href="https://www.linkedin.com/in/strahinja-drazic" target="_blank" rel="noopener">LinkedIn</a>
-        </div>
-      </section>
-    </div>
-
+  <div class="tab-section" id="work" aria-labelledby="tab-work">
+    <section class="section">
+      <div class="section-head">
+        <h2>Work</h2>
+        <p class="section-sub" id="work-sub">Selected work.</p>
+      </div>
+      <nav class="filters" id="filters" aria-label="Filter work"></nav>
+      <div class="gallery-grid" id="work-grid"></div>
+      <button type="button" class="load-more-btn" id="work-load-more" hidden>Load more</button>
+      <div class="work-sentinel" id="work-sentinel" aria-hidden="true"></div>
+    </section>
   </div>
-</div>
+
+  <div class="tab-section" id="resume" aria-labelledby="tab-resume">
+    <section class="section">
+      <div class="section-head">
+        <h2>Experience</h2>
+        <p class="section-sub">Employment history.</p>
+      </div>
+      <div class="exp-list" id="exp-list"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Skills</h2>
+        <p class="section-sub">Software, technical expertise and how I work.</p>
+      </div>
+      <div class="skills-grid" id="skills-grid"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Achievements</h2>
+        <p class="section-sub">Rendering challenges and community placements.</p>
+      </div>
+      <div class="achievements-list" id="achievements-list"></div>
+    </section>
+
+    <section class="section section-tight">
+      <div class="edu-lang-grid" id="edu-lang-grid"></div>
+    </section>
+  </div>
+
+  <div class="tab-section" id="contact" aria-labelledby="tab-contact">
+    <section class="section section-tight contact-cta">
+      <div class="section-head">
+        <h2>Let&rsquo;s talk</h2>
+        <p class="section-sub">Open to new projects and roles. Reach out any time.</p>
+      </div>
+      <div class="contact-cta-row">
+        <span id="cta-email"></span>
+        <span id="cta-phone"></span>
+        <a href="https://www.linkedin.com/in/strahinja-drazic" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </section>
+  </div>
+
+</main>
 
 <div class="lightbox" id="lightbox" aria-hidden="true">
   <button class="lightbox-close" id="lightbox-close" aria-label="Close">&times;</button>
