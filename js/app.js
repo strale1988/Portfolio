@@ -65,58 +65,6 @@ function initSmoothScroll() {
 
 initSmoothScroll();
 
-const panelLenises = new Map(); // panel element -> its own Lenis instance
-
-function initPanelSmoothScroll() {
-  if (prefersReducedMotion || typeof window.Lenis !== 'function') return;
-  document.querySelectorAll('.tab-panel').forEach((panel) => {
-    try {
-      const panelLenis = new window.Lenis({
-        wrapper: panel,
-        content: panel,
-        autoRaf: true,
-        lerp: SMOOTH_SCROLL.lerp,
-        wheelMultiplier: SMOOTH_SCROLL.wheelMultiplier,
-        smoothWheel: true
-      });
-      panelLenises.set(panel, panelLenis);
-    } catch (err) {
-      console.warn('Smooth scroll unavailable for panel', panel.id, err);
-    }
-  });
-
-  // Each panel's real content (work grid, resume, skills, etc.) loads and
-  // renders asynchronously, well after Lenis first measured the panel's
-  // (still empty) scroll height. Without telling Lenis to re-measure, its
-  // cached scroll limit never grows, so smooth-scrolling stalls short of
-  // the actual bottom — e.g. the "load more" button/sentinel becomes
-  // unreachable. Watch each panel's content box and resize Lenis whenever
-  // it changes (new cards, filter switches, images finishing loading, etc).
-  if (typeof ResizeObserver === 'function') {
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const panel = entry.target.closest('.tab-panel');
-        const panelLenis = panel && panelLenises.get(panel);
-        if (panelLenis && typeof panelLenis.resize === 'function') panelLenis.resize();
-      }
-    });
-    panelLenises.forEach((_, panel) => {
-      Array.from(panel.children).forEach(child => resizeObserver.observe(child));
-    });
-  }
-
-  window.addEventListener('resize', resyncPanelScroll);
-}
-
-function resyncPanelScroll() {
-  panelLenises.forEach(panelLenis => {
-    if (typeof panelLenis.resize === 'function') panelLenis.resize();
-  });
-  if (lenis && typeof lenis.resize === 'function') lenis.resize();
-}
-
-initPanelSmoothScroll();
-
 function updateNavHeightVar() {
   const nav = document.querySelector('.site-nav');
   if (nav) document.documentElement.style.setProperty('--nav-h', `${nav.offsetHeight}px`);
@@ -341,35 +289,26 @@ function initGalleryScrollLock() {
   const tabViewport = document.querySelector('.tab-viewport');
   if (!hud || !tabViewport) return;
 
+  let locked = null;
   function apply(isLocked) {
+    if (locked === isLocked) return;
+    locked = isLocked;
     tabViewport.classList.toggle('gallery-scroll-locked', isLocked);
-    panelLenises.forEach(panelLenis => {
-      const method = isLocked ? 'stop' : 'start';
-      if (typeof panelLenis[method] === 'function') panelLenis[method]();
-    });
   }
 
-  if (typeof IntersectionObserver !== 'function') {
-    apply(false); // can't reliably track this; don't risk a permanently stuck lock
-    return;
+  // Poll the hero's real on-screen position every animation frame instead
+  // of depending on scroll/resize events or an IntersectionObserver firing
+  // reliably. Both proved unreliable here: address-bar-driven viewport
+  // resizing on mobile broke a scrollY-vs-cached-height comparison, an
+  // IntersectionObserver didn't consistently re-fire while the page kept
+  // scrolling, and either gap can leave the gallery locked with no way to
+  // recover. getBoundingClientRect() read fresh every frame is always
+  // correct for whatever the current real viewport happens to be.
+  function tick() {
+    apply(hud.getBoundingClientRect().bottom > 0);
+    requestAnimationFrame(tick);
   }
-
-  // Use the browser's own live intersection instead of comparing scrollY to
-  // a cached hero height: mobile browsers resize window.innerHeight in real
-  // time as their address bar/search UI collapses or expands mid-scroll,
-  // which made any manual pixel-threshold approach unreliable and could
-  // leave the gallery locked with no way to scroll it. IntersectionObserver
-  // is always computed against the current, real viewport, so it keeps
-  // reporting correctly no matter what the browser chrome is doing.
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => apply(entry.isIntersecting));
-  }, { threshold: 0 });
-
-  observer.observe(hud);
-
-  // Cover the moment before the first callback fires (e.g. a reload that
-  // restores a mid-page scroll position).
-  apply(hud.getBoundingClientRect().bottom > 0);
+  requestAnimationFrame(tick);
 }
 
 initGalleryScrollLock();
@@ -1115,7 +1054,6 @@ function appendWorkBatch(size) {
 
   workShown += batch.length;
   updateWorkPaging();
-  resyncPanelScroll();
 }
 
 function updateWorkPaging() {
@@ -1424,8 +1362,6 @@ async function init() {
   } catch (err) {
     console.error(err);
   }
-
-  resyncPanelScroll();
 }
 
 init();
