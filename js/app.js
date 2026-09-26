@@ -292,8 +292,6 @@ function initHeroSnap() {
   const EPS = 2;
   const INTENT_THRESHOLD = 6; // ignore tiny/accidental input, react to a real scroll gesture
 
-  function heroHeight() { return hud.offsetHeight; }
-
   // Decide the snap using the raw input direction (wheel delta / touch drag),
   // not the derivative of the already-eased Lenis position: with lerp-based
   // smoothing the scroll position crawls up slowly, so comparing consecutive
@@ -304,13 +302,19 @@ function initHeroSnap() {
     if (lenis && lenis.isStopped) return;
     if (document.documentElement.classList.contains('scroll-locked')) return;
 
-    const y = currentScroll();
-    const height = heroHeight();
+    // Read the hero's actual on-screen position rather than comparing
+    // scrollY to a cached offsetHeight: on mobile, the browser's address
+    // bar/search UI resizes the real viewport mid-scroll, which threw off
+    // any fixed-height comparison. getBoundingClientRect always reflects
+    // where things really are right now.
+    const rect = hud.getBoundingClientRect();
+    const atTop = rect.top >= -EPS;
+    const atBottom = rect.bottom <= EPS;
 
     // Already resting at either end: let normal scrolling take over.
-    if (y <= EPS || y >= height - EPS) return;
+    if (atTop || atBottom) return;
 
-    smoothScrollTo(delta > 0 ? height : 0, 0.7);
+    smoothScrollTo(delta > 0 ? hud.offsetHeight : 0, 0.7);
   }
 
   window.addEventListener('wheel', (e) => maybeSnap(e.deltaY), { passive: true });
@@ -337,27 +341,7 @@ function initGalleryScrollLock() {
   const tabViewport = document.querySelector('.tab-viewport');
   if (!hud || !tabViewport) return;
 
-  const EPS = 8; // generous tolerance for mobile sub-pixel/viewport jitter
-  let locked = null; // null until we know either way, so the first check always applies
-
-  function heroHeight() { return hud.offsetHeight; }
-
-  // On mobile, the browser's address bar hiding/showing mid-scroll changes
-  // window.innerHeight in real time, while our CSS (100svh-based) hero
-  // height stays fixed. That can make the "clear the hero" threshold
-  // (hud.offsetHeight) higher than the page can actually scroll to, which
-  // would leave the gallery locked forever. Never require more scroll than
-  // the page can physically provide.
-  function clearThreshold() {
-    const height = heroHeight();
-    const doc = document.documentElement;
-    const maxScroll = Math.max(0, (doc.scrollHeight || 0) - window.innerHeight);
-    return maxScroll > 0 ? Math.min(height, maxScroll) : height;
-  }
-
   function apply(isLocked) {
-    if (locked === isLocked) return;
-    locked = isLocked;
     tabViewport.classList.toggle('gallery-scroll-locked', isLocked);
     panelLenises.forEach(panelLenis => {
       const method = isLocked ? 'stop' : 'start';
@@ -365,8 +349,27 @@ function initGalleryScrollLock() {
     });
   }
 
-  onScroll((y) => apply(y < clearThreshold() - EPS));
-  apply(currentScroll() < clearThreshold() - EPS);
+  if (typeof IntersectionObserver !== 'function') {
+    apply(false); // can't reliably track this; don't risk a permanently stuck lock
+    return;
+  }
+
+  // Use the browser's own live intersection instead of comparing scrollY to
+  // a cached hero height: mobile browsers resize window.innerHeight in real
+  // time as their address bar/search UI collapses or expands mid-scroll,
+  // which made any manual pixel-threshold approach unreliable and could
+  // leave the gallery locked with no way to scroll it. IntersectionObserver
+  // is always computed against the current, real viewport, so it keeps
+  // reporting correctly no matter what the browser chrome is doing.
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => apply(entry.isIntersecting));
+  }, { threshold: 0 });
+
+  observer.observe(hud);
+
+  // Cover the moment before the first callback fires (e.g. a reload that
+  // restores a mid-page scroll position).
+  apply(hud.getBoundingClientRect().bottom > 0);
 }
 
 initGalleryScrollLock();
