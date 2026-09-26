@@ -27,8 +27,8 @@ window.addEventListener('load', () => { if (!visitorHasScrolled) jumpToTop(); })
 // no dragging images out, no accidental text selection from stray
 // clicks. CSS (user-select/user-drag) already blocks most of it;
 // this covers the couple of things CSS can't.
-// (One deliberate exception: right-clicking the footer email / phone
-// copies it — see initContactLinks.)
+// (One deliberate exception: right-clicking a contact icon or the
+// "Let's talk" email/phone copies it — see initContactLinks.)
 // ---------------------------------------------------------------
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 document.addEventListener('dragstart', (e) => e.preventDefault());
@@ -1504,33 +1504,21 @@ function initContactLinks() {
   const phoneDisplay = '+381 61 1649636';
   const phoneHref = phoneDigits.join('');
 
-  // Footer
-  const emailEl = document.getElementById('footer-email');
-  if (emailEl) {
-    const a = document.createElement('a');
-    a.href = `mailto:${email}`;
-    a.textContent = email;
-    copyOnRightClick(a, email, 'Email', 'Click to email');
-    emailEl.appendChild(a);
-  }
-  const phoneEl = document.getElementById('footer-phone');
-  if (phoneEl) {
-    const a = document.createElement('a');
-    a.href = `tel:${phoneHref}`;
-    a.textContent = phoneDisplay;
-    copyOnRightClick(a, phoneDisplay, 'Phone number', 'Click to call');
-    phoneEl.appendChild(a);
-  }
-
-  // Persistent nav icon — starts as a plain #contact anchor (in the HTML,
-  // for no-JS visitors) and gets upgraded to a real mailto: here.
+  // Persistent nav icons — start as plain #contact anchors (in the HTML,
+  // for no-JS visitors) and get upgraded to real mailto:/tel: links here.
+  // Keeping the address out of the static HTML keeps it off simple scrapers.
   const navContactEl = document.getElementById('nav-contact');
   if (navContactEl) {
     navContactEl.href = `mailto:${email}`;
     copyOnRightClick(navContactEl, email, 'Email', 'Click to email');
   }
+  const navPhoneEl = document.getElementById('nav-phone');
+  if (navPhoneEl) {
+    navPhoneEl.href = `tel:${phoneHref}`;
+    copyOnRightClick(navPhoneEl, phoneDisplay, 'Phone number', 'Click to call');
+  }
 
-  // "Let's talk" CTA block above the footer
+  // "Let's talk" CTA block
   const ctaEmailEl = document.getElementById('cta-email');
   if (ctaEmailEl) {
     const a = document.createElement('a');
