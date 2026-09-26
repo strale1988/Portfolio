@@ -239,15 +239,23 @@ a{ color: inherit; }
 }
 .tab-btn:hover{ color: var(--text); }
 .tab-btn.active{ color: var(--teal); }
-.tab-btn.active::after{
+.tab-btn::after{
   content: '';
   position: absolute;
   left: 0;
   right: 0;
   bottom: -1px;
   height: 1px;
-  background: var(--teal);
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.tab-btn:hover::after,
+.tab-btn.active::after{
+  transform: scaleX(1);
+}
+.tab-btn.active::after{ background: var(--teal); }
 
 .cv-download{
   margin-left: auto;

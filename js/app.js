@@ -337,10 +337,23 @@ function initGalleryScrollLock() {
   const tabViewport = document.querySelector('.tab-viewport');
   if (!hud || !tabViewport) return;
 
-  const EPS = 2;
+  const EPS = 8; // generous tolerance for mobile sub-pixel/viewport jitter
   let locked = null; // null until we know either way, so the first check always applies
 
   function heroHeight() { return hud.offsetHeight; }
+
+  // On mobile, the browser's address bar hiding/showing mid-scroll changes
+  // window.innerHeight in real time, while our CSS (100svh-based) hero
+  // height stays fixed. That can make the "clear the hero" threshold
+  // (hud.offsetHeight) higher than the page can actually scroll to, which
+  // would leave the gallery locked forever. Never require more scroll than
+  // the page can physically provide.
+  function clearThreshold() {
+    const height = heroHeight();
+    const doc = document.documentElement;
+    const maxScroll = Math.max(0, (doc.scrollHeight || 0) - window.innerHeight);
+    return maxScroll > 0 ? Math.min(height, maxScroll) : height;
+  }
 
   function apply(isLocked) {
     if (locked === isLocked) return;
@@ -352,8 +365,8 @@ function initGalleryScrollLock() {
     });
   }
 
-  onScroll((y) => apply(y < heroHeight() - EPS));
-  apply(currentScroll() < heroHeight() - EPS);
+  onScroll((y) => apply(y < clearThreshold() - EPS));
+  apply(currentScroll() < clearThreshold() - EPS);
 }
 
 initGalleryScrollLock();
