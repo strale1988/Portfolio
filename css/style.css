@@ -220,17 +220,30 @@ a{ color: inherit; }
   border-bottom: 1px solid var(--line-soft);
   transition: background-color 0.25s ease, border-color 0.25s ease;
 }
-.site-nav a{
+.tabs{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px;
+}
+.tab-btn{
   font-family: var(--font-mono);
   font-size: 13px;
-  text-decoration: none;
+  padding: 7px 18px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
   color: var(--text-dim);
-  transition: color 0.15s ease;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
 }
-.site-nav a:hover{ color: var(--teal); }
-
-.site-nav a.active{
-  color: var(--teal);
+.tab-btn:hover{ color: var(--text); }
+.tab-btn.active{
+  color: var(--bg);
+  background: var(--teal);
 }
 
 .cv-download{
@@ -297,6 +310,38 @@ a{ color: inherit; }
   box-shadow: 3px -3px 0 1px var(--nav-bg) inset;
 }
 
+/* ---------- Tab stage (Work / Resume / Contact) ---------- */
+
+.tab-viewport{
+  position: relative;
+  overflow: hidden;
+  height: calc(100vh - var(--nav-h, 60px));
+  height: calc(100svh - var(--nav-h, 60px));
+}
+.tab-stage{
+  display: flex;
+  width: 300%;
+  height: 100%;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.tab-stage[data-active="work"]{ transform: translateX(0%); }
+.tab-stage[data-active="resume"]{ transform: translateX(-33.3334%); }
+.tab-stage[data-active="contact"]{ transform: translateX(-66.6667%); }
+
+.tab-panel{
+  width: 33.3334%;
+  flex: 0 0 33.3334%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .tab-stage{ transition: none; }
+}
+
 .reveal{
   opacity: 0;
   transform: translateY(22px);
@@ -314,7 +359,6 @@ a{ color: inherit; }
   margin: 0 auto;
   padding: 72px 64px 24px;
   position: relative;
-  scroll-margin-top: var(--nav-h, 60px);
 }
 .section-tight{ padding-top: 32px; padding-bottom: 56px; }
 
@@ -697,6 +741,12 @@ a{ color: inherit; }
 }
 .lang-item:first-child{ border-top: none; }
 .lang-item .level{ font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+
+#panel-contact{
+  display: flex;
+  align-items: center;
+}
+#panel-contact .section{ width: 100%; }
 
 .contact-cta{ text-align: center; }
 .contact-cta .section-head{ margin-bottom: 22px; }

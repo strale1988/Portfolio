@@ -61,24 +61,6 @@ function initSmoothScroll() {
 
   if (lenis) lenis.on('scroll', emitScroll);
   else window.addEventListener('scroll', emitScroll, { passive: true });
-
-  if (lenis) {
-    document.querySelectorAll('.site-nav a[href^="#"]').forEach(link => {
-      link.addEventListener('click', (e) => {
-        const href = link.getAttribute('href');
-
-        if (!href || href.charAt(0) !== '#') return;
-        const target = document.querySelector(href);
-        if (!target) return;
-        e.preventDefault();
-
-        const distance = Math.abs(target.getBoundingClientRect().top);
-        const duration = Math.min(2.2, SMOOTH_SCROLL.anchorDuration + distance / 6000);
-        pauseWorkInfiniteScrollDuring(duration);
-        lenis.scrollTo(target, { duration, easing: easeInOutCubic });
-      });
-    });
-  }
 }
 
 initSmoothScroll();
@@ -240,36 +222,34 @@ function initBackToTop() {
 
 initBackToTop();
 
-function initActiveNav() {
-  const navLinks = Array.from(document.querySelectorAll('.site-nav a[href^="#"]'));
-  if (!navLinks.length) return;
+function initTabs() {
+  const stage = document.getElementById('tab-stage');
+  const buttons = Array.from(document.querySelectorAll('.tab-btn'));
+  if (!stage || !buttons.length) return;
 
-  const sections = navLinks
-    .map(a => document.querySelector(a.getAttribute('href')))
-    .filter(Boolean);
-  if (!sections.length) return;
+  const order = ['work', 'resume', 'contact'];
 
-  const linkFor = (id) => navLinks.find(a => a.getAttribute('href') === `#${id}`);
+  function activate(panel) {
+    const fromIndex = order.indexOf(stage.dataset.active);
+    const toIndex = order.indexOf(panel);
+    if (toIndex === -1 || toIndex === fromIndex) return;
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const link = linkFor(entry.target.id);
-      if (!link) return;
-      if (entry.isIntersecting) {
-        navLinks.forEach(a => a.classList.remove('active'));
-        link.classList.add('active');
-      }
+    stage.dataset.active = panel;
+    buttons.forEach(btn => {
+      const isActive = btn.dataset.panel === panel;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', String(isActive));
     });
-  }, {
 
-    rootMargin: '-45% 0px -45% 0px',
-    threshold: 0,
+    if (window.__gridSweep) window.__gridSweep(toIndex > fromIndex ? 1 : -1);
+  }
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => activate(btn.dataset.panel));
   });
-
-  sections.forEach(s => observer.observe(s));
 }
 
-initActiveNav();
+initTabs();
 
 function initSiteGrid() {
   const canvas = document.querySelector('.site-grid');
@@ -574,6 +554,30 @@ function initSiteGrid() {
       if (!rafId) draw(performance.now());
     });
   }
+
+  function triggerSweep(direction) {
+    if (reduceMotion || document.visibilityState !== 'visible') return;
+    const cols = Math.max(1, Math.floor(cssWidth / cell));
+    const rows = Math.max(1, Math.floor((cssHeight - rowOffset) / cell));
+    const order = [...Array(cols).keys()];
+    if (direction < 0) order.reverse();
+    const stepDelay = 18;
+    order.forEach((col, i) => {
+      setTimeout(() => {
+        const hits = 1 + Math.floor(Math.random() * 2);
+        for (let h = 0; h < hits; h++) {
+          const row = Math.floor(Math.random() * rows);
+          flickers.push({
+            x: col * cell + cell / 2,
+            y: rowOffset + row * cell + cell / 2 + scrollOffset,
+            start: performance.now()
+          });
+        }
+        ensureLoop();
+      }, i * stepDelay);
+    });
+  }
+  window.__gridSweep = triggerSweep;
 
   resize(true);
   if (!reduceMotion) {
@@ -975,7 +979,7 @@ const workScrollObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting && byYear && workShown < workView.length) appendWorkBatch(WORK_PAGE_SIZE);
   });
-}, { rootMargin: '600px 0px' });
+}, { root: document.getElementById('panel-work'), rootMargin: '600px 0px' });
 
 function initWorkInfiniteScroll() {
   const sentinel = document.getElementById('work-sentinel');
@@ -985,16 +989,6 @@ function initWorkInfiniteScroll() {
   if (loadMoreBtn) {
     loadMoreBtn.addEventListener('click', () => appendWorkBatch(WORK_LOAD_MORE_SIZE));
   }
-}
-
-function pauseWorkInfiniteScrollDuring(durationSeconds) {
-  const sentinel = document.getElementById('work-sentinel');
-  if (!sentinel) return;
-  workScrollObserver.unobserve(sentinel);
-  window.setTimeout(() => {
-    const stillThere = document.getElementById('work-sentinel');
-    if (stillThere) workScrollObserver.observe(stillThere);
-  }, durationSeconds * 1000 + 250);
 }
 
 function openLightbox(index) {
@@ -1221,17 +1215,6 @@ function initContactLinks() {
   const phoneDigits = ['+381', '61', '1649636'];
   const phoneDisplay = '+381 61 1649636';
   const phoneHref = phoneDigits.join('');
-
-  const navContactEl = document.getElementById('nav-contact');
-  if (navContactEl) {
-    navContactEl.href = `mailto:${email}`;
-    copyOnRightClick(navContactEl, email, 'Email', 'Click to email');
-  }
-  const navPhoneEl = document.getElementById('nav-phone');
-  if (navPhoneEl) {
-    navPhoneEl.href = `tel:${phoneHref}`;
-    copyOnRightClick(navPhoneEl, phoneDisplay, 'Phone number', 'Click to call');
-  }
 
   const ctaEmailEl = document.getElementById('cta-email');
   if (ctaEmailEl) {
