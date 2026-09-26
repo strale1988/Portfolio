@@ -19,8 +19,7 @@ document.addEventListener('dragstart', (e) => e.preventDefault());
 const SMOOTH_SCROLL = {
   lerp: 0.09,
   wheelMultiplier: 1,
-  anchorDuration: 1.2,
-  topDuration: 1.4
+  anchorDuration: 1.2
 };
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let lenis = null;
@@ -316,26 +315,6 @@ function smoothScrollTo(target, duration) {
     setTimeout(() => { autoScrolling = false; }, duration * 1000 + 80);
   }
 }
-
-function initBackToTop() {
-  const btn = document.getElementById('back-to-top');
-  if (!btn) return;
-
-  let visible = false;
-  function update(y) {
-    const show = y > window.innerHeight;
-    if (show === visible) return;
-    visible = show;
-    btn.classList.toggle('visible', show);
-  }
-  onScroll(update);
-
-  btn.addEventListener('click', () => smoothScrollTo(0, SMOOTH_SCROLL.topDuration));
-
-  update(currentScroll());
-}
-
-initBackToTop();
 
 function initTabs() {
   const buttons = Array.from(document.querySelectorAll('.tab-btn'));
@@ -717,9 +696,7 @@ function initSiteGrid() {
 
 initSiteGrid();
 
-const WORK_PAGE_SIZE = 18;
-const WORK_INITIAL_SIZE = 16;
-const WORK_LOAD_MORE_SIZE = 10;
+const WORK_PAGE_SIZE = 12;
 const WORK_COLUMNS = 2;
 
 const WORK_MIN_RATIO = 0.75;
@@ -1061,8 +1038,7 @@ function renderWorkGrid() {
     return;
   }
 
-  const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
-  appendWorkBatch(byYear ? WORK_PAGE_SIZE : WORK_INITIAL_SIZE);
+  appendWorkBatch(WORK_PAGE_SIZE);
 }
 
 function appendWorkBatch(size) {
@@ -1096,28 +1072,15 @@ function appendWorkBatch(size) {
 }
 
 function updateWorkPaging() {
-  const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
   const remaining = workShown < workView.length;
-  const sentinel = document.getElementById('work-sentinel');
   const loadMoreBtn = document.getElementById('work-load-more');
-  if (sentinel) sentinel.hidden = !(byYear && remaining);
-  if (loadMoreBtn) loadMoreBtn.hidden = !(!byYear && remaining);
+  if (loadMoreBtn) loadMoreBtn.hidden = !remaining;
 }
 
-const workScrollObserver = new IntersectionObserver((entries) => {
-  const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
-  entries.forEach(entry => {
-    if (entry.isIntersecting && byYear && workShown < workView.length) appendWorkBatch(WORK_PAGE_SIZE);
-  });
-}, { root: null, rootMargin: '600px 0px' });
-
-function initWorkInfiniteScroll() {
-  const sentinel = document.getElementById('work-sentinel');
-  if (sentinel) workScrollObserver.observe(sentinel);
-
+function initWorkLoadMore() {
   const loadMoreBtn = document.getElementById('work-load-more');
   if (loadMoreBtn) {
-    loadMoreBtn.addEventListener('click', () => appendWorkBatch(WORK_LOAD_MORE_SIZE));
+    loadMoreBtn.addEventListener('click', () => appendWorkBatch(WORK_PAGE_SIZE));
   }
 }
 
@@ -1383,7 +1346,7 @@ async function init() {
     workItems = [...apps, ...media].sort(compareWorkItems);
     initLightbox();
     initAppDetail();
-    initWorkInfiniteScroll();
+    initWorkLoadMore();
     if (!workItems.length) throw new Error('nothing found in projects.json or gallery/gallery.json');
     buildWorkFilters();
   } catch (err) {
