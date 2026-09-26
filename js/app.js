@@ -332,6 +332,32 @@ function initHeroSnap() {
 
 initHeroSnap();
 
+function initGalleryScrollLock() {
+  const hud = document.querySelector('.hud');
+  const tabViewport = document.querySelector('.tab-viewport');
+  if (!hud || !tabViewport) return;
+
+  const EPS = 2;
+  let locked = null; // null until we know either way, so the first check always applies
+
+  function heroHeight() { return hud.offsetHeight; }
+
+  function apply(isLocked) {
+    if (locked === isLocked) return;
+    locked = isLocked;
+    tabViewport.classList.toggle('gallery-scroll-locked', isLocked);
+    panelLenises.forEach(panelLenis => {
+      const method = isLocked ? 'stop' : 'start';
+      if (typeof panelLenis[method] === 'function') panelLenis[method]();
+    });
+  }
+
+  onScroll((y) => apply(y < heroHeight() - EPS));
+  apply(currentScroll() < heroHeight() - EPS);
+}
+
+initGalleryScrollLock();
+
 function initTabs() {
   const stage = document.getElementById('tab-stage');
   const buttons = Array.from(document.querySelectorAll('.tab-btn'));

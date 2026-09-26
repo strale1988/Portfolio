@@ -325,6 +325,12 @@ a{ color: inherit; }
 }
 .tab-panel::-webkit-scrollbar{ display: none; }
 
+/* While the hero header hasn't fully scrolled away yet, the tab panels
+   shouldn't accept their own scroll input — otherwise a wheel/touch
+   gesture near the boundary can start scrolling the gallery before the
+   nav has actually settled at the top. */
+.tab-viewport.gallery-scroll-locked .tab-panel{ overflow: hidden !important; }
+
 @media (prefers-reduced-motion: reduce){
   .tab-stage{ transition: none; }
 }
