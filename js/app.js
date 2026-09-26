@@ -65,11 +65,13 @@ function initSmoothScroll() {
 
 initSmoothScroll();
 
+const panelLenises = new Map(); // panel element -> its own Lenis instance
+
 function initPanelSmoothScroll() {
   if (prefersReducedMotion || typeof window.Lenis !== 'function') return;
   document.querySelectorAll('.tab-panel').forEach((panel) => {
     try {
-      new window.Lenis({
+      const panelLenis = new window.Lenis({
         wrapper: panel,
         content: panel,
         autoRaf: true,
@@ -77,10 +79,40 @@ function initPanelSmoothScroll() {
         wheelMultiplier: SMOOTH_SCROLL.wheelMultiplier,
         smoothWheel: true
       });
+      panelLenises.set(panel, panelLenis);
     } catch (err) {
       console.warn('Smooth scroll unavailable for panel', panel.id, err);
     }
   });
+
+  // Each panel's real content (work grid, resume, skills, etc.) loads and
+  // renders asynchronously, well after Lenis first measured the panel's
+  // (still empty) scroll height. Without telling Lenis to re-measure, its
+  // cached scroll limit never grows, so smooth-scrolling stalls short of
+  // the actual bottom — e.g. the "load more" button/sentinel becomes
+  // unreachable. Watch each panel's content box and resize Lenis whenever
+  // it changes (new cards, filter switches, images finishing loading, etc).
+  if (typeof ResizeObserver === 'function') {
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const panel = entry.target.closest('.tab-panel');
+        const panelLenis = panel && panelLenises.get(panel);
+        if (panelLenis && typeof panelLenis.resize === 'function') panelLenis.resize();
+      }
+    });
+    panelLenises.forEach((_, panel) => {
+      Array.from(panel.children).forEach(child => resizeObserver.observe(child));
+    });
+  }
+
+  window.addEventListener('resize', resyncPanelScroll);
+}
+
+function resyncPanelScroll() {
+  panelLenises.forEach(panelLenis => {
+    if (typeof panelLenis.resize === 'function') panelLenis.resize();
+  });
+  if (lenis && typeof lenis.resize === 'function') lenis.resize();
 }
 
 initPanelSmoothScroll();
@@ -258,19 +290,44 @@ function initHeroSnap() {
   if (!hud || prefersReducedMotion) return;
 
   const EPS = 2;
-  let lastY = currentScroll();
+  const INTENT_THRESHOLD = 6; // ignore tiny/accidental input, react to a real scroll gesture
 
-  onScroll((y) => {
-    if (autoScrolling) { lastY = y; return; }
+  function heroHeight() { return hud.offsetHeight; }
 
-    const heroHeight = hud.offsetHeight;
-    const goingDown = y > lastY;
-    lastY = y;
+  // Decide the snap using the raw input direction (wheel delta / touch drag),
+  // not the derivative of the already-eased Lenis position: with lerp-based
+  // smoothing the scroll position crawls up slowly, so comparing consecutive
+  // smoothed values is jittery and can pick the wrong direction or misfire.
+  function maybeSnap(delta) {
+    if (Math.abs(delta) < INTENT_THRESHOLD) return;
+    if (autoScrolling) return;
+    if (lenis && lenis.isStopped) return;
+    if (document.documentElement.classList.contains('scroll-locked')) return;
 
-    if (y <= EPS || y >= heroHeight - EPS) return;
+    const y = currentScroll();
+    const height = heroHeight();
 
-    smoothScrollTo(goingDown ? heroHeight : 0, 0.7);
-  });
+    // Already resting at either end: let normal scrolling take over.
+    if (y <= EPS || y >= height - EPS) return;
+
+    smoothScrollTo(delta > 0 ? height : 0, 0.7);
+  }
+
+  window.addEventListener('wheel', (e) => maybeSnap(e.deltaY), { passive: true });
+
+  let touchStartY = null;
+  window.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0] ? e.touches[0].clientY : null;
+  }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    if (touchStartY == null) return;
+    const point = e.touches[0];
+    if (!point) return;
+    const dy = touchStartY - point.clientY; // dragging finger up = scrolling down
+    if (Math.abs(dy) < INTENT_THRESHOLD) return;
+    maybeSnap(dy);
+    touchStartY = null; // only decide once per gesture, then let it play out
+  }, { passive: true });
 }
 
 initHeroSnap();
@@ -1016,6 +1073,7 @@ function appendWorkBatch(size) {
 
   workShown += batch.length;
   updateWorkPaging();
+  resyncPanelScroll();
 }
 
 function updateWorkPaging() {
@@ -1324,6 +1382,8 @@ async function init() {
   } catch (err) {
     console.error(err);
   }
+
+  resyncPanelScroll();
 }
 
 init();
