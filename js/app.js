@@ -222,6 +222,35 @@ function initBackToTop() {
 
 initBackToTop();
 
+function initHeroSnap() {
+  const hud = document.querySelector('.hud');
+  if (!hud || prefersReducedMotion) return;
+
+  const SNAP_THRESHOLD = 0.35;
+  const SNAP_IDLE_MS = 140;
+  let idleTimer = null;
+
+  function trySnap() {
+    const heroHeight = hud.offsetHeight;
+    const y = currentScroll();
+    if (y <= 0 || y >= heroHeight) return;
+
+    const target = y > heroHeight * SNAP_THRESHOLD ? heroHeight : 0;
+    if (lenis) {
+      lenis.scrollTo(target, { duration: 0.6, easing: easeInOutCubic });
+    } else {
+      window.scrollTo({ top: target, behavior: 'smooth' });
+    }
+  }
+
+  onScroll(() => {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(trySnap, SNAP_IDLE_MS);
+  });
+}
+
+initHeroSnap();
+
 function initTabs() {
   const stage = document.getElementById('tab-stage');
   const buttons = Array.from(document.querySelectorAll('.tab-btn'));
