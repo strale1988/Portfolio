@@ -65,6 +65,26 @@ function initSmoothScroll() {
 
 initSmoothScroll();
 
+function initPanelSmoothScroll() {
+  if (prefersReducedMotion || typeof window.Lenis !== 'function') return;
+  document.querySelectorAll('.tab-panel').forEach((panel) => {
+    try {
+      new window.Lenis({
+        wrapper: panel,
+        content: panel,
+        autoRaf: true,
+        lerp: SMOOTH_SCROLL.lerp,
+        wheelMultiplier: SMOOTH_SCROLL.wheelMultiplier,
+        smoothWheel: true
+      });
+    } catch (err) {
+      console.warn('Smooth scroll unavailable for panel', panel.id, err);
+    }
+  });
+}
+
+initPanelSmoothScroll();
+
 function updateNavHeightVar() {
   const nav = document.querySelector('.site-nav');
   if (nav) document.documentElement.style.setProperty('--nav-h', `${nav.offsetHeight}px`);
@@ -196,6 +216,23 @@ initSitePreloader();
 
 initHeaderParallax();
 
+let autoScrolling = false;
+
+function smoothScrollTo(target, duration) {
+  if (lenis) {
+    lenis.scrollTo(target, {
+      duration,
+      easing: easeInOutCubic,
+      onStart: () => { autoScrolling = true; },
+      onComplete: () => { autoScrolling = false; }
+    });
+  } else {
+    autoScrolling = true;
+    window.scrollTo({ top: target, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    setTimeout(() => { autoScrolling = false; }, duration * 1000 + 80);
+  }
+}
+
 function initBackToTop() {
   const btn = document.getElementById('back-to-top');
   if (!btn) return;
@@ -209,13 +246,7 @@ function initBackToTop() {
   }
   onScroll(update);
 
-  btn.addEventListener('click', () => {
-    if (lenis) {
-      lenis.scrollTo(0, { duration: SMOOTH_SCROLL.topDuration, easing: easeInOutCubic });
-    } else {
-      window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
-    }
-  });
+  btn.addEventListener('click', () => smoothScrollTo(0, SMOOTH_SCROLL.topDuration));
 
   update(currentScroll());
 }
@@ -226,26 +257,19 @@ function initHeroSnap() {
   const hud = document.querySelector('.hud');
   if (!hud || prefersReducedMotion) return;
 
-  const SNAP_THRESHOLD = 0.35;
-  const SNAP_IDLE_MS = 140;
-  let idleTimer = null;
+  const EPS = 2;
+  let lastY = currentScroll();
 
-  function trySnap() {
+  onScroll((y) => {
+    if (autoScrolling) { lastY = y; return; }
+
     const heroHeight = hud.offsetHeight;
-    const y = currentScroll();
-    if (y <= 0 || y >= heroHeight) return;
+    const goingDown = y > lastY;
+    lastY = y;
 
-    const target = y > heroHeight * SNAP_THRESHOLD ? heroHeight : 0;
-    if (lenis) {
-      lenis.scrollTo(target, { duration: 0.6, easing: easeInOutCubic });
-    } else {
-      window.scrollTo({ top: target, behavior: 'smooth' });
-    }
-  }
+    if (y <= EPS || y >= heroHeight - EPS) return;
 
-  onScroll(() => {
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(trySnap, SNAP_IDLE_MS);
+    smoothScrollTo(goingDown ? heroHeight : 0, 0.7);
   });
 }
 
