@@ -26,12 +26,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <script>
-  // Applied before paint so there's no flash of the wrong theme.
-  // Light is the default; dark only kicks in if the visitor
-  // explicitly picked it before (saved in localStorage).
   (function(){
     var saved = null;
-    try { saved = localStorage.getItem('theme'); } catch (e) {} // storage can be blocked
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
     var theme = saved === 'dark' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
   })();
@@ -42,6 +39,7 @@
 <canvas class="site-grid" aria-hidden="true"></canvas>
 
 <header class="hud">
+  <div class="hud-photo" aria-hidden="true"></div>
   <div class="hud-inner">
 
     <div class="hero-content">
@@ -93,7 +91,6 @@
 
 <button type="button" class="back-to-top" id="back-to-top" aria-label="Back to top">&#8593;</button>
 
-<!-- ===================== EXPERIENCE ===================== -->
 <section id="experience" class="section">
   <div class="section-head">
     <h2>Experience</h2>
@@ -102,7 +99,6 @@
   <div class="exp-list" id="exp-list"></div>
 </section>
 
-<!-- ===================== WORK ===================== -->
 <section id="work" class="section">
   <div class="section-head">
     <h2>Work</h2>
@@ -114,7 +110,6 @@
   <div class="work-sentinel" id="work-sentinel" aria-hidden="true"></div>
 </section>
 
-<!-- Lightbox for stills and videos -->
 <div class="lightbox" id="lightbox" aria-hidden="true">
   <button class="lightbox-close" id="lightbox-close" aria-label="Close">&times;</button>
   <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous image">&#8249;</button>
@@ -124,7 +119,6 @@
   <p class="lightbox-caption" id="lightbox-caption"></p>
 </div>
 
-<!-- Detail panel for apps & tools -->
 <div class="lightbox app-detail" id="app-detail" role="dialog" aria-modal="true" aria-labelledby="app-detail-title" aria-hidden="true">
   <button type="button" class="lightbox-close" id="app-detail-close" aria-label="Close">&times;</button>
   <div class="app-detail-panel">
@@ -133,7 +127,6 @@
   </div>
 </div>
 
-<!-- ===================== SKILLS ===================== -->
 <section id="skills" class="section">
   <div class="section-head">
     <h2>Skills</h2>
@@ -142,7 +135,6 @@
   <div class="skills-grid" id="skills-grid"></div>
 </section>
 
-<!-- ===================== ACHIEVEMENTS ===================== -->
 <section id="achievements" class="section">
   <div class="section-head">
     <h2>Achievements</h2>
@@ -151,7 +143,6 @@
   <div class="achievements-list" id="achievements-list"></div>
 </section>
 
-<!-- ===================== EDUCATION ===================== -->
 <section id="education" class="section section-tight">
   <div class="edu-lang-grid" id="edu-lang-grid"></div>
 </section>
@@ -167,7 +158,6 @@
     <a href="https://www.linkedin.com/in/strahinja-drazic" target="_blank" rel="noopener">LinkedIn</a>
   </div>
 </section>
-
 
 <script src="js/lenis.min.js"></script>
 <script src="js/app.js"></script>

@@ -35,15 +35,12 @@
 *{ box-sizing: border-box; }
 
 html{
-  scroll-behavior: smooth;   /* native fallback: used when Lenis isn't running */
-  scrollbar-gutter: stable;  /* no layout shift when an overlay freezes page scroll */
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: var(--text-dim) transparent;
 }
 
-/* ---------- Smooth scrolling (Lenis) ----------
-   Lenis adds these classes to <html> itself. It drives the scroll position,
-   so the browser's own smooth-scroll must be off or the two would fight. */
 html.lenis,
 html.lenis body{ height: auto; }
 .lenis.lenis-smooth{ scroll-behavior: auto !important; }
@@ -55,10 +52,8 @@ html.lenis body{ height: auto; }
 .lenis [data-lenis-prevent-horizontal]{ overscroll-behavior: contain; }
 .lenis.lenis-smooth iframe{ pointer-events: none; }
 
-/* Same job as .lenis-stopped, for the native-scroll fallback. */
 html.scroll-locked{ overflow: hidden; }
 
-/* ---------- No text selection / image dragging / copying ---------- */
 html{
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -90,12 +85,11 @@ body{
   inset: 0;
   width: 100%;
   height: 100vh;
-  height: 100lvh; /* largest viewport: the canvas keeps one size while a mobile URL bar collapses */
+  height: 100lvh;
   z-index: -1;
   display: block;
   pointer-events: none;
 }
-
 
 a{ color: inherit; }
 
@@ -104,18 +98,18 @@ a{ color: inherit; }
   outline-offset: 3px;
 }
 
-/* ---------- Hero / HUD ---------- */
-/* No grid layer of its own — the fixed .site-grid canvas shows
-   straight through the hero, since .hud has no opaque background.
-   That's also why the grid never appears to "scroll" here: it's
-   the same fixed-to-viewport layer as everywhere else on the page. */
-
 .hud{
   position: relative;
   height: 100vh;
-  height: 100svh; /* fits the visible area on load; svh never changes while scrolling */
+  height: 100svh;
   overflow: hidden;
-  background-color: var(--bg); /* fallback while the still loads */
+}
+
+.hud-photo{
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-color: var(--bg);
   background-image:
     linear-gradient(180deg, color-mix(in srgb, var(--bg) 58%, transparent) 0%, color-mix(in srgb, var(--bg) 92%, transparent) 100%),
     url('../projects/CurioBibliotheca/CurioBibliotheca-cover.webp');
@@ -153,12 +147,6 @@ a{ color: inherit; }
   will-change: transform, opacity;
 }
 
-/* Entrance animation: each line of the hero fades/slides up on load,
-   staggered in reading order. Lives on the individual lines (not on
-   .hero-content itself) since the scroll parallax above already
-   drives .hero-content's own opacity/transform via inline styles —
-   keeping this on the children avoids the two fighting over the
-   same properties. */
 @keyframes hero-line-in{
   from{ opacity: 0; transform: translateY(16px); }
   to{ opacity: 1; transform: translateY(0); }
@@ -219,8 +207,6 @@ a{ color: inherit; }
   color: var(--text-dim);
 }
 
-/* ---------- Top nav ---------- */
-
 .site-nav{
   position: sticky;
   top: 0;
@@ -229,7 +215,7 @@ a{ color: inherit; }
   align-items: center;
   gap: 28px;
   padding: 18px 64px;
-  background: var(--nav-bg); /* already 92-94% opaque: a live blur behind a sticky bar costs scroll frames for no visible gain */
+  background: var(--nav-bg);
   border-top: 1px solid var(--line-soft);
   border-bottom: 1px solid var(--line-soft);
   transition: background-color 0.25s ease, border-color 0.25s ease;
@@ -243,8 +229,6 @@ a{ color: inherit; }
 }
 .site-nav a:hover{ color: var(--teal); }
 
-/* Set via IntersectionObserver in app.js as each section crosses
-   the middle of the viewport — see initActiveNav(). */
 .site-nav a.active{
   color: var(--teal);
 }
@@ -308,18 +292,11 @@ a{ color: inherit; }
   background: currentColor;
   box-shadow: 0 0 0 2px var(--nav-bg) inset;
 }
-/* Sun in light mode, moon (crescent) in dark mode — same disc,
-   an inset shadow bites a crescent out of it when dark. */
+
 :root[data-theme="dark"] .theme-toggle-icon{
   box-shadow: 3px -3px 0 1px var(--nav-bg) inset;
 }
 
-/* ---------- Sections (shared) ---------- */
-
-/* Scroll-triggered reveal: fires once via IntersectionObserver
-   (see app.js), not a scroll listener, and only animates
-   compositor-friendly properties (opacity/transform) — so unlike
-   the old hero effect, it can't trigger layout and can't jitter. */
 .reveal{
   opacity: 0;
   transform: translateY(22px);
@@ -337,7 +314,7 @@ a{ color: inherit; }
   margin: 0 auto;
   padding: 72px 64px 24px;
   position: relative;
-  scroll-margin-top: 60px; /* keeps the sticky nav from covering the heading on anchor-jump */
+  scroll-margin-top: var(--nav-h, 60px);
 }
 .section-tight{ padding-top: 32px; padding-bottom: 56px; }
 
@@ -356,8 +333,6 @@ a{ color: inherit; }
   margin: 0;
   max-width: 60ch;
 }
-
-/* ---------- Experience (work history) ---------- */
 
 .exp-list{ display: flex; flex-direction: column; gap: 0; }
 
@@ -467,9 +442,6 @@ a{ color: inherit; }
   color: var(--text-dim);
 }
 
-/* ---------- Work grid ---------- */
-
-
 .gallery-grid{
   --work-gap: 14px;
   display: flex;
@@ -477,11 +449,6 @@ a{ color: inherit; }
   gap: var(--work-gap);
 }
 
-/* Justified pairs: app.js puts the cards two to a row. Inside a row every
-   card gets flex-grow equal to its own aspect ratio (--ar), so the widths
-   split in proportion to the images and both cards come out the same
-   height. Row edges line up on all four sides and nothing is cropped
-   (beyond the clamp in app.js for extreme panoramas / tall portraits). */
 .gallery-row{
   display: flex;
   gap: var(--work-gap);
@@ -489,7 +456,7 @@ a{ color: inherit; }
 .gallery-row:empty{ display: none; }
 
 .gallery-item{
-  --ar: 1.3333; /* 4:3 until the real size is known (see setCardRatio in app.js) */
+  --ar: 1.3333;
   position: relative;
   flex: var(--ar) 1 0%;
   min-width: 0;
@@ -499,8 +466,7 @@ a{ color: inherit; }
   background: var(--panel-raised);
   cursor: pointer;
 }
-/* A card left alone in its row (odd one out at the end of a batch or a year)
-   takes half the row, like a normal grid cell, rather than stretching wide. */
+
 .gallery-row > .gallery-item:only-child{
   flex: 0 0 calc((100% - var(--work-gap)) / 2);
 }
@@ -515,7 +481,6 @@ a{ color: inherit; }
 .gallery-item:hover img,
 .gallery-item:hover video{ transform: scale(1.05); opacity: 0.9; }
 
-/* Phones: one card per row, full width, still at its own aspect ratio. */
 @media (max-width: 720px){
   .gallery-row{ flex-direction: column; }
   .gallery-row > .gallery-item,
@@ -525,15 +490,11 @@ a{ color: inherit; }
   }
 }
 
-/* Invisible trigger for infinite scroll — sits just below the grid so
-   the IntersectionObserver's rootMargin fires the next batch early. */
 .work-sentinel{
   height: 1px;
 }
 .work-sentinel[hidden]{ display: none; }
 
-/* Load More — shown for every chip except Archive, which scrolls in
-   continuously instead. */
 .load-more-btn{
   display: block;
   margin: 32px auto 0;
@@ -612,8 +573,6 @@ a{ color: inherit; }
 .lightbox-prev{ left: 16px; }
 .lightbox-next{ right: 16px; }
 
-/* ---------- Filters ---------- */
-
 .filters{
   display: flex;
   flex-wrap: wrap;
@@ -635,13 +594,7 @@ a{ color: inherit; }
 .filter-chip:hover{ color: var(--text); border-color: var(--text-dim); }
 .filter-chip.active{ color: var(--bg); background: var(--teal); border-color: var(--teal); }
 
-
-
 .loading{ font-family: var(--font-mono); color: var(--text-dim); font-size: 13px; }
-
-
-
-
 
 .tag-list{
   display: flex;
@@ -685,8 +638,6 @@ a{ color: inherit; }
 }
 .links-row a:hover::after{ transform: scaleX(1); }
 
-/* ---------- Skills ---------- */
-
 .skills-grid{
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -711,8 +662,6 @@ a{ color: inherit; }
 }
 .skills-group li:first-child{ border-top: none; }
 
-/* ---------- Achievements ---------- */
-
 .achievements-list{ display: flex; flex-direction: column; }
 .achievement-row{
   display: grid;
@@ -724,8 +673,6 @@ a{ color: inherit; }
 .achievement-year{ font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
 .achievement-title{ font-size: 0.95rem; }
 .achievement-result{ font-family: var(--font-mono); font-size: 12px; color: var(--amber); text-align: right; }
-
-/* ---------- Education / Languages ---------- */
 
 .edu-lang-grid{
   display: grid;
@@ -750,8 +697,6 @@ a{ color: inherit; }
 }
 .lang-item:first-child{ border-top: none; }
 .lang-item .level{ font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
-
-/* ---------- Contact CTA (Let's talk, end of page) ---------- */
 
 .contact-cta{ text-align: center; }
 .contact-cta .section-head{ margin-bottom: 22px; }
@@ -785,8 +730,6 @@ a{ color: inherit; }
 }
 .contact-cta-row a:hover::after{ transform: scaleX(1); }
 
-/* ---------- Work: year headings + app cells ---------- */
-
 .work-year{
   grid-column: 1 / -1;
   margin: 18px 0 0;
@@ -798,7 +741,6 @@ a{ color: inherit; }
 }
 .work-year:first-child{ margin-top: 0; }
 
-/* Apps keep a fixed 4:3 cell (the tile and caption strip are designed for it). */
 .gallery-item.is-app{ --ar: 1.3333; background: var(--panel); }
 .app-meta{
   margin: 0;
@@ -807,7 +749,6 @@ a{ color: inherit; }
   color: var(--text-dim);
 }
 
-/* No cover: typographic tile. */
 .app-tile{
   height: 100%;
   display: flex;
@@ -828,7 +769,6 @@ a{ color: inherit; }
 }
 .app-tile .tag-list{ margin: 0; }
 
-/* With cover: image fills the cell, caption strip along the bottom. */
 .app-caption{
   position: absolute;
   left: 0;
@@ -848,7 +788,6 @@ a{ color: inherit; }
   line-height: 1.25;
 }
 
-/* Detail panel (reuses the lightbox overlay + close button). */
 .app-detail-panel{
   width: min(620px, 100%);
   max-height: 82vh;
@@ -918,8 +857,6 @@ a{ color: inherit; }
   .app-detail-body{ padding: 20px; }
 }
 
-/* ---------- Responsive ---------- */
-
 @media (max-width: 720px){
   .hud-inner, .site-nav, .section{ padding-left: 24px; padding-right: 24px; }
   .bottom-left{ left: 24px; }
@@ -929,12 +866,11 @@ a{ color: inherit; }
   .site-nav{ gap: 16px; flex-wrap: wrap; }
 }
 
-/* ---------- Toast ("Email copied") ---------- */
 .toast{
   position: fixed;
   left: 50%;
   bottom: 28px;
-  z-index: 200; /* above the lightbox (100) */
+  z-index: 200;
   transform: translate(-50%, 12px);
   padding: 10px 18px;
   font-family: var(--font-mono);
@@ -955,7 +891,6 @@ a{ color: inherit; }
   .toast{ bottom: 16px; max-width: calc(100% - 32px); }
 }
 
-/* ---------- Back to top ---------- */
 .back-to-top{
   position: fixed;
   right: 28px;
