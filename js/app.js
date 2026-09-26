@@ -233,57 +233,6 @@ function initBackToTop() {
 
 initBackToTop();
 
-function initHeroSnap() {
-  const hud = document.querySelector('.hud');
-  if (!hud || prefersReducedMotion) return;
-
-  const EPS = 2;
-  const INTENT_THRESHOLD = 6; // ignore tiny/accidental input, react to a real scroll gesture
-
-  // Decide the snap using the raw input direction (wheel delta / touch drag),
-  // not the derivative of the already-eased Lenis position: with lerp-based
-  // smoothing the scroll position crawls up slowly, so comparing consecutive
-  // smoothed values is jittery and can pick the wrong direction or misfire.
-  function maybeSnap(delta) {
-    if (Math.abs(delta) < INTENT_THRESHOLD) return;
-    if (autoScrolling) return;
-    if (lenis && lenis.isStopped) return;
-    if (document.documentElement.classList.contains('scroll-locked')) return;
-
-    // Read the hero's actual on-screen position rather than comparing
-    // scrollY to a cached offsetHeight: on mobile, the browser's address
-    // bar/search UI resizes the real viewport mid-scroll, which threw off
-    // any fixed-height comparison. getBoundingClientRect always reflects
-    // where things really are right now.
-    const rect = hud.getBoundingClientRect();
-    const atTop = rect.top >= -EPS;
-    const atBottom = rect.bottom <= EPS;
-
-    // Already resting at either end: let normal scrolling take over.
-    if (atTop || atBottom) return;
-
-    smoothScrollTo(delta > 0 ? hud.offsetHeight : 0, 0.7);
-  }
-
-  window.addEventListener('wheel', (e) => maybeSnap(e.deltaY), { passive: true });
-
-  let touchStartY = null;
-  window.addEventListener('touchstart', (e) => {
-    touchStartY = e.touches[0] ? e.touches[0].clientY : null;
-  }, { passive: true });
-  window.addEventListener('touchmove', (e) => {
-    if (touchStartY == null) return;
-    const point = e.touches[0];
-    if (!point) return;
-    const dy = touchStartY - point.clientY; // dragging finger up = scrolling down
-    if (Math.abs(dy) < INTENT_THRESHOLD) return;
-    maybeSnap(dy);
-    touchStartY = null; // only decide once per gesture, then let it play out
-  }, { passive: true });
-}
-
-initHeroSnap();
-
 function initGalleryScrollLock() {
   const hud = document.querySelector('.hud');
   const tabViewport = document.querySelector('.tab-viewport');
@@ -351,10 +300,20 @@ function initPanelSmoothScroll() {
   // consistent once you're past the hero, instead of falling back to a
   // plain native scroll inside Work/Resume/Contact.
   document.querySelectorAll('.tab-panel').forEach(panel => {
+    // Lenis needs a dedicated `content` node, distinct from the wrapper, so
+    // its ResizeObserver can see the panel grow once the work grid/resume
+    // lists/etc. are filled in by JS later. Watching the wrapper itself
+    // never fires for that: the wrapper's own box height is fixed by CSS,
+    // only a growing child inside it changes size.
+    const content = document.createElement('div');
+    content.className = 'tab-panel-content';
+    while (panel.firstChild) content.appendChild(panel.firstChild);
+    panel.appendChild(content);
+
     try {
       new window.Lenis({
         wrapper: panel,
-        content: panel,
+        content,
         autoRaf: true,
         lerp: SMOOTH_SCROLL.lerp,
         wheelMultiplier: SMOOTH_SCROLL.wheelMultiplier,
