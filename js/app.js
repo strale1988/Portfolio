@@ -295,9 +295,11 @@ function initHeroDissolve() {
     fullyDrawn = r >= 1;
   }
 
-  // One-shot entrance animation: the cover image starts fully hidden behind
-  // solid squares and reveals top-row-first, the mirror image of the
-  // scroll-driven exit above. Once it finishes, scroll takes over normally.
+  // One-shot entrance animation: the top half of the cover starts hidden
+  // behind solid squares and reveals top-row-first; the bottom half is
+  // visible immediately. Mirrors the scroll-driven exit above, which
+  // dissolves the bottom half away as you scroll past. Once it finishes,
+  // scroll takes over normally.
   function playLoadReveal() {
     const DURATION = 2000;
     const startTime = performance.now();
@@ -306,10 +308,8 @@ function initHeroDissolve() {
       ctx.clearRect(0, 0, cssWidth, cssHeight);
       ctx.fillStyle = bgColor;
       for (let row = 0; row < rows; row++) {
-        const fromBottom = rows - 1 - row;
-        if (fromBottom >= dissolveRows) continue; // top half of the cover — always visible
-        const participatingIndex = dissolveRows - 1 - fromBottom;
-        const rowThreshold = dissolveRows > 1 ? participatingIndex / (dissolveRows - 1) : 0;
+        if (row >= dissolveRows) continue; // bottom half of the cover — always visible
+        const rowThreshold = dissolveRows > 1 ? row / (dissolveRows - 1) : 0;
         for (let col = 0; col < cols; col++) {
           const threshold = Math.min(Math.max(rowThreshold + jitters[row][col], 0), 1);
           const alpha = Math.min(Math.max((threshold - p) / BAND, 0), 1);
