@@ -19,8 +19,7 @@ document.addEventListener('dragstart', (e) => e.preventDefault());
 const SMOOTH_SCROLL = {
   lerp: 0.09,
   wheelMultiplier: 1,
-  anchorDuration: 1.2,
-  topDuration: 1.4
+  anchorDuration: 1.2
 };
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let lenis = null;
@@ -64,58 +63,6 @@ function initSmoothScroll() {
 }
 
 initSmoothScroll();
-
-const panelLenises = new Map(); // panel element -> its own Lenis instance
-
-function initPanelSmoothScroll() {
-  if (prefersReducedMotion || typeof window.Lenis !== 'function') return;
-  document.querySelectorAll('.tab-panel').forEach((panel) => {
-    try {
-      const panelLenis = new window.Lenis({
-        wrapper: panel,
-        content: panel,
-        autoRaf: true,
-        lerp: SMOOTH_SCROLL.lerp,
-        wheelMultiplier: SMOOTH_SCROLL.wheelMultiplier,
-        smoothWheel: true
-      });
-      panelLenises.set(panel, panelLenis);
-    } catch (err) {
-      console.warn('Smooth scroll unavailable for panel', panel.id, err);
-    }
-  });
-
-  // Each panel's real content (work grid, resume, skills, etc.) loads and
-  // renders asynchronously, well after Lenis first measured the panel's
-  // (still empty) scroll height. Without telling Lenis to re-measure, its
-  // cached scroll limit never grows, so smooth-scrolling stalls short of
-  // the actual bottom — e.g. the "load more" button/sentinel becomes
-  // unreachable. Watch each panel's content box and resize Lenis whenever
-  // it changes (new cards, filter switches, images finishing loading, etc).
-  if (typeof ResizeObserver === 'function') {
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const panel = entry.target.closest('.tab-panel');
-        const panelLenis = panel && panelLenises.get(panel);
-        if (panelLenis && typeof panelLenis.resize === 'function') panelLenis.resize();
-      }
-    });
-    panelLenises.forEach((_, panel) => {
-      Array.from(panel.children).forEach(child => resizeObserver.observe(child));
-    });
-  }
-
-  window.addEventListener('resize', resyncPanelScroll);
-}
-
-function resyncPanelScroll() {
-  panelLenises.forEach(panelLenis => {
-    if (typeof panelLenis.resize === 'function') panelLenis.resize();
-  });
-  if (lenis && typeof lenis.resize === 'function') lenis.resize();
-}
-
-initPanelSmoothScroll();
 
 function updateNavHeightVar() {
   const nav = document.querySelector('.site-nav');
@@ -248,6 +195,168 @@ initSitePreloader();
 
 initHeaderParallax();
 
+// As the hero scrolls by, an overlay canvas dissolves the bottom half of it
+// into squares — bottom rows first, with a little per-cell jitter so the
+// wipe line reads as organic rather than a straight edge — matching the
+// site's grid motif. The top half of the cover is left untouched since
+// we're scrolling away regardless, which also spreads the same scroll
+// range across half as many rows for a slower, more gradual sweep.
+function initHeroDissolve() {
+  if (prefersReducedMotion) return;
+
+  const canvas = document.querySelector('.hero-dissolve');
+  const hud = document.querySelector('.hud');
+  if (!canvas || !hud || !canvas.getContext) return;
+
+  const ctx = canvas.getContext('2d');
+  const START = 0;      // reveal progress (0-1 of hero height) where dissolve begins — starts the instant scrolling begins
+  const END = 0.92;     // progress where the dissolve zone is fully gone
+  const BAND = 0.16;    // how quickly each cell fades in, in progress units
+  const JITTER = 0.22;  // per-cell randomness added to its row threshold
+  const COVER_FRACTION = 0.5; // only the bottom half of the cover dissolves — the top half stays put since we're scrolling away anyway
+
+  let CELL = window.__gridCell || 40;
+  let ROW_OFFSET = window.__gridRowOffset || 0;
+  let cssWidth = 0, cssHeight = 0, cols = 0, rows = 0, dissolveRows = 1;
+  let jitters = [];
+  let bgColor = '#f5f4ef';
+  let range = hud.offsetHeight || 1;
+  let lastR = -1;
+  let fullyDrawn = false;
+  let loading = true;
+
+  function seededRandom(seed) {
+    const x = Math.sin(seed * 12.9898) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function readColor() {
+    bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || bgColor;
+  }
+
+  function buildGrid(skipRender) {
+    CELL = window.__gridCell || CELL;
+    ROW_OFFSET = window.__gridRowOffset || 0;
+
+    const w = hud.clientWidth || window.innerWidth;
+    const h = hud.clientHeight || window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cssWidth = w;
+    cssHeight = h;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    cols = Math.max(1, Math.ceil(w / CELL));
+    rows = Math.max(1, Math.ceil((h - ROW_OFFSET) / CELL));
+    dissolveRows = Math.max(1, Math.round(rows * COVER_FRACTION));
+    jitters = [];
+    for (let r = 0; r < rows; r++) {
+      const row = [];
+      for (let c = 0; c < cols; c++) row.push((seededRandom(r * 97 + c * 31 + 1) - 0.5) * JITTER);
+      jitters.push(row);
+    }
+    range = hud.offsetHeight || 1;
+    lastR = -1;
+    if (!skipRender) render(currentScroll());
+  }
+
+  function render(y) {
+    if (loading) return;
+    const progress = Math.min(Math.max(y, 0), range) / range;
+    const r = Math.min(Math.max((progress - START) / (END - START), 0), 1);
+    if (r === lastR) return;
+    lastR = r;
+
+    if (r <= 0) {
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+      fullyDrawn = false;
+      return;
+    }
+    if (r >= 1 && fullyDrawn) return;
+
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+    ctx.fillStyle = bgColor;
+
+    for (let row = 0; row < rows; row++) {
+      const fromBottom = rows - 1 - row;
+      if (fromBottom >= dissolveRows) continue; // top half of the cover — never dissolves
+      const participatingIndex = dissolveRows - 1 - fromBottom;
+      const rowThreshold = dissolveRows > 1 ? 1 - (participatingIndex / (dissolveRows - 1)) : 1;
+      for (let col = 0; col < cols; col++) {
+        const threshold = Math.min(Math.max(rowThreshold + jitters[row][col], 0), 1);
+        const alpha = Math.min(Math.max((r - threshold) / BAND, 0), 1);
+        if (alpha <= 0) continue;
+        ctx.globalAlpha = alpha;
+        ctx.fillRect(col * CELL, ROW_OFFSET + row * CELL, CELL + 1, CELL + 1);
+      }
+    }
+    ctx.globalAlpha = 1;
+    fullyDrawn = r >= 1;
+  }
+
+  // One-shot entrance animation: the top half of the cover starts hidden
+  // behind solid squares and reveals top-row-first; the bottom half is
+  // visible immediately. Mirrors the scroll-driven exit above, which
+  // dissolves the bottom half away as you scroll past. Once it finishes,
+  // scroll takes over normally.
+  function playLoadReveal() {
+    const DURATION = 2000;
+    const startTime = performance.now();
+
+    function drawFrame(p) {
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+      ctx.fillStyle = bgColor;
+      for (let row = 0; row < rows; row++) {
+        if (row >= dissolveRows) continue; // bottom half of the cover — always visible
+        const rowThreshold = dissolveRows > 1 ? row / (dissolveRows - 1) : 0;
+        for (let col = 0; col < cols; col++) {
+          const threshold = Math.min(Math.max(rowThreshold + jitters[row][col], 0), 1);
+          const alpha = Math.min(Math.max((threshold - p) / BAND, 0), 1);
+          if (alpha <= 0) continue;
+          ctx.globalAlpha = alpha;
+          ctx.fillRect(col * CELL, ROW_OFFSET + row * CELL, CELL + 1, CELL + 1);
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function tick(now) {
+      const t = Math.min((now - startTime) / DURATION, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      drawFrame(eased);
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        loading = false;
+        lastR = -1;
+        render(currentScroll());
+      }
+    }
+
+    drawFrame(0);
+    requestAnimationFrame(tick);
+  }
+
+  readColor();
+  buildGrid(true);
+  playLoadReveal();
+
+  onScroll(render);
+  window.addEventListener('resize', () => buildGrid());
+  document.addEventListener('sitegrid:layout', () => buildGrid());
+  document.addEventListener('themechange', () => {
+    readColor();
+    lastR = -1;
+    render(currentScroll());
+  });
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => buildGrid()).catch(() => {});
+  }
+}
+
+initHeroDissolve();
+
 let autoScrolling = false;
 
 function smoothScrollTo(target, duration) {
@@ -265,140 +374,46 @@ function smoothScrollTo(target, duration) {
   }
 }
 
-function initBackToTop() {
-  const btn = document.getElementById('back-to-top');
-  if (!btn) return;
-
-  let visible = false;
-  function update(y) {
-    const show = y > window.innerHeight;
-    if (show === visible) return;
-    visible = show;
-    btn.classList.toggle('visible', show);
-  }
-  onScroll(update);
-
-  btn.addEventListener('click', () => smoothScrollTo(0, SMOOTH_SCROLL.topDuration));
-
-  update(currentScroll());
-}
-
-initBackToTop();
-
-function initHeroSnap() {
-  const hud = document.querySelector('.hud');
-  if (!hud || prefersReducedMotion) return;
-
-  const EPS = 2;
-  const INTENT_THRESHOLD = 6; // ignore tiny/accidental input, react to a real scroll gesture
-
-  // Decide the snap using the raw input direction (wheel delta / touch drag),
-  // not the derivative of the already-eased Lenis position: with lerp-based
-  // smoothing the scroll position crawls up slowly, so comparing consecutive
-  // smoothed values is jittery and can pick the wrong direction or misfire.
-  function maybeSnap(delta) {
-    if (Math.abs(delta) < INTENT_THRESHOLD) return;
-    if (autoScrolling) return;
-    if (lenis && lenis.isStopped) return;
-    if (document.documentElement.classList.contains('scroll-locked')) return;
-
-    // Read the hero's actual on-screen position rather than comparing
-    // scrollY to a cached offsetHeight: on mobile, the browser's address
-    // bar/search UI resizes the real viewport mid-scroll, which threw off
-    // any fixed-height comparison. getBoundingClientRect always reflects
-    // where things really are right now.
-    const rect = hud.getBoundingClientRect();
-    const atTop = rect.top >= -EPS;
-    const atBottom = rect.bottom <= EPS;
-
-    // Already resting at either end: let normal scrolling take over.
-    if (atTop || atBottom) return;
-
-    smoothScrollTo(delta > 0 ? hud.offsetHeight : 0, 0.7);
-  }
-
-  window.addEventListener('wheel', (e) => maybeSnap(e.deltaY), { passive: true });
-
-  let touchStartY = null;
-  window.addEventListener('touchstart', (e) => {
-    touchStartY = e.touches[0] ? e.touches[0].clientY : null;
-  }, { passive: true });
-  window.addEventListener('touchmove', (e) => {
-    if (touchStartY == null) return;
-    const point = e.touches[0];
-    if (!point) return;
-    const dy = touchStartY - point.clientY; // dragging finger up = scrolling down
-    if (Math.abs(dy) < INTENT_THRESHOLD) return;
-    maybeSnap(dy);
-    touchStartY = null; // only decide once per gesture, then let it play out
-  }, { passive: true });
-}
-
-initHeroSnap();
-
-function initGalleryScrollLock() {
-  const hud = document.querySelector('.hud');
-  const tabViewport = document.querySelector('.tab-viewport');
-  if (!hud || !tabViewport) return;
-
-  function apply(isLocked) {
-    tabViewport.classList.toggle('gallery-scroll-locked', isLocked);
-    panelLenises.forEach(panelLenis => {
-      const method = isLocked ? 'stop' : 'start';
-      if (typeof panelLenis[method] === 'function') panelLenis[method]();
-    });
-  }
-
-  if (typeof IntersectionObserver !== 'function') {
-    apply(false); // can't reliably track this; don't risk a permanently stuck lock
-    return;
-  }
-
-  // Use the browser's own live intersection instead of comparing scrollY to
-  // a cached hero height: mobile browsers resize window.innerHeight in real
-  // time as their address bar/search UI collapses or expands mid-scroll,
-  // which made any manual pixel-threshold approach unreliable and could
-  // leave the gallery locked with no way to scroll it. IntersectionObserver
-  // is always computed against the current, real viewport, so it keeps
-  // reporting correctly no matter what the browser chrome is doing.
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => apply(entry.isIntersecting));
-  }, { threshold: 0 });
-
-  observer.observe(hud);
-
-  // Cover the moment before the first callback fires (e.g. a reload that
-  // restores a mid-page scroll position).
-  apply(hud.getBoundingClientRect().bottom > 0);
-}
-
-initGalleryScrollLock();
-
 function initTabs() {
-  const stage = document.getElementById('tab-stage');
   const buttons = Array.from(document.querySelectorAll('.tab-btn'));
-  if (!stage || !buttons.length) return;
+  const sections = buttons
+    .map(btn => document.getElementById(btn.dataset.panel))
+    .filter(Boolean);
+  if (!buttons.length || !sections.length) return;
 
-  const order = ['work', 'resume', 'contact'];
+  function setActive(panel) {
+    buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.panel === panel));
+  }
 
-  function activate(panel) {
-    const fromIndex = order.indexOf(stage.dataset.active);
-    const toIndex = order.indexOf(panel);
-    if (toIndex === -1 || toIndex === fromIndex) return;
-
-    stage.dataset.active = panel;
-    buttons.forEach(btn => {
-      const isActive = btn.dataset.panel === panel;
-      btn.classList.toggle('active', isActive);
-      btn.setAttribute('aria-selected', String(isActive));
-    });
-
-    if (window.__gridSweep) window.__gridSweep(toIndex > fromIndex ? 1 : -1);
+  function navHeight() {
+    const nav = document.querySelector('.site-nav');
+    return nav ? nav.offsetHeight : 0;
   }
 
   buttons.forEach(btn => {
-    btn.addEventListener('click', () => activate(btn.dataset.panel));
+    btn.addEventListener('click', (e) => {
+      const target = document.getElementById(btn.dataset.panel);
+      if (!target) return;
+      e.preventDefault();
+
+      const fromTop = target.getBoundingClientRect().top + currentScroll();
+      const goingDown = fromTop > currentScroll();
+      if (window.__gridSweep) window.__gridSweep(goingDown ? 1 : -1);
+
+      smoothScrollTo(fromTop - navHeight(), SMOOTH_SCROLL.anchorDuration);
+      setActive(btn.dataset.panel);
+    });
   });
+
+  // Scrollspy: highlight whichever section currently owns the band just
+  // below the sticky nav, so the active tab tracks natural scrolling too.
+  const spyObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) setActive(entry.target.id);
+    });
+  }, { rootMargin: `-${Math.max(navHeight(), 1)}px 0px -70% 0px`, threshold: 0 });
+
+  sections.forEach(sec => spyObserver.observe(sec));
 }
 
 initTabs();
@@ -482,6 +497,10 @@ function initSiteGrid() {
     rowOffset = layout.offset;
     readColor();
     drawStatic();
+
+    window.__gridCell = cell;
+    window.__gridRowOffset = rowOffset;
+    document.dispatchEvent(new CustomEvent('sitegrid:layout'));
   }
 
   function hexToRgba(hex, alpha) {
@@ -739,9 +758,7 @@ function initSiteGrid() {
 
 initSiteGrid();
 
-const WORK_PAGE_SIZE = 18;
-const WORK_INITIAL_SIZE = 16;
-const WORK_LOAD_MORE_SIZE = 10;
+const WORK_PAGE_SIZE = 12;
 const WORK_COLUMNS = 2;
 
 const WORK_MIN_RATIO = 0.75;
@@ -896,6 +913,8 @@ function buildMediaCard(item) {
     }, { once: true });
     setCardRatio(card, item.width, item.height);
     video.addEventListener('loadedmetadata', () => setCardRatio(card, video.videoWidth, video.videoHeight));
+    video.addEventListener('loadeddata', () => card.classList.add('is-loaded'), { once: true });
+    if (video.readyState >= 2) card.classList.add('is-loaded');
     workVideoObserver.observe(video);
   } else {
     const ndaAttr = item.file.includes('NDA') ? ' data-nda-img="true"' : '';
@@ -904,7 +923,11 @@ function buildMediaCard(item) {
     img.onerror = function () { card.remove(); };
     setCardRatio(card, item.width, item.height);
 
-    img.addEventListener('load', () => setCardRatio(card, img.naturalWidth, img.naturalHeight));
+    img.addEventListener('load', () => {
+      setCardRatio(card, img.naturalWidth, img.naturalHeight);
+      card.classList.add('is-loaded');
+    });
+    if (img.complete && img.naturalWidth) card.classList.add('is-loaded');
   }
 
   card.addEventListener('click', () => openLightbox(workMedia.indexOf(item)));
@@ -938,10 +961,13 @@ function buildAppCard(item) {
     card.innerHTML = `<img src="${item.cover}" alt="${item.title}" loading="lazy" decoding="async">
       <div class="app-caption"><p class="app-meta">${appMeta(item)}</p><h3>${item.title}</h3></div>`;
 
-    card.querySelector('img').onerror = function () {
+    const img = card.querySelector('img');
+    img.onerror = function () {
       card.classList.add('no-cover');
       card.innerHTML = appTileHtml(item);
     };
+    img.addEventListener('load', () => card.classList.add('is-loaded'));
+    if (img.complete && img.naturalWidth) card.classList.add('is-loaded');
   } else {
     card.innerHTML = appTileHtml(item);
   }
@@ -1083,8 +1109,7 @@ function renderWorkGrid() {
     return;
   }
 
-  const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
-  appendWorkBatch(byYear ? WORK_PAGE_SIZE : WORK_INITIAL_SIZE);
+  appendWorkBatch(WORK_PAGE_SIZE);
 }
 
 function appendWorkBatch(size) {
@@ -1115,32 +1140,18 @@ function appendWorkBatch(size) {
 
   workShown += batch.length;
   updateWorkPaging();
-  resyncPanelScroll();
 }
 
 function updateWorkPaging() {
-  const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
   const remaining = workShown < workView.length;
-  const sentinel = document.getElementById('work-sentinel');
   const loadMoreBtn = document.getElementById('work-load-more');
-  if (sentinel) sentinel.hidden = !(byYear && remaining);
-  if (loadMoreBtn) loadMoreBtn.hidden = !(!byYear && remaining);
+  if (loadMoreBtn) loadMoreBtn.hidden = !remaining;
 }
 
-const workScrollObserver = new IntersectionObserver((entries) => {
-  const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
-  entries.forEach(entry => {
-    if (entry.isIntersecting && byYear && workShown < workView.length) appendWorkBatch(WORK_PAGE_SIZE);
-  });
-}, { root: document.getElementById('panel-work'), rootMargin: '600px 0px' });
-
-function initWorkInfiniteScroll() {
-  const sentinel = document.getElementById('work-sentinel');
-  if (sentinel) workScrollObserver.observe(sentinel);
-
+function initWorkLoadMore() {
   const loadMoreBtn = document.getElementById('work-load-more');
   if (loadMoreBtn) {
-    loadMoreBtn.addEventListener('click', () => appendWorkBatch(WORK_LOAD_MORE_SIZE));
+    loadMoreBtn.addEventListener('click', () => appendWorkBatch(WORK_PAGE_SIZE));
   }
 }
 
@@ -1406,7 +1417,7 @@ async function init() {
     workItems = [...apps, ...media].sort(compareWorkItems);
     initLightbox();
     initAppDetail();
-    initWorkInfiniteScroll();
+    initWorkLoadMore();
     if (!workItems.length) throw new Error('nothing found in projects.json or gallery/gallery.json');
     buildWorkFilters();
   } catch (err) {
@@ -1424,8 +1435,6 @@ async function init() {
   } catch (err) {
     console.error(err);
   }
-
-  resyncPanelScroll();
 }
 
 init();
