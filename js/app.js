@@ -195,10 +195,12 @@ initSitePreloader();
 
 initHeaderParallax();
 
-// As the hero scrolls by, an overlay canvas dissolves it into squares —
-// bottom rows first, with a little per-cell jitter so the wipe line reads
-// as organic rather than a straight edge — matching the site's grid motif
-// and giving the hero a more deliberate exit than a plain scroll-away.
+// As the hero scrolls by, an overlay canvas dissolves the bottom half of it
+// into squares — bottom rows first, with a little per-cell jitter so the
+// wipe line reads as organic rather than a straight edge — matching the
+// site's grid motif. The top half of the cover is left untouched since
+// we're scrolling away regardless, which also spreads the same scroll
+// range across half as many rows for a slower, more gradual sweep.
 function initHeroDissolve() {
   if (prefersReducedMotion) return;
 
@@ -207,14 +209,15 @@ function initHeroDissolve() {
   if (!canvas || !hud || !canvas.getContext) return;
 
   const ctx = canvas.getContext('2d');
-  const START = 0;     // reveal progress (0-1 of hero height) where dissolve begins — starts the instant scrolling begins
-  const END = 0.92;    // progress where the hero is fully gone
-  const BAND = 0.16;   // how quickly each cell fades in, in progress units
-  const JITTER = 0.22; // per-cell randomness added to its row threshold
+  const START = 0;      // reveal progress (0-1 of hero height) where dissolve begins — starts the instant scrolling begins
+  const END = 0.92;     // progress where the dissolve zone is fully gone
+  const BAND = 0.16;    // how quickly each cell fades in, in progress units
+  const JITTER = 0.22;  // per-cell randomness added to its row threshold
+  const COVER_FRACTION = 0.5; // only the bottom half of the cover dissolves — the top half stays put since we're scrolling away anyway
 
   let CELL = window.__gridCell || 40;
   let ROW_OFFSET = window.__gridRowOffset || 0;
-  let cssWidth = 0, cssHeight = 0, cols = 0, rows = 0;
+  let cssWidth = 0, cssHeight = 0, cols = 0, rows = 0, dissolveRows = 1;
   let jitters = [];
   let bgColor = '#f5f4ef';
   let range = hud.offsetHeight || 1;
@@ -246,6 +249,7 @@ function initHeroDissolve() {
 
     cols = Math.max(1, Math.ceil(w / CELL));
     rows = Math.max(1, Math.ceil((h - ROW_OFFSET) / CELL));
+    dissolveRows = Math.max(1, Math.round(rows * COVER_FRACTION));
     jitters = [];
     for (let r = 0; r < rows; r++) {
       const row = [];
@@ -275,7 +279,10 @@ function initHeroDissolve() {
     ctx.fillStyle = bgColor;
 
     for (let row = 0; row < rows; row++) {
-      const rowThreshold = rows > 1 ? 1 - (row / (rows - 1)) : 1;
+      const fromBottom = rows - 1 - row;
+      if (fromBottom >= dissolveRows) continue; // top half of the cover — never dissolves
+      const participatingIndex = dissolveRows - 1 - fromBottom;
+      const rowThreshold = dissolveRows > 1 ? 1 - (participatingIndex / (dissolveRows - 1)) : 1;
       for (let col = 0; col < cols; col++) {
         const threshold = Math.min(Math.max(rowThreshold + jitters[row][col], 0), 1);
         const alpha = Math.min(Math.max((r - threshold) / BAND, 0), 1);
@@ -299,7 +306,10 @@ function initHeroDissolve() {
       ctx.clearRect(0, 0, cssWidth, cssHeight);
       ctx.fillStyle = bgColor;
       for (let row = 0; row < rows; row++) {
-        const rowThreshold = rows > 1 ? row / (rows - 1) : 0;
+        const fromBottom = rows - 1 - row;
+        if (fromBottom >= dissolveRows) continue; // top half of the cover — always visible
+        const participatingIndex = dissolveRows - 1 - fromBottom;
+        const rowThreshold = dissolveRows > 1 ? participatingIndex / (dissolveRows - 1) : 0;
         for (let col = 0; col < cols; col++) {
           const threshold = Math.min(Math.max(rowThreshold + jitters[row][col], 0), 1);
           const alpha = Math.min(Math.max((threshold - p) / BAND, 0), 1);
