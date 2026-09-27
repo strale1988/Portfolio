@@ -219,6 +219,7 @@ function initHeroDissolve() {
   let range = hud.offsetHeight || 1;
   let lastR = -1;
   let fullyDrawn = false;
+  let loading = true;
 
   function seededRandom(seed) {
     const x = Math.sin(seed * 12.9898) * 43758.5453;
@@ -229,7 +230,7 @@ function initHeroDissolve() {
     bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || bgColor;
   }
 
-  function buildGrid() {
+  function buildGrid(skipRender) {
     const w = hud.clientWidth || window.innerWidth;
     const h = hud.clientHeight || window.innerHeight;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -249,10 +250,11 @@ function initHeroDissolve() {
     }
     range = hud.offsetHeight || 1;
     lastR = -1;
-    render(currentScroll());
+    if (!skipRender) render(currentScroll());
   }
 
   function render(y) {
+    if (loading) return;
     const progress = Math.min(Math.max(y, 0), range) / range;
     const r = Math.min(Math.max((progress - START) / (END - START), 0), 1);
     if (r === lastR) return;
@@ -282,18 +284,59 @@ function initHeroDissolve() {
     fullyDrawn = r >= 1;
   }
 
+  // One-shot entrance animation: the cover image starts fully hidden behind
+  // solid squares and reveals top-row-first, the mirror image of the
+  // scroll-driven exit above. Once it finishes, scroll takes over normally.
+  function playLoadReveal() {
+    const DURATION = 900;
+    const startTime = performance.now();
+
+    function drawFrame(p) {
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+      ctx.fillStyle = bgColor;
+      for (let row = 0; row < rows; row++) {
+        const rowThreshold = rows > 1 ? row / (rows - 1) : 0;
+        for (let col = 0; col < cols; col++) {
+          const threshold = Math.min(Math.max(rowThreshold + jitters[row][col], 0), 1);
+          const alpha = Math.min(Math.max((threshold - p) / BAND, 0), 1);
+          if (alpha <= 0) continue;
+          ctx.globalAlpha = alpha;
+          ctx.fillRect(col * CELL, row * CELL, CELL + 1, CELL + 1);
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function tick(now) {
+      const t = Math.min((now - startTime) / DURATION, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      drawFrame(eased);
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        loading = false;
+        lastR = -1;
+        render(currentScroll());
+      }
+    }
+
+    drawFrame(0);
+    requestAnimationFrame(tick);
+  }
+
   readColor();
-  buildGrid();
+  buildGrid(true);
+  playLoadReveal();
 
   onScroll(render);
-  window.addEventListener('resize', buildGrid);
+  window.addEventListener('resize', () => buildGrid());
   document.addEventListener('themechange', () => {
     readColor();
     lastR = -1;
     render(currentScroll());
   });
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(buildGrid).catch(() => {});
+    document.fonts.ready.then(() => buildGrid()).catch(() => {});
   }
 }
 
