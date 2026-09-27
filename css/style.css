@@ -515,10 +515,23 @@ a{ color: inherit; }
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 0;
+  filter: saturate(0.75);
+  transition: opacity 0.5s ease, filter 0.25s ease;
+}
+.gallery-item.is-loaded img,
+.gallery-item.is-loaded video{
+  opacity: 1;
+}
+.gallery-item:hover img,
+.gallery-item:hover video{
+  filter: saturate(1);
 }
 
 @media (prefers-reduced-motion: reduce){
   .gallery-item{ transition: none; }
+  .gallery-item img,
+  .gallery-item video{ transition: none; }
 }
 
 @media (max-width: 720px){

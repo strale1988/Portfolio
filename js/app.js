@@ -903,6 +903,8 @@ function buildMediaCard(item) {
     }, { once: true });
     setCardRatio(card, item.width, item.height);
     video.addEventListener('loadedmetadata', () => setCardRatio(card, video.videoWidth, video.videoHeight));
+    video.addEventListener('loadeddata', () => card.classList.add('is-loaded'), { once: true });
+    if (video.readyState >= 2) card.classList.add('is-loaded');
     workVideoObserver.observe(video);
   } else {
     const ndaAttr = item.file.includes('NDA') ? ' data-nda-img="true"' : '';
@@ -911,7 +913,11 @@ function buildMediaCard(item) {
     img.onerror = function () { card.remove(); };
     setCardRatio(card, item.width, item.height);
 
-    img.addEventListener('load', () => setCardRatio(card, img.naturalWidth, img.naturalHeight));
+    img.addEventListener('load', () => {
+      setCardRatio(card, img.naturalWidth, img.naturalHeight);
+      card.classList.add('is-loaded');
+    });
+    if (img.complete && img.naturalWidth) card.classList.add('is-loaded');
   }
 
   card.addEventListener('click', () => openLightbox(workMedia.indexOf(item)));
@@ -945,10 +951,13 @@ function buildAppCard(item) {
     card.innerHTML = `<img src="${item.cover}" alt="${item.title}" loading="lazy" decoding="async">
       <div class="app-caption"><p class="app-meta">${appMeta(item)}</p><h3>${item.title}</h3></div>`;
 
-    card.querySelector('img').onerror = function () {
+    const img = card.querySelector('img');
+    img.onerror = function () {
       card.classList.add('no-cover');
       card.innerHTML = appTileHtml(item);
     };
+    img.addEventListener('load', () => card.classList.add('is-loaded'));
+    if (img.complete && img.naturalWidth) card.classList.add('is-loaded');
   } else {
     card.innerHTML = appTileHtml(item);
   }
