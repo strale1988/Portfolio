@@ -498,11 +498,11 @@ a{ color: inherit; }
   border-radius: 8px;
   background: var(--panel-raised);
   cursor: pointer;
-  transition: border-color 0.2s ease, border-width 0.2s ease, border-radius 0.25s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, border-radius 0.25s ease;
 }
 .gallery-item:hover{
   border-color: var(--teal);
-  border-width: 3px;
+  box-shadow: inset 0 0 0 1px var(--teal);
   border-radius: 0;
 }
 

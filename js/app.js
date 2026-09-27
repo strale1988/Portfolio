@@ -207,12 +207,13 @@ function initHeroDissolve() {
   if (!canvas || !hud || !canvas.getContext) return;
 
   const ctx = canvas.getContext('2d');
-  const CELL = 44;
   const START = 0;     // reveal progress (0-1 of hero height) where dissolve begins — starts the instant scrolling begins
   const END = 0.92;    // progress where the hero is fully gone
   const BAND = 0.16;   // how quickly each cell fades in, in progress units
   const JITTER = 0.22; // per-cell randomness added to its row threshold
 
+  let CELL = window.__gridCell || 40;
+  let ROW_OFFSET = window.__gridRowOffset || 0;
   let cssWidth = 0, cssHeight = 0, cols = 0, rows = 0;
   let jitters = [];
   let bgColor = '#f5f4ef';
@@ -231,6 +232,9 @@ function initHeroDissolve() {
   }
 
   function buildGrid(skipRender) {
+    CELL = window.__gridCell || CELL;
+    ROW_OFFSET = window.__gridRowOffset || 0;
+
     const w = hud.clientWidth || window.innerWidth;
     const h = hud.clientHeight || window.innerHeight;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -241,7 +245,7 @@ function initHeroDissolve() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     cols = Math.max(1, Math.ceil(w / CELL));
-    rows = Math.max(1, Math.ceil(h / CELL));
+    rows = Math.max(1, Math.ceil((h - ROW_OFFSET) / CELL));
     jitters = [];
     for (let r = 0; r < rows; r++) {
       const row = [];
@@ -277,7 +281,7 @@ function initHeroDissolve() {
         const alpha = Math.min(Math.max((r - threshold) / BAND, 0), 1);
         if (alpha <= 0) continue;
         ctx.globalAlpha = alpha;
-        ctx.fillRect(col * CELL, row * CELL, CELL + 1, CELL + 1);
+        ctx.fillRect(col * CELL, ROW_OFFSET + row * CELL, CELL + 1, CELL + 1);
       }
     }
     ctx.globalAlpha = 1;
@@ -301,7 +305,7 @@ function initHeroDissolve() {
           const alpha = Math.min(Math.max((threshold - p) / BAND, 0), 1);
           if (alpha <= 0) continue;
           ctx.globalAlpha = alpha;
-          ctx.fillRect(col * CELL, row * CELL, CELL + 1, CELL + 1);
+          ctx.fillRect(col * CELL, ROW_OFFSET + row * CELL, CELL + 1, CELL + 1);
         }
       }
       ctx.globalAlpha = 1;
@@ -330,6 +334,7 @@ function initHeroDissolve() {
 
   onScroll(render);
   window.addEventListener('resize', () => buildGrid());
+  document.addEventListener('sitegrid:layout', () => buildGrid());
   document.addEventListener('themechange', () => {
     readColor();
     lastR = -1;
@@ -482,6 +487,10 @@ function initSiteGrid() {
     rowOffset = layout.offset;
     readColor();
     drawStatic();
+
+    window.__gridCell = cell;
+    window.__gridRowOffset = rowOffset;
+    document.dispatchEvent(new CustomEvent('sitegrid:layout'));
   }
 
   function hexToRgba(hex, alpha) {
