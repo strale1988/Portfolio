@@ -208,7 +208,7 @@ function initHeroDissolve() {
 
   const ctx = canvas.getContext('2d');
   const CELL = 44;
-  const START = 0.2;   // reveal progress (0-1 of hero height) where dissolve begins
+  const START = 0;     // reveal progress (0-1 of hero height) where dissolve begins — starts the instant scrolling begins
   const END = 0.92;    // progress where the hero is fully gone
   const BAND = 0.16;   // how quickly each cell fades in, in progress units
   const JITTER = 0.22; // per-cell randomness added to its row threshold
@@ -288,7 +288,7 @@ function initHeroDissolve() {
   // solid squares and reveals top-row-first, the mirror image of the
   // scroll-driven exit above. Once it finishes, scroll takes over normally.
   function playLoadReveal() {
-    const DURATION = 900;
+    const DURATION = 2000;
     const startTime = performance.now();
 
     function drawFrame(p) {
