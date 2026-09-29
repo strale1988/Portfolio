@@ -416,6 +416,61 @@ function initTabs() {
 
 initTabs();
 
+// Header lock: once the sticky nav reaches the top of the viewport, the hero
+// header is locked away so scrolling up stops at the nav. The nav's arrow
+// button scrolls back to the header and re-enables the normal page-load flow.
+function initHeaderLock() {
+  const hud = document.querySelector('.hud');
+  const btn = document.getElementById('to-top');
+  if (!hud) return;
+
+  let locked = false;
+  let returning = false;
+  let clamping = false;
+
+  function setLocked(value) {
+    locked = value;
+    document.documentElement.classList.toggle('header-locked', value);
+    if (btn) {
+      btn.tabIndex = value ? 0 : -1;
+      btn.setAttribute('aria-hidden', String(!value));
+    }
+  }
+
+  function clampTo(limit) {
+    if (clamping) return;
+    clamping = true;
+    if (lenis) lenis.scrollTo(limit, { immediate: true, force: true });
+    else window.scrollTo(0, limit);
+    clamping = false;
+  }
+
+  onScroll((y) => {
+    const limit = hud.offsetHeight;
+    if (returning) {
+      if (y < limit - 1) returning = false;
+      return;
+    }
+    if (!locked) {
+      if (y >= limit - 1) setLocked(true);
+      return;
+    }
+    if (y < limit) clampTo(limit);
+  });
+
+  if (btn) {
+    setLocked(false);
+    btn.addEventListener('click', () => {
+      returning = true;
+      setLocked(false);
+      if (window.__gridSweep) window.__gridSweep(-1);
+      smoothScrollTo(0, SMOOTH_SCROLL.anchorDuration * 1.4);
+    });
+  }
+}
+
+initHeaderLock();
+
 function initSiteGrid() {
   const canvas = document.querySelector('.site-grid');
   if (!canvas || !canvas.getContext) return;
