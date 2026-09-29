@@ -74,17 +74,55 @@ if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(updateNavHeightVar).catch(() => {});
 }
 
+const THEME_MODES = ['system', 'dark', 'light'];
+const THEME_LABELS = { system: 'System', dark: 'Dark', light: 'Light' };
+
+function getThemeMode() {
+  const m = document.documentElement.getAttribute('data-theme-mode');
+  return THEME_MODES.includes(m) ? m : 'system';
+}
+
+function resolveTheme(mode) {
+  if (mode === 'light' || mode === 'dark') return mode;
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyTheme(mode) {
+  const root = document.documentElement;
+  const theme = resolveTheme(mode);
+  const changed = root.getAttribute('data-theme') !== theme;
+  root.setAttribute('data-theme-mode', mode);
+  root.setAttribute('data-theme', theme);
+
+  const btn = document.getElementById('theme-toggle');
+  if (btn) {
+    const next = THEME_MODES[(THEME_MODES.indexOf(mode) + 1) % THEME_MODES.length];
+    const label = `Theme: ${THEME_LABELS[mode]}. Switch to ${THEME_LABELS[next]}`;
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+  }
+  if (changed) document.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
+}
+
 function initThemeToggle() {
   const btn = document.getElementById('theme-toggle');
   if (!btn) return;
 
+  applyTheme(getThemeMode());
+
   btn.addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-    const next = current === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', next);
+    const mode = getThemeMode();
+    const next = THEME_MODES[(THEME_MODES.indexOf(mode) + 1) % THEME_MODES.length];
     try { localStorage.setItem('theme', next); } catch (e) {  }
-    document.dispatchEvent(new CustomEvent('themechange', { detail: { theme: next } }));
+    applyTheme(next);
   });
+
+  const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  if (mq) {
+    const onSystemChange = () => { if (getThemeMode() === 'system') applyTheme('system'); };
+    if (mq.addEventListener) mq.addEventListener('change', onSystemChange);
+    else if (mq.addListener) mq.addListener(onSystemChange);
+  }
 }
 
 initThemeToggle();
@@ -501,12 +539,29 @@ function initHeaderLock() {
       setArmed(false);
       if (collapsed) restore();
       if (window.__gridSweep) window.__gridSweep(-1);
-      requestAnimationFrame(() => smoothScrollTo(0, SMOOTH_SCROLL.anchorDuration * 1.4));
+      requestAnimationFrame(() => smoothScrollTo(0, SMOOTH_SCROLL.anchorDuration * 1.4, () => {
+        const hero = document.getElementById('hero-toggle');
+        if (hero) {
+          hero.classList.remove('flip');
+          void hero.offsetWidth;
+          hero.classList.add('flip');
+        }
+      }));
     });
   }
 }
 
 initHeaderLock();
+
+// Hero arrow: same as clicking the Work tab (scrolls down and locks the header).
+(function initHeroToggle() {
+  const hero = document.getElementById('hero-toggle');
+  if (!hero) return;
+  hero.addEventListener('click', () => {
+    const workTab = document.getElementById('tab-work');
+    if (workTab) workTab.click();
+  });
+})();
 
 function initSiteGrid() {
   const canvas = document.querySelector('.site-grid');

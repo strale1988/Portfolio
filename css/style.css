@@ -157,8 +157,7 @@ a:focus:not(:focus-visible){
   align-items: center;
   gap: 6px;
 }
-.bottom-left{ bottom: 34px; left: 60px; }
-.scroll-arrow{ display: inline-block; animation: bob 1.8s ease-in-out infinite; }
+.bottom-right{ bottom: 34px; right: 60px; }
 @keyframes bob{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(4px);} }
 
 .hero-content{
@@ -269,7 +268,7 @@ a:focus:not(:focus-visible){
   height: 1px;
   background: currentColor;
   transform: scaleX(0);
-  transform-origin: left;
+  transform-origin: center;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .tab-btn:hover::after,
@@ -313,14 +312,19 @@ a:focus:not(:focus-visible){
 }
 .theme-toggle:hover{ color: var(--teal); border-color: var(--teal); }
 .theme-toggle:active{ transform: scale(0.9); }
-.theme-toggle-icon{
-  display: block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 0 2px var(--nav-bg) inset;
+.theme-toggle svg{
+  display: none;
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
+html[data-theme-mode="system"] .theme-toggle .ti-system,
+html[data-theme-mode="dark"] .theme-toggle .ti-dark,
+html[data-theme-mode="light"] .theme-toggle .ti-light{ display: block; }
 
 .to-top{
   display: inline-flex;
@@ -350,9 +354,40 @@ html.header-locked .to-top{
 .to-top:hover{ color: var(--teal); border-color: var(--teal); }
 .to-top:active{ transform: scale(0.9); }
 
-:root[data-theme="dark"] .theme-toggle-icon{
-  box-shadow: 3px -3px 0 1px var(--nav-bg) inset;
+.to-top svg,
+.hero-toggle svg{
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
+/* Nav arrow points up; it turns over from the hero's down arrow when it appears */
+.to-top svg{ transform: rotate(180deg); }
+html.header-locked .to-top svg{ animation: arrow-flip-up 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes arrow-flip-up{ from{ transform: rotate(0deg); } to{ transform: rotate(180deg); } }
+
+/* Hero arrow (bottom-right of the header) points down; it turns back over on return */
+.hud-readout.hero-toggle{
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  animation: bob 1.8s ease-in-out infinite;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.hud-readout.hero-toggle:hover{ color: var(--teal); border-color: var(--teal); animation-play-state: paused; }
+.hero-toggle.flip svg{ animation: arrow-flip-down 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes arrow-flip-down{ from{ transform: rotate(180deg); } to{ transform: rotate(0deg); } }
+
 
 /* ---------- Page sections (Work / Resume / Contact) ---------- */
 /* The nav is sticky (see .site-nav above) and the sections below it are
@@ -431,7 +466,7 @@ html.header-locked .to-top{
   height: 1px;
   background: currentColor;
   transform: scaleX(0);
-  transform-origin: left;
+  transform-origin: center;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .exp-company-link:hover::after{ transform: scaleX(1); }
@@ -502,7 +537,7 @@ html.header-locked .to-top{
   height: 1px;
   background: currentColor;
   transform: scaleX(0);
-  transform-origin: left;
+  transform-origin: center;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .exp-links-row a:hover::after{ transform: scaleX(1); }
@@ -718,7 +753,7 @@ html.header-locked .to-top{
   height: 1px;
   background: currentColor;
   transform: scaleX(0);
-  transform-origin: left;
+  transform-origin: center;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .links-row a:hover::after{ transform: scaleX(1); }
@@ -818,7 +853,7 @@ html.header-locked .to-top{
   height: 1px;
   background: currentColor;
   transform: scaleX(0);
-  transform-origin: left;
+  transform-origin: center;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .contact-cta-row a:hover::after{ transform: scaleX(1); }
@@ -952,7 +987,7 @@ html.header-locked .to-top{
 
 @media (max-width: 720px){
   .hud-inner, .site-nav, .section{ padding-left: 24px; padding-right: 24px; }
-  .bottom-left{ left: 24px; }
+  .bottom-right{ right: 24px; }
   .exp-position{ grid-template-columns: 1fr; gap: 6px; }
   .skills-grid{ grid-template-columns: 1fr; gap: 24px; }
   .edu-lang-grid{ grid-template-columns: 1fr; gap: 24px; }
