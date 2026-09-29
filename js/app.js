@@ -416,20 +416,26 @@ function initTabs() {
 
 initTabs();
 
-// Header lock: once the sticky nav reaches the top of the viewport, the hero
-// header is locked away so scrolling up stops at the nav. The nav's arrow
-// button scrolls back to the header and re-enables the normal page-load flow.
+// Header lock: once the sticky nav reaches the top of the viewport and the
+// visitor scrolls back up into it, the hero header is pulled out of the page
+// flow (negative margin) and the scroll position is shifted by the same
+// amount, so the view doesn't change and there is nothing above the nav left
+// to scroll into. Nothing fights the browser's native touch momentum, which
+// is what caused the ghosting with a scroll clamp. The nav's arrow button
+// restores the header and scrolls back up to it.
+window.__scrollBase = 0;
+
 function initHeaderLock() {
   const hud = document.querySelector('.hud');
   const btn = document.getElementById('to-top');
   if (!hud) return;
 
-  let locked = false;
-  let returning = false;
-  let clamping = false;
+  let armed = false;      // has been scrolled below the header (arrow visible)
+  let collapsed = false;  // header pulled out of the flow
+  let returning = false;  // arrow pressed, heading back to the header
 
-  function setLocked(value) {
-    locked = value;
+  function setArmed(value) {
+    armed = value;
     document.documentElement.classList.toggle('header-locked', value);
     if (btn) {
       btn.tabIndex = value ? 0 : -1;
@@ -437,34 +443,55 @@ function initHeaderLock() {
     }
   }
 
-  function clampTo(limit) {
-    if (clamping) return;
-    clamping = true;
-    if (lenis) lenis.scrollTo(limit, { immediate: true, force: true });
-    else window.scrollTo(0, limit);
-    clamping = false;
+  function jumpTo(y) {
+    if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
+    else window.scrollTo(0, y);
+  }
+
+  function collapse() {
+    const h = hud.offsetHeight;
+    collapsed = true;
+    window.__scrollBase = h;
+    hud.style.marginTop = `-${h}px`;
+    jumpTo(0);
+  }
+
+  function restore() {
+    const h = window.__scrollBase;
+    collapsed = false;
+    window.__scrollBase = 0;
+    hud.style.marginTop = '';
+    jumpTo(h);
   }
 
   onScroll((y) => {
+    if (collapsed || returning && y >= hud.offsetHeight - 1) return;
     const limit = hud.offsetHeight;
-    if (returning) {
-      if (y < limit - 1) returning = false;
+    if (returning) { returning = false; return; }
+    if (!armed) {
+      if (y > limit + 2) setArmed(true);
       return;
     }
-    if (!locked) {
-      if (y >= limit - 1) setLocked(true);
-      return;
+    if (y <= limit) collapse();
+  });
+
+  window.addEventListener('resize', () => {
+    if (!collapsed) return;
+    const h = hud.offsetHeight;
+    if (h !== window.__scrollBase) {
+      window.__scrollBase = h;
+      hud.style.marginTop = `-${h}px`;
     }
-    if (y < limit) clampTo(limit);
   });
 
   if (btn) {
-    setLocked(false);
+    setArmed(false);
     btn.addEventListener('click', () => {
       returning = true;
-      setLocked(false);
+      setArmed(false);
+      if (collapsed) restore();
       if (window.__gridSweep) window.__gridSweep(-1);
-      smoothScrollTo(0, SMOOTH_SCROLL.anchorDuration * 1.4);
+      requestAnimationFrame(() => smoothScrollTo(0, SMOOTH_SCROLL.anchorDuration * 1.4));
     });
   }
 }
@@ -773,7 +800,7 @@ function initSiteGrid() {
 
   if (!reduceMotion) {
     onScroll((y) => {
-      scrollOffset = y * SCROLL_PARALLAX;
+      scrollOffset = (y + (window.__scrollBase || 0)) * SCROLL_PARALLAX;
 
       if (!rafId) draw(performance.now());
     });
