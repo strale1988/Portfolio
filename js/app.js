@@ -461,26 +461,21 @@ initTabs();
 // flow (negative margin) and the scroll position is shifted by the same
 // amount, so the view doesn't change and there is nothing above the nav left
 // to scroll into. Nothing fights the browser's native touch momentum, which
-// is what caused the ghosting with a scroll clamp. The nav's arrow button
-// restores the header and scrolls back up to it.
+// is what caused the ghosting with a scroll clamp. The shared arrow (docked in
+// the nav) restores the header and scrolls back up to it.
 window.__scrollBase = 0;
 
 function initHeaderLock() {
   const hud = document.querySelector('.hud');
-  const btn = document.getElementById('to-top');
   if (!hud) return;
 
-  let armed = false;      // has been scrolled below the header (arrow visible)
+  let armed = false;      // has been scrolled below the header
   let collapsed = false;  // header pulled out of the flow
   let returning = false;  // arrow pressed, heading back to the header
 
   function setArmed(value) {
     armed = value;
     document.documentElement.classList.toggle('header-locked', value);
-    if (btn) {
-      btn.tabIndex = value ? 0 : -1;
-      btn.setAttribute('aria-hidden', String(!value));
-    }
   }
 
   function jumpTo(y) {
@@ -494,6 +489,7 @@ function initHeaderLock() {
     window.__scrollBase = h;
     hud.style.marginTop = `-${h}px`;
     jumpTo(0);
+    if (window.__updateArrow) window.__updateArrow();
   }
 
   function restore() {
@@ -502,6 +498,7 @@ function initHeaderLock() {
     window.__scrollBase = 0;
     hud.style.marginTop = '';
     jumpTo(h);
+    if (window.__updateArrow) window.__updateArrow();
   }
 
   // Called when a tab click finishes scrolling: lock the header right away.
@@ -532,34 +529,75 @@ function initHeaderLock() {
     }
   });
 
-  if (btn) {
+  // Return to the header. Called by the shared arrow once it has docked in the nav.
+  window.__returnToHeader = () => {
+    returning = true;
     setArmed(false);
-    btn.addEventListener('click', () => {
-      returning = true;
-      setArmed(false);
-      if (collapsed) restore();
-      if (window.__gridSweep) window.__gridSweep(-1);
-      requestAnimationFrame(() => smoothScrollTo(0, SMOOTH_SCROLL.anchorDuration * 1.4, () => {
-        const hero = document.getElementById('hero-toggle');
-        if (hero) {
-          hero.classList.remove('flip');
-          void hero.offsetWidth;
-          hero.classList.add('flip');
-        }
-      }));
-    });
-  }
+    if (collapsed) restore();
+    if (window.__gridSweep) window.__gridSweep(-1);
+    requestAnimationFrame(() => smoothScrollTo(0, SMOOTH_SCROLL.anchorDuration * 1.4));
+  };
 }
 
 initHeaderLock();
 
-// Hero arrow: same as clicking the Work tab (scrolls down and locks the header).
-(function initHeroToggle() {
-  const hero = document.getElementById('hero-toggle');
-  if (!hero) return;
-  hero.addEventListener('click', () => {
-    const workTab = document.getElementById('tab-work');
-    if (workTab) workTab.click();
+// Shared arrow: one button that starts in the header (pointing down), rides up
+// with the header while rotating with the scroll, and docks in the nav
+// (pointing up) once the menu reaches the top. Pointing down it scrolls to the
+// work section; pointing up it scrolls back to the header.
+(function initScrollArrow() {
+  const arrow = document.getElementById('scroll-arrow');
+  const slot = document.getElementById('arrow-slot');
+  const hud = document.querySelector('.hud');
+  const nav = document.querySelector('.site-nav');
+  const svg = arrow && arrow.querySelector('svg');
+  if (!arrow || !slot || !hud || !nav || !svg) return;
+
+  const SIZE = 28;
+  const clamp01 = v => Math.min(1, Math.max(0, v));
+  let p = 0;
+
+  function update() {
+    const h = hud.offsetHeight;
+    const y = currentScroll() + (window.__scrollBase || 0);   // distance from page top
+    const vw = document.documentElement.clientWidth;
+
+    // Start: bottom-right of the header. End: the reserved slot in the stuck nav.
+    const startRight = vw <= 720 ? 24 : 60;
+    const startLeft = vw - startRight - SIZE;
+    const startTop0 = h - 34 - SIZE;
+    const slotRect = slot.getBoundingClientRect();
+    const navRect = nav.getBoundingClientRect();
+    const endLeft = slotRect.left;
+    const endTop = slotRect.top - navRect.top;                 // nav is stuck at top: 0
+
+    const travel = Math.max(1, startTop0 - endTop);            // scroll needed to dock
+    p = clamp01(y / travel);
+
+    const top = Math.max(endTop, startTop0 - y);               // rides with the header, then holds
+    const left = startLeft + (endLeft - startLeft) * p;
+    arrow.style.left = left + 'px';
+    arrow.style.top = top + 'px';
+    svg.style.transform = 'rotate(' + (180 * p) + 'deg)';
+
+    arrow.classList.toggle('at-rest', y < 1);
+    const up = p >= 0.5;
+    arrow.setAttribute('aria-label', up ? 'Back to header' : 'Scroll down to work');
+  }
+
+  window.__updateArrow = update;
+  onScroll(update);
+  window.addEventListener('resize', update);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(update).catch(() => {});
+  update();
+
+  arrow.addEventListener('click', () => {
+    if (p >= 0.5) {
+      if (window.__returnToHeader) window.__returnToHeader();
+    } else {
+      const workTab = document.getElementById('tab-work');
+      if (workTab) workTab.click();
+    }
   });
 })();
 
