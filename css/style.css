@@ -98,6 +98,15 @@ a{ color: inherit; }
   outline-offset: 3px;
 }
 
+/* No tap/click highlight box behind buttons and links (keyboard focus rings stay) */
+a, button, .tab-btn, .theme-toggle, .to-top, .cv-download{
+  -webkit-tap-highlight-color: transparent;
+}
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible){
+  outline: none;
+}
+
 .hud{
   position: relative;
   height: 100vh;
@@ -270,7 +279,6 @@ a{ color: inherit; }
 .tab-btn.active::after{ background: var(--teal); }
 
 .cv-download{
-  margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -286,9 +294,10 @@ a{ color: inherit; }
 }
 .cv-download:hover{ color: var(--teal); border-color: var(--teal); }
 .cv-download-icon{ font-size: 12px; line-height: 1; }
+.cv-section{ padding-top: 8px; padding-bottom: 72px; }
 
 .theme-toggle{
-  margin-left: 0;
+  margin-left: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;

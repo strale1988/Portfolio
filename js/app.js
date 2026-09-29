@@ -357,18 +357,18 @@ initHeroDissolve();
 
 let autoScrolling = false;
 
-function smoothScrollTo(target, duration) {
+function smoothScrollTo(target, duration, onDone) {
   if (lenis) {
     lenis.scrollTo(target, {
       duration,
       easing: easeInOutCubic,
       onStart: () => { autoScrolling = true; },
-      onComplete: () => { autoScrolling = false; }
+      onComplete: () => { autoScrolling = false; if (onDone) onDone(); }
     });
   } else {
     autoScrolling = true;
     window.scrollTo({ top: target, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
-    setTimeout(() => { autoScrolling = false; }, duration * 1000 + 80);
+    setTimeout(() => { autoScrolling = false; if (onDone) onDone(); }, duration * 1000 + 80);
   }
 }
 
@@ -398,7 +398,9 @@ function initTabs() {
       const goingDown = fromTop > currentScroll();
       if (window.__gridSweep) window.__gridSweep(goingDown ? 1 : -1);
 
-      smoothScrollTo(fromTop - navHeight(), SMOOTH_SCROLL.anchorDuration);
+      smoothScrollTo(fromTop - navHeight(), SMOOTH_SCROLL.anchorDuration, () => {
+        if (window.__lockHeader) window.__lockHeader();
+      });
       setActive(btn.dataset.panel);
     });
   });
@@ -463,6 +465,14 @@ function initHeaderLock() {
     hud.style.marginTop = '';
     jumpTo(h);
   }
+
+  // Called when a tab click finishes scrolling: lock the header right away.
+  window.__lockHeader = () => {
+    if (collapsed || returning) return;
+    if (currentScroll() < hud.offsetHeight - 1) return;
+    setArmed(true);
+    collapse();
+  };
 
   onScroll((y) => {
     if (collapsed || returning && y >= hud.offsetHeight - 1) return;
