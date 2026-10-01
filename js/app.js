@@ -401,12 +401,12 @@ function smoothScrollTo(target, duration, onDone) {
       duration,
       easing: easeInOutCubic,
       onStart: () => { autoScrolling = true; },
-      onComplete: () => { autoScrolling = false; if (onDone) onDone(); }
+      onComplete: () => { autoScrolling = false; emitScroll(); if (onDone) onDone(); }
     });
   } else {
     autoScrolling = true;
     window.scrollTo({ top: target, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
-    setTimeout(() => { autoScrolling = false; if (onDone) onDone(); }, duration * 1000 + 80);
+    setTimeout(() => { autoScrolling = false; emitScroll(); if (onDone) onDone(); }, duration * 1000 + 80);
   }
 }
 
@@ -426,32 +426,53 @@ function initTabs() {
     return nav ? nav.offsetHeight : 0;
   }
 
+  function sectionTop(target) {
+    const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const dest = target.getBoundingClientRect().top + currentScroll() - navHeight();
+    return Math.min(Math.max(0, dest), max);
+  }
+
+  // Scroll to a section, then re-measure: lazy images / reveals / load-more in
+  // the sections above can change the layout mid-flight and leave us short.
+  function goToSection(target, duration, attempt) {
+    smoothScrollTo(sectionTop(target), duration, () => {
+      if (attempt < 2 && Math.abs(sectionTop(target) - currentScroll()) > 2) {
+        goToSection(target, 0.4, attempt + 1);
+        return;
+      }
+      if (window.__lockHeader) window.__lockHeader();
+    });
+  }
+
   buttons.forEach(btn => {
     btn.addEventListener('click', (e) => {
       const target = document.getElementById(btn.dataset.panel);
       if (!target) return;
       e.preventDefault();
 
-      const fromTop = target.getBoundingClientRect().top + currentScroll();
-      const goingDown = fromTop > currentScroll();
+      const goingDown = sectionTop(target) > currentScroll();
       if (window.__gridSweep) window.__gridSweep(goingDown ? 1 : -1);
 
-      smoothScrollTo(fromTop - navHeight(), SMOOTH_SCROLL.anchorDuration, () => {
-        if (window.__lockHeader) window.__lockHeader();
-      });
+      goToSection(target, SMOOTH_SCROLL.anchorDuration, 0);
       setActive(btn.dataset.panel);
     });
   });
 
-  // Scrollspy: highlight whichever section currently owns the band just
-  // below the sticky nav, so the active tab tracks natural scrolling too.
-  const spyObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) setActive(entry.target.id);
-    });
-  }, { rootMargin: `-${Math.max(navHeight(), 1)}px 0px -70% 0px`, threshold: 0 });
+  // Scrollspy: the active tab is the last section whose top has passed a line
+  // just below the sticky nav. Position-based (not IntersectionObserver) so a
+  // tab click landing flush under the nav can't leave two sections "active".
+  function spy() {
+    if (autoScrolling) return;
+    const line = navHeight() + window.innerHeight * 0.3;
+    let current = sections[0];
+    for (const sec of sections) {
+      if (sec.getBoundingClientRect().top <= line) current = sec;
+    }
+    setActive(current.id);
+  }
 
-  sections.forEach(sec => spyObserver.observe(sec));
+  onScroll(spy);
+  spy();
 }
 
 initTabs();
@@ -485,19 +506,23 @@ function initHeaderLock() {
 
   function collapse() {
     const h = hud.offsetHeight;
+    const y = currentScroll();
     collapsed = true;
     window.__scrollBase = h;
     hud.style.marginTop = `-${h}px`;
-    jumpTo(0);
+    if (lenis && lenis.resize) lenis.resize();   // refresh Lenis' cached page height before jumping
+    jumpTo(Math.max(0, y - h));
     if (window.__updateArrow) window.__updateArrow();
   }
 
   function restore() {
     const h = window.__scrollBase;
+    const y = currentScroll();
     collapsed = false;
     window.__scrollBase = 0;
     hud.style.marginTop = '';
-    jumpTo(h);
+    if (lenis && lenis.resize) lenis.resize();   // restored header makes the page taller; don't clamp to the old limit
+    jumpTo(y + h);
     if (window.__updateArrow) window.__updateArrow();
   }
 
