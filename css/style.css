@@ -557,9 +557,6 @@ html[data-theme-mode="light"] .theme-toggle .ti-light{ display: block; }
   border-radius: 0;
 }
 
-.gallery-row > .gallery-item:only-child{
-  flex: 0 0 calc((100% - var(--work-gap)) / 2);
-}
 .gallery-item img,
 .gallery-item video{
   width: 100%;
@@ -585,13 +582,26 @@ html[data-theme-mode="light"] .theme-toggle .ti-light{ display: block; }
   .gallery-item video{ transition: none; }
 }
 
+/* Archive: denser grid (JS sets the column count and row widths) */
+.gallery-grid.is-archive{ --work-gap: 10px; }
+.is-archive .gallery-item{ border-radius: 6px; }
+.is-archive .app-tile{ padding: 12px; }
+.is-archive .app-tile h3{ font-size: 1.05rem; padding: 6px 0; }
+.is-archive .app-tile .tag-list{ display: none; }
+.is-archive .app-caption{ padding: 8px 10px 10px; }
+.is-archive .app-caption h3{ font-size: 0.9rem; }
+
+/* Other filters stay one-up on phones; archive keeps its 2 columns */
 @media (max-width: 720px){
-  .gallery-row{ flex-direction: column; }
-  .gallery-row > .gallery-item,
-  .gallery-row > .gallery-item:only-child{
+  .gallery-grid:not(.is-archive) .gallery-row{
+    flex-direction: column;
+    width: auto !important;
+  }
+  .gallery-grid:not(.is-archive) .gallery-row > .gallery-item{
     flex: none;
     width: 100%;
   }
+  .gallery-grid.is-archive{ --work-gap: 8px; }
 }
 
 .load-more-btn{

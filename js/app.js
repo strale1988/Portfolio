@@ -966,8 +966,25 @@ function initSiteGrid() {
 
 initSiteGrid();
 
-const WORK_PAGE_SIZE = 12;
-const WORK_COLUMNS = 2;
+// Columns per layout. Archive is denser (more thumbnails per row); every other
+// filter keeps the original 2-up layout. Each "Load more" adds WORK_ROWS_PER_PAGE
+// full rows, so the batch size scales with the column count.
+const WORK_ROWS_PER_PAGE = 6;
+const ARCHIVE_COLUMNS = { wide: 4, mid: 3, narrow: 2 };   // >=1200px / >=720px / below
+const ARCHIVE_WIDE_BP = 1200;
+const ARCHIVE_MID_BP = 720;
+
+function workColumns() {
+  if (workFilter !== 'archive') return 2;
+  const w = window.innerWidth;
+  if (w >= ARCHIVE_WIDE_BP) return ARCHIVE_COLUMNS.wide;
+  if (w >= ARCHIVE_MID_BP) return ARCHIVE_COLUMNS.mid;
+  return ARCHIVE_COLUMNS.narrow;
+}
+
+function workPageSize() {
+  return workColumns() * WORK_ROWS_PER_PAGE;
+}
 
 const WORK_MIN_RATIO = 0.75;
 const WORK_MAX_RATIO = 2.2;
@@ -997,6 +1014,7 @@ let workShown = 0;
 let workFilter = 'archive';
 let workLastYear = null;
 let workOpenRow = null;
+let workRenderedCols = 2;
 let workLightboxIndex = 0;
 
 const workVideoObserver = new IntersectionObserver((entries) => {
@@ -1303,7 +1321,7 @@ function setWorkFilter(id) {
   renderWorkGrid();
 }
 
-function renderWorkGrid() {
+function renderWorkGrid(keepCount) {
   const grid = document.getElementById('work-grid');
   workVideoObserver.disconnect();
   grid.innerHTML = '';
@@ -1311,17 +1329,32 @@ function renderWorkGrid() {
   workLastYear = null;
   workOpenRow = null;
 
+  const cols = workColumns();
+  grid.classList.toggle('is-archive', workFilter === 'archive');
+  grid.style.setProperty('--work-cols', cols);
+  workRenderedCols = cols;
+
   if (!workView.length) {
     grid.innerHTML = '<p class="loading">Nothing here yet.</p>';
     updateWorkPaging();
     return;
   }
 
-  appendWorkBatch(WORK_PAGE_SIZE);
+  appendWorkBatch(Math.max(keepCount || 0, workPageSize()));
+}
+
+// A row with fewer cards than columns (end of a year group / end of the list)
+// is narrowed to n/cols of the full width so its cards keep a normal size
+// instead of stretching across the whole row.
+function sizeWorkRow(row, cols) {
+  const n = row.children.length;
+  if (!n || n >= cols) { row.style.width = ''; return; }
+  row.style.width = `calc((100% - ${cols - 1} * var(--work-gap)) * ${n} / ${cols} + ${n - 1} * var(--work-gap))`;
 }
 
 function appendWorkBatch(size) {
   const grid = document.getElementById('work-grid');
+  const cols = workColumns();
   const byYear = WORK_FILTERS.find(f => f.id === workFilter).byYear;
   const batch = workView.slice(workShown, workShown + size);
 
@@ -1335,14 +1368,15 @@ function appendWorkBatch(size) {
       workOpenRow = null;
     }
     const card = item.kind === 'app' ? buildAppCard(item) : buildMediaCard(item);
-    markReveal(card, offset % 6);
+    markReveal(card, offset % cols);
 
-    if (!workOpenRow || workOpenRow.children.length >= WORK_COLUMNS) {
+    if (!workOpenRow || workOpenRow.children.length >= cols) {
       workOpenRow = document.createElement('div');
       workOpenRow.className = 'gallery-row';
       grid.appendChild(workOpenRow);
     }
     workOpenRow.appendChild(card);
+    sizeWorkRow(workOpenRow, cols);
   });
   observeReveal(grid);
 
@@ -1359,8 +1393,19 @@ function updateWorkPaging() {
 function initWorkLoadMore() {
   const loadMoreBtn = document.getElementById('work-load-more');
   if (loadMoreBtn) {
-    loadMoreBtn.addEventListener('click', () => appendWorkBatch(WORK_PAGE_SIZE));
+    loadMoreBtn.addEventListener('click', () => appendWorkBatch(workPageSize()));
   }
+
+  // Crossing a breakpoint changes the archive column count: rebuild the grid
+  // with the same number of items already loaded.
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (!workView.length || workColumns() === workRenderedCols) return;
+      renderWorkGrid(workShown);
+    }, 150);
+  });
 }
 
 function openLightbox(index) {
