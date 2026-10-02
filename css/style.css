@@ -549,12 +549,11 @@ html[data-theme-mode="light"] .theme-toggle .ti-light{ display: block; }
   border-radius: 8px;
   background: var(--panel-raised);
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, border-radius 0.25s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .gallery-item:hover{
   border-color: var(--teal);
   box-shadow: inset 0 0 0 1px var(--teal);
-  border-radius: 0;
 }
 
 .gallery-item img,
@@ -564,20 +563,14 @@ html[data-theme-mode="light"] .theme-toggle .ti-light{ display: block; }
   object-fit: cover;
   display: block;
   opacity: 0;
-  filter: saturate(0.75);
-  transition: opacity 0.5s ease, filter 0.25s ease;
+  transition: opacity 0.5s ease;
 }
 .gallery-item.is-loaded img,
 .gallery-item.is-loaded video{
   opacity: 1;
 }
-.gallery-item:hover img,
-.gallery-item:hover video{
-  filter: saturate(1);
-}
 
 @media (prefers-reduced-motion: reduce){
-  .gallery-item{ transition: none; }
   .gallery-item img,
   .gallery-item video{ transition: none; }
 }
@@ -874,9 +867,7 @@ html[data-theme-mode="light"] .theme-toggle .ti-light{ display: block; }
   flex-direction: column;
   padding: 18px 18px 16px;
   border-top: 2px solid var(--teal);
-  transition: border-color 0.2s ease;
 }
-.gallery-item.is-app:hover .app-tile{ border-top-color: var(--amber); }
 .app-tile h3{
   margin: auto 0;
   padding: 10px 0;
@@ -896,9 +887,7 @@ html[data-theme-mode="light"] .theme-toggle .ti-light{ display: block; }
   padding: 10px 14px 12px;
   background: var(--lightbox-bg);
   border-top: 2px solid var(--teal);
-  transition: border-color 0.2s ease;
 }
-.gallery-item.is-app:hover .app-caption{ border-top-color: var(--amber); }
 .app-caption h3{
   margin: 2px 0 0;
   font-family: var(--font-display);

@@ -986,6 +986,17 @@ function workPageSize() {
   return workColumns() * WORK_ROWS_PER_PAGE;
 }
 
+// Archive loads one complete year per batch (so a year is never cut in half);
+// other filters load a fixed number of full rows.
+function nextWorkBatchSize() {
+  if (workFilter !== 'archive') return workPageSize();
+  const first = workView[workShown];
+  if (!first) return 0;
+  let n = 0;
+  while (workShown + n < workView.length && workView[workShown + n].year === first.year) n++;
+  return n;
+}
+
 const WORK_MIN_RATIO = 0.75;
 const WORK_MAX_RATIO = 2.2;
 const WORK_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v'];
@@ -1340,7 +1351,7 @@ function renderWorkGrid(keepCount) {
     return;
   }
 
-  appendWorkBatch(Math.max(keepCount || 0, workPageSize()));
+  appendWorkBatch(keepCount || nextWorkBatchSize());
 }
 
 // A row with fewer cards than columns (end of a year group / end of the list)
@@ -1393,7 +1404,7 @@ function updateWorkPaging() {
 function initWorkLoadMore() {
   const loadMoreBtn = document.getElementById('work-load-more');
   if (loadMoreBtn) {
-    loadMoreBtn.addEventListener('click', () => appendWorkBatch(workPageSize()));
+    loadMoreBtn.addEventListener('click', () => appendWorkBatch(nextWorkBatchSize()));
   }
 
   // Crossing a breakpoint changes the archive column count: rebuild the grid
