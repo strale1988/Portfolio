@@ -583,13 +583,15 @@ html[data-theme-mode="light"] .theme-toggle .ti-light{ display: block; }
 }
 
 /* Archive: denser grid (JS sets the column count and row widths) */
-.gallery-grid.is-archive{ --work-gap: 10px; }
-.is-archive .gallery-item{ border-radius: 6px; }
-.is-archive .app-tile{ padding: 12px; }
-.is-archive .app-tile h3{ font-size: 1.05rem; padding: 6px 0; }
+.gallery-grid.is-archive{ --work-gap: 6px; }
+.is-archive .gallery-item{ border-radius: 4px; }
+.is-archive .app-tile{ padding: 8px; }
+.is-archive .app-tile h3{ font-size: 0.8rem; padding: 4px 0; }
+.is-archive .app-tile .app-meta{ font-size: 9px; }
 .is-archive .app-tile .tag-list{ display: none; }
-.is-archive .app-caption{ padding: 8px 10px 10px; }
-.is-archive .app-caption h3{ font-size: 0.9rem; }
+.is-archive .app-caption{ padding: 5px 7px 6px; }
+.is-archive .app-caption .app-meta{ display: none; }
+.is-archive .app-caption h3{ font-size: 0.7rem; margin: 0; }
 
 /* Other filters stay one-up on phones; archive keeps its 2 columns */
 @media (max-width: 720px){
@@ -601,7 +603,7 @@ html[data-theme-mode="light"] .theme-toggle .ti-light{ display: block; }
     flex: none;
     width: 100%;
   }
-  .gallery-grid.is-archive{ --work-gap: 8px; }
+  .gallery-grid.is-archive{ --work-gap: 5px; }
 }
 
 .load-more-btn{

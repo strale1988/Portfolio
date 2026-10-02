@@ -970,7 +970,7 @@ initSiteGrid();
 // filter keeps the original 2-up layout. Each "Load more" adds WORK_ROWS_PER_PAGE
 // full rows, so the batch size scales with the column count.
 const WORK_ROWS_PER_PAGE = 6;
-const ARCHIVE_COLUMNS = { wide: 4, mid: 3, narrow: 2 };   // >=1200px / >=720px / below
+const ARCHIVE_COLUMNS = { wide: 8, mid: 6, narrow: 4 };   // >=1200px / >=720px / below
 const ARCHIVE_WIDE_BP = 1200;
 const ARCHIVE_MID_BP = 720;
 
