@@ -1236,7 +1236,7 @@ function openAppDetail(item) {
     ? [{ label: 'Open in new tab', url: item.embed }, ...item.links]
     : item.links;
   const links = allLinks.length
-    ? `<div class="links-row">${allLinks.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('')}</div>`
+    ? `<div class="links-row">${allLinks.map(l => /\.(mzp|zip|ms|mse)(\?|$)/i.test(l.url) ? `<a href="${l.url}" download>${l.label} ↓</a>` : `<a href="${l.url}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('')}</div>`
     : '';
   const embed = item.embed
     ? (isTour
