@@ -77,4 +77,17 @@
     "embed": "",
     "featured": false
   }
+    {
+    "slug": "StrTools",
+    "title": "StrTools",
+    "category": "Tool",
+    "date": "2015-2026",
+    "description": "Swiss Army knife for 3dsMax, all-in-one MAXScript utility packed with custom tools to slice through any complex 3D workflow.",
+    "cover": "projects/StrTools/StrTools.webp",
+    "tags": ["MAXScript", "3dsMax", "3D"],
+    "links": [{ "label": "Play", "url": "projects/StrTools/StrTools.mzp" }],
+    "type": "tool",
+    "embed": "",
+    "featured": false
+  }
 ]
