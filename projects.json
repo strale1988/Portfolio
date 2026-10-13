@@ -143,12 +143,8 @@
       "Pipeline",
       "Tools"
     ],
-    "links": [
-      {
-        "label": "Download",
-        "url": "projects/StrTools/StrTools.mzp"
-      }
-    ],
+    "links": [],
+    "versions": "projects/StrTools/versions.json",
     "type": "tool",
     "embed": "",
     "featured": false

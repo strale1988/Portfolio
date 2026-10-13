@@ -1,0 +1,11 @@
+{
+  "updated": "2026-10-13",
+  "versions": [
+    { "version": "3.028", "file": "projects/StrTools/StrTools_v3.028.mzp", "notes": [], "latest": true },
+    { "version": "3.016", "file": "projects/StrTools/StrTools_v3.016.mzp", "notes": [] },
+    { "version": "2.958", "file": "projects/StrTools/StrTools_v2.958.mzp", "notes": [] },
+    { "version": "2.88",  "file": "projects/StrTools/StrTools_v2.88.mzp",  "notes": [] },
+    { "version": "2.27",  "file": "projects/StrTools/StrTools_v2.27.mzp",  "notes": [] },
+    { "version": "1.15",  "file": "projects/StrTools/StrTools_v1.15.mzp",  "notes": [] }
+  ]
+}

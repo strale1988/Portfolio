@@ -1111,6 +1111,7 @@ async function loadAppItems() {
       description: p.description || '',
       tags: p.tags || [],
       links: p.links || [],
+      versions: p.versions || '',
       embed: p.embed || '',
       cover: p.cover || '',
       featured: p.featured || false
@@ -1216,6 +1217,52 @@ function buildAppCard(item) {
 
 let appDetailReturnFocus = null;
 
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function formatBytes(n) {
+  if (!n) return '';
+  return n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
+}
+
+// Downloadable versions come from a manifest (versions.json) that the
+// build-versions script / GitHub Action regenerates from the files in the
+// project folder, so adding a new .mzp is all it takes to list it.
+async function renderVersions(url, container) {
+  if (!container) return;
+  try {
+    const res = await fetch(url, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    const list = (data.versions || []);
+    if (!list.length) { container.innerHTML = '<p class="versions-loading">No downloads yet.</p>'; return; }
+
+    container.innerHTML = `
+      <p class="versions-label">Downloads</p>
+      <ul class="versions-list">
+        ${list.map(v => {
+          const name = v.version ? `v${escapeHtml(v.version)}` : 'Download';
+          const meta = [v.date, formatBytes(v.size)].filter(Boolean).map(escapeHtml).join(' · ');
+          const notes = (v.notes && v.notes.length)
+            ? `<ul class="version-notes">${v.notes.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>`
+            : '';
+          return `<li class="version${v.latest ? ' is-latest' : ''}">
+            <div class="version-head">
+              <span class="version-name">${name}${v.latest ? '<span class="version-badge">Latest</span>' : ''}</span>
+              <span class="version-meta">${meta}</span>
+              <a class="version-dl" href="${encodeURI(v.file)}" download>Download ↓</a>
+            </div>
+            ${notes}
+          </li>`;
+        }).join('')}
+      </ul>`;
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = '<p class="versions-loading">Couldn\'t load the version list.</p>';
+  }
+}
+
 function openAppDetail(item) {
   const overlay = document.getElementById('app-detail');
   const cover = document.getElementById('app-detail-cover');
@@ -1252,7 +1299,10 @@ function openAppDetail(item) {
     ${item.description ? `<p class="app-detail-desc">${item.description}</p>` : ''}
     ${appTags(item)}
     ${embed}
+    ${item.versions ? '<div class="versions" id="app-detail-versions"><p class="versions-loading">Loading versions…</p></div>' : ''}
     ${links}`;
+
+  if (item.versions) renderVersions(item.versions, document.getElementById('app-detail-versions'));
 
   if (item.embed && !isTour) {
     const launchBtn = document.querySelector('.app-embed-launch');
