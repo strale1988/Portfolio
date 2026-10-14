@@ -395,6 +395,13 @@ initHeroDissolve();
 
 let autoScrolling = false;
 
+// Keep the address bar in sync so any state can be shared as a link:
+//   #work  #resume  #contact  #work/<filter>  #work/<filter>/<app-slug>
+function setHash(h) {
+  try { history.replaceState(null, '', h ? '#' + h : location.pathname + location.search); }
+  catch (e) {}
+}
+
 function smoothScrollTo(target, duration, onDone) {
   if (lenis) {
     lenis.scrollTo(target, {
@@ -434,15 +441,28 @@ function initTabs() {
 
   // Scroll to a section, then re-measure: lazy images / reveals / load-more in
   // the sections above can change the layout mid-flight and leave us short.
-  function goToSection(target, duration, attempt) {
+  function goToSection(target, duration, attempt, cb) {
     smoothScrollTo(sectionTop(target), duration, () => {
       if (attempt < 2 && Math.abs(sectionTop(target) - currentScroll()) > 2) {
-        goToSection(target, 0.4, attempt + 1);
+        goToSection(target, 0.4, attempt + 1, cb);
         return;
       }
       if (window.__lockHeader) window.__lockHeader();
+      if (cb) cb();
     });
   }
+
+  // Shared by the tab buttons, the work filter chips and deep links.
+  function goToPanel(id, opts) {
+    opts = opts || {};
+    const target = document.getElementById(id);
+    if (!target) return;
+    const goingDown = sectionTop(target) > currentScroll();
+    if (window.__gridSweep) window.__gridSweep(goingDown ? 1 : -1);
+    goToSection(target, opts.duration || SMOOTH_SCROLL.anchorDuration, 0, opts.onDone);
+    setActive(id);
+  }
+  window.__goToPanel = goToPanel;
 
   buttons.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -450,11 +470,8 @@ function initTabs() {
       if (!target) return;
       e.preventDefault();
 
-      const goingDown = sectionTop(target) > currentScroll();
-      if (window.__gridSweep) window.__gridSweep(goingDown ? 1 : -1);
-
-      goToSection(target, SMOOTH_SCROLL.anchorDuration, 0);
-      setActive(btn.dataset.panel);
+      goToPanel(btn.dataset.panel);
+      setHash(btn.dataset.panel === 'work' && workItems.length ? `work/${workFilter}` : btn.dataset.panel);
     });
   });
 
@@ -1312,6 +1329,7 @@ function openAppDetail(item) {
     });
   }
 
+  if (item.slug) setHash(`work/${item.category}/${encodeURIComponent(item.slug)}`);
   appDetailReturnFocus = document.activeElement;
   overlay.classList.add('open');
   overlay.setAttribute('aria-hidden', 'false');
@@ -1319,9 +1337,10 @@ function openAppDetail(item) {
   document.getElementById('app-detail-close').focus();
 }
 
-function closeAppDetail() {
+function closeAppDetail(silent) {
   const overlay = document.getElementById('app-detail');
   overlay.classList.remove('open');
+  if (silent !== true) setHash(`work/${workFilter}`);
   overlay.setAttribute('aria-hidden', 'true');
   lockPageScroll(false);
 
@@ -1352,11 +1371,52 @@ function buildWorkFilters() {
     btn.className = 'filter-chip';
     btn.dataset.filter = f.id;
     btn.textContent = f.label;
-    btn.addEventListener('click', () => setWorkFilter(f.id));
+    btn.addEventListener('click', () => {
+      setWorkFilter(f.id);
+      setHash(`work/${f.id}`);
+      if (window.__goToPanel) window.__goToPanel('work');
+    });
     nav.appendChild(btn);
   });
 
   setWorkFilter(chips[0].id);
+}
+
+// ---- Deep links --------------------------------------------------------
+function parseHash() {
+  const dec = v => { try { return decodeURIComponent(v); } catch (e) { return v; } };
+  const [panel, filter, slug] = location.hash.replace(/^#/, '').split('/').map(dec);
+  return { panel, filter, slug };
+}
+
+function applyHash(initial) {
+  const { panel, filter, slug } = parseHash();
+  if (!['work', 'resume', 'contact'].includes(panel)) return;
+
+  const overlay = document.getElementById('app-detail');
+  if (overlay && overlay.classList.contains('open')) closeAppDetail(true);
+
+  const item = (panel === 'work' && slug)
+    ? workItems.find(it => it.kind === 'app' && it.slug === slug)
+    : null;
+  const wanted = item ? item.category : filter;
+  if (panel === 'work' && wanted && wanted !== workFilter &&
+      document.querySelector(`#filters .filter-chip[data-filter="${wanted}"]`)) {
+    setWorkFilter(wanted);
+  }
+
+  window.__goToPanel(panel, {
+    duration: initial ? 0.6 : undefined,
+    onDone: item ? () => openAppDetail(item) : undefined
+  });
+}
+
+function initDeepLinks() {
+  window.addEventListener('hashchange', () => applyHash(false));
+  if (!location.hash) return;
+  // Wait for the window load handler (which resets scroll to the top) first.
+  if (document.readyState === 'complete') applyHash(true);
+  else window.addEventListener('load', () => applyHash(true), { once: true });
 }
 
 function setWorkFilter(id) {
@@ -1734,6 +1794,7 @@ async function init() {
     initWorkLoadMore();
     if (!workItems.length) throw new Error('nothing found in projects.json or gallery/gallery.json');
     buildWorkFilters();
+    initDeepLinks();
   } catch (err) {
     document.getElementById('work-grid').innerHTML =
       `<p class="loading">Couldn't load work — if you opened this file directly, run it through a local server instead (see README). (${err.message})</p>`;
