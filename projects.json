@@ -1,5 +1,27 @@
 [
   {
+    "slug": "MealRoulette",
+    "title": "Meal Roulette",
+    "category": "Web app",
+    "date": "2026",
+    "description": "Stuck on what to cook? Spin for it. A recipe app that helps you cook from your fridge, plan your week and explore cuisines from all over the world: 1,200+ recipes across 89 cookbooks, installable and fully usable offline.",
+    "cover": "projects/MealRoulette/MealRoulette-cover.webp",
+    "tags": [
+      "PWA",
+      "Offline-first",
+      "Vanilla JS"
+    ],
+    "links": [
+      {
+        "label": "Live site",
+        "url": "https://strale1988.github.io/MealRoulette/"
+      }
+    ],
+    "type": "app",
+    "embed": "",
+    "featured": false
+  },
+  {
     "slug": "tracethebreak",
     "title": "TraceTheBreak",
     "category": "Web app",
